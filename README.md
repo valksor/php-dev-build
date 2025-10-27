@@ -597,40 +597,6 @@ valksor:
             debug: true
 ```
 
-## Testing
-
-Run the test suite for the build tools:
-
-```bash
-# Run all tests
-vendor/bin/phpunit
-
-# Run tests with coverage
-vendor/bin/phpunit --coverage-text
-
-# Run specific test suites
-vendor/bin/phpunit tests/Service/
-vendor/bin/phpunit tests/Provider/
-vendor/bin/phpunit tests/Binary/
-
-# Test binary downloads
-vendor/bin/phpunit tests/Binary/BinaryAssetManagerTest.php
-```
-
-### Integration Testing
-
-Test the complete build workflow:
-
-```bash
-# Test hot reload functionality
-php bin/console valksor:hot-reload --test-mode
-
-# Test tailwind compilation
-php bin/console valksor:tailwind-build --dry-run
-
-# Test binary management
-php bin/console valksor:binary-ensure --check-versions
-```
 
 ## Contributing
 
