@@ -1,5 +1,10 @@
 # ValksorDev Build Tools
 
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/valksor/php-dev-build.svg)](https://packagist.org/packages/valksor/php-dev-build)
+[![Total Downloads](https://img.shields.io/packagist/dt/valksor/php-dev-build.svg)](https://packagist.org/packages/valksor/php-dev-build)
+[![License](https://img.shields.io/packagist/l/valksor/php-dev-build.svg)](LICENSE)
+[![PHP Version Require](https://img.shields.io/packagist/require-v/valksor/php-dev-build/php)](https://packagist.org/packages/valksor/php-dev-build)
+
 A comprehensive development build tool suite for PHP applications that provides hot reloading, asset compilation, import map management, and development workflow automation. Designed to streamline modern PHP development with integrated tooling for Tailwind CSS, ESBuild, DaisyUI, and other frontend build tools.
 
 ## Features
@@ -13,6 +18,16 @@ A comprehensive development build tool suite for PHP applications that provides 
 - **Process Orchestration**: Coordinated execution of multiple development services
 - **SSE Integration**: Seamless integration with Server-Sent Events for live updates
 
+## Requirements
+
+- **PHP 8.4 or higher**
+- **inotify extension** (for file watching)
+- **PCNTL extension** (for process management)
+- **POSIX extension**
+- **Symfony Framework** (7.2.0 or higher)
+- **Valksor Bundle** (valksor/php-bundle)
+- **Valksor SSE Component** (valksor/php-sse)
+
 ## Installation
 
 Install the package via Composer:
@@ -21,15 +36,7 @@ Install the package via Composer:
 composer require valksor/php-dev-build
 ```
 
-## Requirements
-
-- PHP 8.4 or higher
-- inotify extension (for file watching)
-- PCNTL extension (for process management)
-- POSIX extension
-- Symfony Framework
-- Valksor Bundle
-- Valksor SSE Component
+Note: This package is also included in the meta-package `valksor/php-dev`.
 
 ## Usage
 
@@ -589,6 +596,91 @@ valksor:
         watching:
             debug: true
 ```
+
+## Testing
+
+Run the test suite for the build tools:
+
+```bash
+# Run all tests
+vendor/bin/phpunit
+
+# Run tests with coverage
+vendor/bin/phpunit --coverage-text
+
+# Run specific test suites
+vendor/bin/phpunit tests/Service/
+vendor/bin/phpunit tests/Provider/
+vendor/bin/phpunit tests/Binary/
+
+# Test binary downloads
+vendor/bin/phpunit tests/Binary/BinaryAssetManagerTest.php
+```
+
+### Integration Testing
+
+Test the complete build workflow:
+
+```bash
+# Test hot reload functionality
+php bin/console valksor:hot-reload --test-mode
+
+# Test tailwind compilation
+php bin/console valksor:tailwind-build --dry-run
+
+# Test binary management
+php bin/console valksor:binary-ensure --check-versions
+```
+
+## Contributing
+
+Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) for details on:
+
+- Code style requirements (PSR-12)
+- Testing requirements for PRs
+- One feature per pull request
+- Development setup instructions
+
+To contribute to the build tools:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/new-build-tool`)
+3. Implement your build tool following existing patterns
+4. Add comprehensive tests
+5. Ensure all tests pass and code style is correct
+6. Submit a pull request
+
+### Adding New Binary Providers
+
+When adding support for new build tools:
+
+1. Create a new binary class implementing `BinaryInterface`
+2. Add tests in `tests/Binary/`
+3. Register the binary in `BinaryAssetManager`
+4. Update documentation with examples
+
+## Security
+
+If you discover any security-related issues, please email us at security@valksor.dev instead of using the issue tracker.
+
+For security policy and vulnerability reporting guidelines, please see our [Security Policy](SECURITY.md).
+
+## Support
+
+- **Documentation**: [Full documentation](https://github.com/valksor/valksor-dev)
+- **Issues**: [GitHub Issues](https://github.com/valksor/valksor-dev/issues) for bug reports and feature requests
+- **Discussions**: [GitHub Discussions](https://github.com/valksor/valksor-dev/discussions) for questions and community support
+- **Stack Overflow**: Use tag `valksor-php-dev`
+- **Build Tool Documentation**: Links to external tool documentation
+
+## Credits
+
+- **[Original Author](https://github.com/valksor)** - Creator and maintainer
+- **[All Contributors](https://github.com/valksor/valksor-dev/graphs/contributors)** - Thank you to all who contributed
+- **[Build Tool Authors](https://github.com/evanw/esbuild)** - ESBuild team and contributors
+- **[Tailwind CSS Team](https://github.com/tailwindlabs/tailwindcss)** - Tailwind CSS framework
+- **[DaisyUI Team](https://github.com/saadeghi/daisyui)** - Component library for Tailwind
+- **[Valksor Project](https://github.com/valksor)** - Part of the larger Valksor PHP ecosystem
 
 ## Performance Considerations
 
