@@ -1,0 +1,39 @@
+{
+    "name": "valksor/php-dev-build",
+    "license": "BSD-3-Clause",
+    "type": "library",
+    "require": {
+        "php": ">=8.4",
+        "ext-inotify": "*",
+        "ext-pcntl": "*",
+        "ext-posix": "*",
+        "symfony/config": "*",
+        "symfony/console": "*",
+        "symfony/dependency-injection": "*",
+        "symfony/process": "*",
+        "valksor/php-bundle": "^1.0",
+        "valksor/php-functions-local": "^1.0",
+        "valksor/php-sse": "^1.0"
+    },
+    "conflict": {
+        "friendsofphp/php-cs-fixer": "<3.81.0"
+    },
+    "suggest": {
+        "doctrine/migrations": "To fix doctrine migration files"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": false,
+    "autoload": {
+        "psr-4": {
+            "ValksorDev\\Build\\": ""
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0.x-dev"
+        }
+    }
+}

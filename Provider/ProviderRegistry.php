@@ -13,7 +13,7 @@
 namespace ValksorDev\Build\Provider;
 
 use RuntimeException;
-use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
+use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
 use function sprintf;
 
@@ -32,7 +32,7 @@ final class ProviderRegistry
      * @param iterable<ProviderInterface> $providers
      */
     public function __construct(
-        #[TaggedIterator(
+        #[AutowireIterator(
             'valksor.service_provider',
         )]
         iterable $providers,

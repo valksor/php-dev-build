@@ -13,6 +13,7 @@
 namespace ValksorDev\Build\Provider;
 
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
+use Symfony\Component\Process\Process;
 
 /**
  * Interface for dev service providers.
@@ -35,11 +36,11 @@ interface ProviderInterface
      *
      * @param ServiceContext $context Context with project info and process creation methods
      *
-     * @return array<string, array{process: \Symfony\Component\Process\Process, readySignal?: string}>
-     *                                                                                                 Array of [label => [process, optional readySignal]]
-     *                                                                                                 - label: Display name for the process (e.g., 'tailwind', 'messenger-sentry-app1')
-     *                                                                                                 - process: The started Process instance
-     *                                                                                                 - readySignal: Optional string to detect when service is ready (e.g., 'Entering watch mode.')
+     * @return array<string, array{process: Process, readySignal?: string}>
+     *                                                                      Array of [label => [process, optional readySignal]]
+     *                                                                      - label: Display name for the process (e.g., 'tailwind', 'messenger-sentry-app1')
+     *                                                                      - process: The started Process instance
+     *                                                                      - readySignal: Optional string to detect when service is ready (e.g., 'Entering watch mode.')
      */
     public function startService(
         ServiceContext $context,
