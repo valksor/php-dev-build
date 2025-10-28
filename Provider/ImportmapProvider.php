@@ -13,24 +13,24 @@
 namespace ValksorDev\Build\Provider;
 
 /**
- * Provider for hot reload service (development only with file watching).
+ * Provider for Importmap sync watcher service.
  */
-final class HotReloadProvider implements ProviderInterface
+final class ImportmapProvider implements ProviderInterface
 {
     public function getName(): string
     {
-        return 'hot-reload';
+        return 'importmap';
     }
 
     public function startService(
         ServiceContext $context,
     ): array {
-        $process = $context->createDevAppProcess(['valksor:hot-reload']);
+        $process = $context->createDevAppProcess(['valksor:importmap', '--watch']);
 
         return [
-            'hot-reload' => [
+            'importmap' => [
                 'process' => $process,
-                // No readySignal - starts immediately
+                'readySignal' => 'Entering importmap watch mode.',
             ],
         ];
     }

@@ -13,22 +13,22 @@
 namespace ValksorDev\Build\Provider;
 
 /**
- * Provider for hot reload service (development only with file watching).
+ * Provider for sse SSE server service.
  */
-final class HotReloadProvider implements ProviderInterface
+final class SseProvider implements ProviderInterface
 {
     public function getName(): string
     {
-        return 'hot-reload';
+        return 'sse';
     }
 
     public function startService(
         ServiceContext $context,
     ): array {
-        $process = $context->createDevAppProcess(['valksor:hot-reload']);
+        $process = $context->createDevAppProcess(['valksor:sse']);
 
         return [
-            'hot-reload' => [
+            'sse' => [
                 'process' => $process,
                 // No readySignal - starts immediately
             ],

@@ -13,24 +13,24 @@
 namespace ValksorDev\Build\Provider;
 
 /**
- * Provider for hot reload service (development only with file watching).
+ * Provider for Tailwind CSS watcher service.
  */
-final class HotReloadProvider implements ProviderInterface
+final class TailwindProvider implements ProviderInterface
 {
     public function getName(): string
     {
-        return 'hot-reload';
+        return 'tailwind';
     }
 
     public function startService(
         ServiceContext $context,
     ): array {
-        $process = $context->createDevAppProcess(['valksor:hot-reload']);
+        $process = $context->createDevAppProcess(['valksor:tailwind', '--watch']);
 
         return [
-            'hot-reload' => [
+            'tailwind' => [
                 'process' => $process,
-                // No readySignal - starts immediately
+                'readySignal' => 'Entering watch mode.',
             ],
         ];
     }

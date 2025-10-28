@@ -10,7 +10,7 @@
  * file that was distributed with this source code.
  */
 
-namespace ValksorDev\Build\Service\Watcher;
+namespace ValksorDev\Build\Service;
 
 use RuntimeException;
 
@@ -207,7 +207,7 @@ final class RecursiveInotifyWatcher
     }
 
     private function registerDirectoryRecursively(
-        ?string $path,
+        string $path,
     ): void {
         $path = $this->normalisePath($path);
 

@@ -12,15 +12,53 @@
 
 namespace ValksorDev\Build\Command;
 
+use Exception;
 use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use ValksorDev\Build\Service\HotReloadService;
 
-#[AsCommand(name: 'valksor:hot')]
-class HotReloadCommand extends AbstractCommand
+#[AsCommand(name: 'valksor:hot-reload', description: 'Run the hot reload service with file watching for development.')]
+final class HotReloadCommand extends AbstractCommand
 {
     public function __construct(
+        private readonly HotReloadService $hotReloadService,
         ParameterBagInterface $bag,
     ) {
         parent::__construct($bag);
+    }
+
+    protected function execute(
+        InputInterface $input,
+        OutputInterface $output,
+    ): int {
+        $io = $this->createSymfonyStyle($input, $output);
+
+        // Kill any conflicting SSE processes before starting
+        $this->hotReloadService->killConflictingSseProcesses($io);
+
+        $this->setServiceIo($this->hotReloadService, $io);
+
+        $this->hotReloadService->createPidFilePath($this->hotReloadService::getServiceName());
+        $this->hotReloadService->writePidFile();
+
+        try {
+            $exitCode = $this->hotReloadService->start();
+
+            $this->hotReloadService->removePidFile();
+
+            return $exitCode;
+        } catch (Exception $e) {
+            $this->hotReloadService->removePidFile();
+            $io->error('Hot reload service failed: ' . $e->getMessage());
+
+            return 1;
+        }
+    }
+
+    protected function getSseProcessesToKill(): array
+    {
+        return ['hot-reload'];
     }
 }

@@ -10,7 +10,7 @@
  * file that was distributed with this source code.
  */
 
-namespace ValksorDev\Build\Provider;
+namespace ValksorDev\Build\Binary;
 
 use RuntimeException;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
@@ -18,22 +18,22 @@ use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 use function sprintf;
 
 /**
- * Registry for dev service providers.
+ * Registry for binary providers.
  *
- * Holds all available dev service providers and provides access by name.
- * Makes it easy to add new dev services without modifying core code.
+ * Holds all available binary providers and provides access by name.
+ * Makes it easy to add new binaries without modifying core code.
  */
-final class ProviderRegistry
+final class BinaryRegistry
 {
-    /** @var array<string, ProviderInterface> */
+    /** @var array<string, BinaryInterface> */
     private array $providers = [];
 
     /**
-     * @param iterable<ProviderInterface> $providers
+     * @param iterable<BinaryInterface> $providers
      */
     public function __construct(
         #[AutowireIterator(
-            'valksor.service_provider',
+            'valksor.binary_provider',
         )]
         iterable $providers,
     ) {
@@ -43,19 +43,19 @@ final class ProviderRegistry
     }
 
     /**
-     * Get a provider by service name.
+     * Get a provider by binary name.
      *
-     * @param string $name The service name (e.g., 'tailwind')
+     * @param string $name The binary name (e.g., 'tailwindcss')
      *
-     * @return ProviderInterface The registered provider
+     * @return BinaryInterface The registered provider
      *
      * @throws RuntimeException If no provider is registered for this name
      */
     public function get(
         string $name,
-    ): ProviderInterface {
+    ): BinaryInterface {
         if (!$this->has($name)) {
-            throw new RuntimeException(sprintf('No service provider registered for: %s', $name));
+            throw new RuntimeException(sprintf('No binary provider registered for: %s', $name));
         }
 
         return $this->providers[$name];
@@ -72,9 +72,9 @@ final class ProviderRegistry
     }
 
     /**
-     * Check if a provider is registered for the given service name.
+     * Check if a provider is registered for the given binary name.
      *
-     * @param string $name The service name (e.g., 'tailwind')
+     * @param string $name The binary name (e.g., 'tailwindcss')
      *
      * @return bool True if provider exists
      */
@@ -85,12 +85,12 @@ final class ProviderRegistry
     }
 
     /**
-     * Register a dev service provider.
+     * Register a binary provider.
      *
-     * @param ProviderInterface $provider The provider to register
+     * @param BinaryInterface $provider The provider to register
      */
     public function register(
-        ProviderInterface $provider,
+        BinaryInterface $provider,
     ): void {
         $this->providers[$provider->getName()] = $provider;
     }

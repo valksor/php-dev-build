@@ -12,8 +12,56 @@
 
 namespace ValksorDev\Build\Command;
 
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Valksor\Component\Sse\Command\AbstractCommand as SseAbstractCommand;
 
 abstract class AbstractCommand extends SseAbstractCommand
 {
+    protected function addWatchOption(): void
+    {
+        $this->addOption('watch', null, InputOption::VALUE_NONE, 'Run in watch mode');
+    }
+
+    protected function handleWatchMode(
+        object $service,
+        InputInterface $input,
+        string $serviceName,
+    ): callable {
+        if ($this->isWatchMode($input)) {
+            $service->createPidFilePath($service::getServiceName());
+            $service->writePidFile();
+
+            return function () use ($service): void {
+                $service->removePidFile();
+            };
+        }
+
+        return function (): void {}; // No-op for non-watch mode
+    }
+
+    protected function isProductionEnvironment(): bool
+    {
+        return 'prod' === $this->p('build.env');
+    }
+
+    protected function isWatchMode(
+        InputInterface $input,
+    ): bool {
+        return (bool) $input->getOption('watch');
+    }
+
+    protected function shouldMinify(
+        InputInterface $input,
+    ): bool {
+        if ($input->hasOption('no-minify') && $input->getOption('no-minify')) {
+            return false;
+        }
+
+        if ($input->hasOption('minify') && $input->getOption('minify')) {
+            return true;
+        }
+
+        return false !== $this->p('build.minify') && 'dev' !== $this->p('build.env');
+    }
 }
