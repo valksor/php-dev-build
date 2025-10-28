@@ -13,14 +13,8 @@
 namespace ValksorDev\Build\Command;
 
 use Symfony\Component\Console\Attribute\AsCommand;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
-#[AsCommand(name: 'valksor:hot')]
-class HotReloadCommand extends AbstractCommand
+#[AsCommand(name: 'valksor:tailwind')]
+class TailwindCommand extends AbstractCommand
 {
-    public function __construct(
-        ParameterBagInterface $bag,
-    ) {
-        parent::__construct($bag);
-    }
 }

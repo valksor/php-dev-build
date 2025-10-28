@@ -10,7 +10,7 @@
  * file that was distributed with this source code.
  */
 
-namespace ValksorDev\Build\Service;
+namespace ValksorDev\Build\Service\Watcher;
 
 use function array_any;
 use function array_map;
@@ -34,7 +34,7 @@ final class PathFilter
     private array $ignoredExtensions;
     private array $ignoredFilenames;
 
-    private function __construct(
+    public function __construct(
         array $directories,
         private readonly array $ignoredGlobs,
         array $filenames,
@@ -73,13 +73,29 @@ final class PathFilter
         return array_any($this->ignoredGlobs, static fn ($glob) => fnmatch($glob, $path, FNM_PATHNAME | FNM_NOESCAPE));
     }
 
-    public static function createDefault(): self
-    {
+    /**
+     * Create a PathFilter instance with the required parameters.
+     * This method replaces the PathFilterFactory.
+     */
+    public static function create(
+        array $excludePatterns,
+        array $excludeFiles,
+    ): self {
+        return self::createDefault($excludePatterns, $excludeFiles);
+    }
+
+    /**
+     * Creates a default path filter with configurable exclude patterns.
+     */
+    public static function createDefault(
+        array $excludePatterns,
+        array $excludeFiles,
+    ): self {
         return new self(
-            ['node_modules', 'vendor', 'public', 'var', '.git', '.idea', '.webpack-cache'],
-            ['**/node_modules/**', '**/vendor/**', '**/public/**', '**/var/**', '**/.git/**', '**/.idea/**', '**/.webpack-cache/**', '**/*.md', '**/.gitignore', '**/.gitkeep'],
-            ['.gitignore', '.gitkeep'],
-            ['.md'],
+            $excludePatterns,
+            array_map(static fn ($pattern) => '**/' . $pattern . '/**', $excludePatterns),
+            $excludeFiles,
+            array_map(static fn ($pattern) => '**/*' . $pattern, $excludeFiles),
         );
     }
 }

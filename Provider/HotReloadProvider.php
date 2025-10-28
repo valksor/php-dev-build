@@ -12,26 +12,21 @@
 
 namespace ValksorDev\Build\Provider;
 
-/**
- * Provider for hot reload service (development only with file watching).
- */
-final class HotReloadProvider implements ProviderInterface
+final class HotReloadProvider extends AbstractProvider
 {
-    public function getName(): string
+    public function dev(): array
     {
-        return 'hot-reload';
-    }
-
-    public function startService(
-        ServiceContext $context,
-    ): array {
-        $process = $context->createDevAppProcess(['valksor:hot-reload']);
+        $process = $this->createConsoleProcess(['valksor:hot']);
 
         return [
-            'hot-reload' => [
+            'hot' => [
                 'process' => $process,
-                // No readySignal - starts immediately
             ],
         ];
+    }
+
+    public function devCommand(): array
+    {
+        return $this->dev();
     }
 }

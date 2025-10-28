@@ -15,6 +15,8 @@ namespace ValksorDev\Build\DependencyInjection;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Valksor\Bundle\DependencyInjection\AbstractDependencyConfiguration;
 use Valksor\Bundle\ValksorBundle;
+use ValksorDev\Build\Provider\HotReloadProvider;
+use ValksorDev\Build\Provider\ProviderRegistry;
 
 use function is_array;
 use function is_bool;
@@ -34,21 +36,51 @@ class BuildConfiguration extends AbstractDependencyConfiguration
                 ->arrayNode($component)
                     ->{$enableIfStandalone(sprintf('%s/%s', ValksorBundle::VALKSOR, $component), self::class)}()
                     ->children()
-                        ->booleanNode('minify')
-                            ->info('Should minify files')
-                            ->defaultFalse()
-                        ->end()
                         ->scalarNode('env')
                             ->info('Build env')
                             ->defaultValue('dev')
                         ->end()
-                        ->arrayNode('binaries')
-                            ->scalarPrototype()->end()
-                            ->defaultValue(['tailwindcss', 'esbuild', 'daisyui'])
+                        ->arrayNode('performance')
+                            ->info('Performance optimization settings for development workflows')
+                            ->addDefaultsIfNotSet()
+                            ->children()
+                                ->booleanNode('skip_binaries')
+                                    ->info('Skip binary checks/downloads for faster startup')
+                                    ->defaultTrue()
+                                ->end()
+                                ->booleanNode('skip_initialization')
+                                    ->info('Skip initialization tasks like icon generation')
+                                    ->defaultTrue()
+                                ->end()
+                                ->booleanNode('skip_asset_cleanup')
+                                    ->info('Skip public asset cleanup')
+                                    ->defaultTrue()
+                                ->end()
+                            ->end()
                         ->end()
                         ->arrayNode('services')
-                            ->info('Services to run in valksor:watch. Supports simple list or detailed configuration.')
-                            ->example(['tailwind', 'importmap', ['hot-reload' => ['enabled' => true, 'watch_dirs' => ['/apps']]]])
+                            ->info('Unified services configuration for dev_command, dev (watch), and prod modes')
+                            ->example([
+                                'tailwind' => [
+                                    'enabled' => true,
+                                    'dev_command' => true,
+                                    'dev' => true,
+                                    'prod' => true,
+                                    'options' => ['minify' => false],
+                                ],
+                                'hot-reload' => [
+                                    'enabled' => true,
+                                    'dev_command' => false,
+                                    'dev' => true,
+                                    'prod' => false,
+                                ],
+                                'binaries' => [
+                                    'enabled' => true,
+                                    'dev_command' => false,
+                                    'dev' => false,
+                                    'prod' => true,
+                                ],
+                            ])
                             ->beforeNormalization()
                                 ->always(function ($v) {
                                     // Normalize to associative array format
@@ -61,13 +93,30 @@ class BuildConfiguration extends AbstractDependencyConfiguration
                                     foreach ($v as $key => $value) {
                                         if (is_int($key) && is_string($value)) {
                                             // Simple format: ['tailwind', 'importmap']
-                                            $normalized[$value] = ['enabled' => true];
+                                            $normalized[$value] = [
+                                                'enabled' => true,
+                                                ProviderRegistry::DEV_COMMAND => true,
+                                                ProviderRegistry::DEV => true,
+                                                ProviderRegistry::PROD => true,
+                                                ProviderRegistry::INIT => true,
+                                            ];
                                         } elseif (is_string($key) && is_array($value)) {
-                                            // Detailed format: ['tailwind' => ['enabled' => true, 'watch_dirs' => [...]]]
-                                            $normalized[$key] = $value + ['enabled' => true];
+                                            // Detailed format: ['tailwind' => ['enabled' => true, 'dev' => true, ...]]
+                                            $normalized[$key] = $value + [
+                                                ProviderRegistry::DEV_COMMAND => true,
+                                                ProviderRegistry::DEV => true,
+                                                ProviderRegistry::PROD => true,
+                                                ProviderRegistry::INIT => true,
+                                            ];
                                         } elseif (is_string($key) && is_bool($value)) {
                                             // Boolean format: ['tailwind' => true]
-                                            $normalized[$key] = ['enabled' => $value];
+                                            $normalized[$key] = [
+                                                'enabled' => $value,
+                                                ProviderRegistry::DEV_COMMAND => true,
+                                                ProviderRegistry::DEV => true,
+                                                ProviderRegistry::PROD => true,
+                                                ProviderRegistry::INIT => true,
+                                            ];
                                         } else {
                                             // Keep as-is for validation errors
                                             $normalized[$key] = $value;
@@ -82,66 +131,75 @@ class BuildConfiguration extends AbstractDependencyConfiguration
                                 ->children()
                                     ->booleanNode('enabled')
                                         ->defaultTrue()
+                                        ->info('Whether this service is available')
                                     ->end()
-                                    ->arrayNode('watch_dirs')
-                                        ->info('Override global watch_dirs for this specific service')
-                                        ->scalarPrototype()->end()
+                                    ->booleanNode(ProviderRegistry::DEV_COMMAND)
+                                        ->defaultTrue()
+                                        ->info('Whether this service runs in dev_command mode')
                                     ->end()
-                                    ->variableNode('options')
-                                        ->info('Service-specific options')
-                                        ->defaultValue([])
+                                    ->booleanNode(ProviderRegistry::DEV)
+                                        ->defaultTrue()
+                                        ->info('Whether this service runs in dev (watch) mode')
+                                    ->end()
+                                    ->booleanNode(ProviderRegistry::PROD)
+                                        ->defaultTrue()
+                                        ->info('Whether this service runs in prod build mode')
+                                    ->end()
+                                    ->booleanNode(ProviderRegistry::INIT)
+                                        ->defaultFalse()
+                                        ->info('Whether this service runs in prod build mode')
                                     ->end()
                                 ->end()
                             ->end()
                             ->defaultValue([
-                                'tailwind' => ['enabled' => true],
-                                'importmap' => ['enabled' => true],
-                                'sse' => ['enabled' => true],
-                                'hot-reload' => ['enabled' => true],
+                                HotReloadProvider::class => [
+                                    'enabled' => true,
+                                    'dev_command' => true,
+                                    'dev' => true,
+                                    'prod' => false,
+                                ],
+                                //                                'tailwind' => [
+                                //                                    'enabled' => true,
+                                //                                    'dev_command' => true,
+                                //                                    'dev' => true,
+                                //                                    'prod' => true,
+                                //                                    'options' => ['minify' => false],
+                                //                                ],
+                                //                                'importmap' => [
+                                //                                    'enabled' => true,
+                                //                                    'dev_command' => true,
+                                //                                    'dev' => true,
+                                //                                    'prod' => true,
+                                //                                ],
+                                //                                'sse' => [
+                                //                                    'enabled' => true,
+                                //                                    'dev_command' => true,
+                                //                                    'dev' => true,
+                                //                                    'prod' => false,
+                                //                                ],
+                                //                                'hot-reload' => [
+                                //                                    'enabled' => true,
+                                //                                    'dev_command' => false,
+                                //                                    'dev' => true,
+                                //                                    'prod' => false,
+                                //                                ],
+                                //                                'binaries' => [
+                                //                                    'enabled' => true,
+                                //                                    'dev_command' => false,
+                                //                                    'dev' => false,
+                                //                                    'prod' => true,
+                                //                                    'options' => ['tools' => ['tailwindcss', 'esbuild', 'daisyui']],
+                                //                                ],
+                                //                                'icons' => [
+                                //                                    'enabled' => true,
+                                //                                    'init' => true,
+                                //                                    'dev' => false,
+                                //                                    'prod' => false,
+                                //                                ],
                             ])
                         ->end()
                         ->append($this->addHotReloadConfiguration())
-                        ->append($this->addInitilaizationConfiguration())
-                        ->append($this->addProdBuildConfiguration())
-                        ->append($this->addDevCommandConfiguration())
                     ->end()
-                ->end()
-            ->end();
-    }
-
-    private function addDevCommandConfiguration(): ArrayNodeDefinition
-    {
-        return new ArrayNodeDefinition('dev_command')
-            ->info('One-time initialization tasks that run once at startup')
-            ->addDefaultsIfNotSet()
-            ->children()
-                ->arrayNode('services')
-                    ->info('Services to run in dev command')
-                    ->example(['sse' => ['enabled' => true], 'hot-reload' => ['enabled' => true]])
-                    ->useAttributeAsKey('name')
-                    ->arrayPrototype()
-                        ->children()
-                            ->booleanNode('enabled')
-                                ->defaultTrue()
-                            ->end()
-                        ->end()
-                    ->end()
-                    ->defaultValue([
-                        'sse' => ['enabled' => true],
-                        'hot-reload' => ['enabled' => true],
-                    ])
-                ->end()
-                ->booleanNode('skip_binaries')
-                    ->info('Skip binary checks/downloads for faster startup')
-                    ->defaultTrue()
-                ->end()
-                ->booleanNode('skip_initialization')
-                    ->info('Skip initialization tasks like icon generation')
-                    ->defaultTrue()
-                ->end()
-                ->booleanNode('skip_asset_cleanup')
-                    ->info('Skip public asset cleanup')
-                    ->defaultTrue()
                 ->end()
             ->end();
     }
@@ -227,103 +285,6 @@ class BuildConfiguration extends AbstractDependencyConfiguration
                     ->scalarPrototype()->end()
                     ->defaultValue(['.gitignore', '.gitkeep'])
                     ->example(['.gitignore', '.gitkeep'])
-                ->end()
-            ->end();
-    }
-
-    private function addInitilaizationConfiguration(): ArrayNodeDefinition
-    {
-        return new ArrayNodeDefinition('initialization')
-            ->info('One-time initialization tasks that run once at startup')
-            ->addDefaultsIfNotSet()
-            ->children()
-                ->arrayNode('icons')
-                    ->info('Icon template generation')
-                    ->addDefaultsIfNotSet()
-                    ->children()
-                        ->booleanNode('enabled')
-                            ->info('Whether to generate icon templates during watch startup')
-                            ->defaultTrue()
-                        ->end()
-                        ->scalarNode('target')
-                            ->info('Specific icon target to generate (null = all targets)')
-                            ->defaultNull()
-                            ->example('shared')
-                        ->end()
-                        ->booleanNode('blocking')
-                            ->info('Whether icon generation blocks watch startup')
-                            ->defaultTrue()
-                        ->end()
-                    ->end()
-                ->end()
-            ->end();
-    }
-
-    private function addProdBuildConfiguration(): ArrayNodeDefinition
-    {
-        return new ArrayNodeDefinition('prod')
-            ->info('One-time initialization tasks that run once at startup')
-            ->addDefaultsIfNotSet()
-            ->children()
-                ->arrayNode('steps')
-                    ->info('Build steps configuration with order and options')
-                    ->example([
-                        'binaries' => ['enabled' => true, 'options' => []],
-                        'tailwind' => ['enabled' => true, 'options' => ['minify' => true]],
-                        'importmap' => ['enabled' => true, 'options' => ['minify' => true]],
-                        'icons' => ['enabled' => true, 'options' => []],
-                        'symfony_assets' => ['enabled' => true, 'options' => []],
-                    ])
-                    ->beforeNormalization()
-                        ->always(function ($v) {
-                            if (!is_array($v)) {
-                                return [];
-                            }
-
-                            $normalized = [];
-
-                            foreach ($v as $key => $value) {
-                                if (is_int($key) && is_string($value)) {
-                                    // Simple format: ['tailwind', 'importmap']
-                                    $normalized[$value] = ['enabled' => true];
-                                } elseif (is_string($key) && is_array($value)) {
-                                    // Detailed format: ['tailwind' => ['enabled' => true, 'options' => [...]]]
-                                    $normalized[$key] = $value + ['enabled' => true, 'options' => []];
-                                } elseif (is_string($key) && is_bool($value)) {
-                                    // Boolean format: ['tailwind' => true]
-                                    $normalized[$key] = ['enabled' => $value, 'options' => []];
-                                } else {
-                                    // Keep as-is for validation errors
-                                    $normalized[$key] = $value;
-                                }
-                            }
-
-                            return $normalized;
-                        })
-                    ->end()
-                    ->useAttributeAsKey('name')
-                    ->arrayPrototype()
-                        ->children()
-                            ->booleanNode('enabled')
-                                ->defaultTrue()
-                                ->info('Whether this build step is enabled')
-                            ->end()
-                            ->arrayNode('options')
-                                ->info('Step-specific options')
-                                ->defaultValue([])
-                                ->normalizeKeys(false)
-                                ->useAttributeAsKey('name')
-                                ->variablePrototype()->end()
-                            ->end()
-                        ->end()
-                    ->end()
-                    ->defaultValue([
-                        'binaries' => ['enabled' => true, 'options' => []],
-                        'tailwind' => ['enabled' => true, 'options' => ['minify' => true]],
-                        'importmap' => ['enabled' => true, 'options' => ['minify' => true]],
-                        'icons' => ['enabled' => true, 'options' => []],
-                        'symfony_assets' => ['enabled' => true, 'options' => []],
-                    ])
                 ->end()
             ->end();
     }

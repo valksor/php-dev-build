@@ -12,16 +12,8 @@
 
 namespace ValksorDev\Build\Service;
 
-final class HotReloadService extends AbstractService
-{
-    public function start(
-        array $config = [],
-    ): int {
-        return 0;
-    }
+use Valksor\Component\Sse\Service\AbstractService as SseAbstractService;
 
-    public static function getServiceName(): string
-    {
-        return 'hot';
-    }
+abstract class AbstractService extends SseAbstractService
+{
 }

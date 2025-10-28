@@ -13,85 +13,72 @@
 namespace ValksorDev\Build\Provider;
 
 use RuntimeException;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
+use function array_key_exists;
 use function sprintf;
 
-/**
- * Registry for dev service providers.
- *
- * Holds all available dev service providers and provides access by name.
- * Makes it easy to add new dev services without modifying core code.
- */
-final class ProviderRegistry
+class ProviderRegistry
 {
-    /** @var array<string, ProviderInterface> */
+    public const string DEV = 'dev';
+    public const string DEV_COMMAND = 'dev_command';
+    public const string INIT = 'init';
+    public const string PROD = 'prod';
+
+    private const array TYPES = [
+        self::DEV,
+        self::DEV_COMMAND,
+        self::PROD,
+        self::INIT,
+    ];
     private array $providers = [];
 
-    /**
-     * @param iterable<ProviderInterface> $providers
-     */
     public function __construct(
         #[AutowireIterator(
-            'valksor.service_provider',
+            'valksor.build.provider',
         )]
         iterable $providers,
+        #[Autowire(
+            param: 'valksor.build.services',
+        )]
+        array $services,
     ) {
         foreach ($providers as $provider) {
-            $this->register($provider);
+            if (!array_key_exists($provider::class, $services) || false === ($services[$provider::class]['enabled'] ?? false)) {
+                continue;
+            }
+
+            foreach (self::TYPES as $type) {
+                if (true === ($services[$provider::class][$type] ?? false)) {
+                    $this->register($provider, $type);
+                }
+            }
         }
     }
 
-    /**
-     * Get a provider by service name.
-     *
-     * @param string $name The service name (e.g., 'tailwind')
-     *
-     * @return ProviderInterface The registered provider
-     *
-     * @throws RuntimeException If no provider is registered for this name
-     */
     public function get(
         string $name,
+        string $type,
     ): ProviderInterface {
-        if (!$this->has($name)) {
+        if (!$this->has($name, $type)) {
             throw new RuntimeException(sprintf('No service provider registered for: %s', $name));
         }
 
         return $this->providers[$name];
     }
 
-    /**
-     * Get all registered provider names.
-     *
-     * @return array<int, string>
-     */
-    public function getAvailableNames(): array
-    {
-        return array_keys($this->providers);
-    }
-
-    /**
-     * Check if a provider is registered for the given service name.
-     *
-     * @param string $name The service name (e.g., 'tailwind')
-     *
-     * @return bool True if provider exists
-     */
     public function has(
         string $name,
+        string $type,
     ): bool {
-        return isset($this->providers[$name]);
+        return isset($this->providers[$type][$name]);
     }
 
-    /**
-     * Register a dev service provider.
-     *
-     * @param ProviderInterface $provider The provider to register
-     */
     public function register(
         ProviderInterface $provider,
+        string $type,
     ): void {
-        $this->providers[$provider->getName()] = $provider;
+        $this->providers[$type][$provider::class] = $provider;
     }
 }
