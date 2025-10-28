@@ -12,6 +12,9 @@
 
 namespace ValksorDev\Build\Provider;
 
+use Symfony\Component\Console\Command\Command;
+use ValksorDev\Build\Context\ExecutionContext;
+
 /**
  * Provider for Tailwind CSS watcher service.
  */
@@ -33,5 +36,35 @@ final class TailwindProvider implements ProviderInterface
                 'readySignal' => 'Entering watch mode.',
             ],
         ];
+    }
+
+    public function executeBuildStep(
+        ExecutionContext $context,
+    ): int {
+        $context->io->text('Building Tailwind CSS assets...');
+
+        $arguments = [];
+
+        // Add minification option if configured
+        if ($context->hasOption('minify') && $context->getOption('minify')) {
+            $arguments[] = '--minify';
+        }
+
+        // Add app targeting if configured
+        if ($context->hasOption('app') && $context->getOption('app')) {
+            $arguments[] = $context->getOption('app');
+        }
+
+        $returnCode = $context->executeSubCommand('valksor:tailwind', $arguments);
+
+        if (Command::SUCCESS !== $returnCode) {
+            $context->io->error('Tailwind CSS build failed.');
+
+            return Command::FAILURE;
+        }
+
+        $context->io->text('✓ Tailwind CSS assets built successfully');
+
+        return Command::SUCCESS;
     }
 }

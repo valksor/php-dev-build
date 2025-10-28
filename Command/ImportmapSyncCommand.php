@@ -17,16 +17,18 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use ValksorDev\Build\Config\ProjectStructureConfig;
 use ValksorDev\Build\Service\ImportmapService;
 
 #[AsCommand(name: 'valksor:importmap', description: 'Mirror JavaScript assets into dist directories for importmap usage.')]
 final class ImportmapSyncCommand extends AbstractCommand
 {
     public function __construct(
-        private readonly ImportmapService $importmapService,
         ParameterBagInterface $bag,
+        private readonly ImportmapService $importmapService,
+        ProjectStructureConfig $projectStructure,
     ) {
-        parent::__construct($bag);
+        parent::__construct($bag, $projectStructure);
     }
 
     protected function configure(): void

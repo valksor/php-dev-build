@@ -3,8 +3,7 @@
 /*
  * This file is part of the Valksor package.
  *
- * (c) Davis Zalitis (k0d3r1s)
- * (c) SIA Valksor <packages@valksor.com>
+ * (c) Dāvis Zālītis (k0d3r1s) <packages@valksor.com>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -16,15 +15,17 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use ValksorDev\Build\Config\DevCommandConfig;
 use ValksorDev\Build\Config\ProjectStructureConfig;
 use ValksorDev\Build\Service\DevWatchService;
 
-#[AsCommand(name: 'valksor:watch', description: 'Run Tailwind, importmap, and hot reload watchers in parallel.')]
-final class DevWatchCommand extends AbstractCommand
+#[AsCommand(name: 'valksor:dev', description: 'Run SSE server and hot reload together for development.')]
+final class DevCommand extends AbstractCommand
 {
     public function __construct(
         ParameterBagInterface $bag,
         private readonly DevWatchService $devWatchService,
+        private readonly DevCommandConfig $devCommandConfig,
         ProjectStructureConfig $projectStructure,
     ) {
         parent::__construct($bag, $projectStructure);
@@ -35,17 +36,31 @@ final class DevWatchCommand extends AbstractCommand
         OutputInterface $output,
     ): int {
         $io = $this->createSymfonyStyle($input, $output);
-        $this->setServiceIo($this->devWatchService, $io);
-
-        $this->devWatchService->createPidFilePath($this->devWatchService::getServiceName());
 
         // Kill any conflicting SSE-related processes before starting
         $this->devWatchService->killConflictingSseProcesses($io);
 
+        $this->setServiceIo($this->devWatchService, $io);
         $this->devWatchService->writePidFile();
 
         try {
-            return $this->devWatchService->start();
+            // Convert service names from underscore to hyphen format for compatibility
+            $services = [];
+
+            foreach ($this->devCommandConfig->services->getEnabledServices() as $serviceName => $serviceConfig) {
+                // Convert hot_reload -> hot-reload
+                $convertedName = str_replace('_', '-', $serviceName);
+                $services[$convertedName] = $serviceConfig;
+            }
+
+            $config = [
+                'services' => $services,
+                'skip_binaries' => $this->devCommandConfig->shouldSkipBinaries(),
+                'skip_initialization' => $this->devCommandConfig->shouldSkipInitialization(),
+                'skip_asset_cleanup' => $this->devCommandConfig->shouldSkipAssetCleanup(),
+            ];
+
+            return $this->devWatchService->start($config);
         } finally {
             $this->devWatchService->removePidFile();
         }
@@ -53,6 +68,6 @@ final class DevWatchCommand extends AbstractCommand
 
     protected function getSseProcessesToKill(): array
     {
-        return ['sse', 'hot-reload', 'watch'];
+        return ['sse', 'hot_reload', 'dev'];
     }
 }

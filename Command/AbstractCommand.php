@@ -12,12 +12,23 @@
 
 namespace ValksorDev\Build\Command;
 
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Valksor\Component\Sse\Command\AbstractCommand as SseAbstractCommand;
+use ValksorDev\Build\Config\ProjectStructureConfig;
 
 abstract class AbstractCommand extends SseAbstractCommand
 {
+    protected ProjectStructureConfig $projectStructure;
+
+    public function __construct(
+        ParameterBagInterface $bag,
+        ProjectStructureConfig $projectStructure,
+    ) {
+        parent::__construct($bag);
+        $this->projectStructure = $projectStructure;
+    }
     protected function addWatchOption(): void
     {
         $this->addOption('watch', null, InputOption::VALUE_NONE, 'Run in watch mode');
@@ -63,5 +74,20 @@ abstract class AbstractCommand extends SseAbstractCommand
         }
 
         return false !== $this->p('build.minify') && 'dev' !== $this->p('build.env');
+    }
+
+    protected function resolveProjectRoot(): string
+    {
+        return $this->projectDir;
+    }
+
+    protected function getSharedDir(): string
+    {
+        return $this->projectStructure->getSharedPath($this->resolveProjectRoot());
+    }
+
+    protected function getAppsDir(): string
+    {
+        return $this->projectStructure->getAppsPath($this->resolveProjectRoot());
     }
 }

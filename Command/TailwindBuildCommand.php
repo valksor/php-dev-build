@@ -17,16 +17,18 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use ValksorDev\Build\Config\ProjectStructureConfig;
 use ValksorDev\Build\Service\TailwindService;
 
 #[AsCommand(name: 'valksor:tailwind', description: 'Build Tailwind CSS assets using the PHP tooling.')]
 final class TailwindBuildCommand extends AbstractCommand
 {
     public function __construct(
-        private readonly TailwindService $tailwindService,
         ParameterBagInterface $bag,
+        private readonly TailwindService $tailwindService,
+        ProjectStructureConfig $projectStructure,
     ) {
-        parent::__construct($bag);
+        parent::__construct($bag, $projectStructure);
     }
 
     protected function configure(): void

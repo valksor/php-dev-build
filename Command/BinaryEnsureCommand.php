@@ -20,6 +20,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use ValksorDev\Build\Binary\BinaryRegistry;
+use ValksorDev\Build\Config\ProjectStructureConfig;
 
 use function implode;
 use function sprintf;
@@ -29,14 +30,15 @@ use function ucfirst;
 final class BinaryEnsureCommand extends AbstractCommand
 {
     public function __construct(
+        ParameterBagInterface $bag,
         #[Autowire(
             param: 'valksor.build.binaries',
         )]
         private readonly array $availableBinaries,
         private readonly BinaryRegistry $binaryRegistry,
-        ParameterBagInterface $bag,
+        ProjectStructureConfig $projectStructure,
     ) {
-        parent::__construct($bag);
+        parent::__construct($bag, $projectStructure);
     }
 
     protected function configure(): void

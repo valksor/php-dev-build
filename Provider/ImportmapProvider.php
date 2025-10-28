@@ -12,6 +12,9 @@
 
 namespace ValksorDev\Build\Provider;
 
+use Symfony\Component\Console\Command\Command;
+use ValksorDev\Build\Context\ExecutionContext;
+
 /**
  * Provider for Importmap sync watcher service.
  */
@@ -33,5 +36,31 @@ final class ImportmapProvider implements ProviderInterface
                 'readySignal' => 'Entering importmap watch mode.',
             ],
         ];
+    }
+
+    public function executeBuildStep(
+        ExecutionContext $context,
+    ): int {
+        $context->io->text('Processing importmap assets...');
+
+        $arguments = ['--no-interaction' => true];
+
+        // Add minification option if configured
+        if ($context->hasOption('minify') && $context->getOption('minify')) {
+            $arguments[] = '--minify';
+        }
+
+        // Run importmap:install
+        $returnCode = $context->executeSubCommand('importmap:install', $arguments);
+
+        if (Command::SUCCESS !== $returnCode) {
+            $context->io->error('importmap:install failed.');
+
+            return Command::FAILURE;
+        }
+
+        $context->io->text('✓ Importmap assets processed successfully');
+
+        return Command::SUCCESS;
     }
 }
