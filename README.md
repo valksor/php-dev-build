@@ -9,6 +9,12 @@ A comprehensive development build tool suite for PHP applications that provides 
 
 ## Features
 
+- **Service Registry Architecture**: Clean, DRY system with extensible flag-based service selection
+- **Three-Command Development Workflow**:
+  - `valksor:dev` - Lightweight development (SSE + hot reload)
+  - `valksor:watch` - Full development environment (all services in parallel)
+  - `valksor-prod:build` - Production asset building
+- **Provider System**: Extensible architecture with service ordering and dependency resolution
 - **Hot Reloading**: Automatic browser reload on file changes using inotify
 - **Asset Management**: Integrated support for ESBuild, Tailwind CSS, and DaisyUI
 - **Import Map Synchronization**: Automatic import map generation and synchronization
@@ -81,14 +87,19 @@ valksor:
 
 ### Development Commands
 
-#### Start Full Development Environment
+#### New Architecture Commands
+
+The build system now uses a clean 3-command architecture with extensible flag-based service selection:
 
 ```bash
-# Start all development tools (hot reload, Tailwind, importmap sync)
+# Lightweight development (SSE + hot reload only)
+php bin/console valksor:dev
+
+# Full development environment (all services in parallel)
 php bin/console valksor:watch
 
-# Run in background
-php bin/console valksor:watch &
+# Production asset building
+php bin/console valksor-prod:build
 ```
 
 #### Individual Services
@@ -98,14 +109,82 @@ php bin/console valksor:watch &
 php bin/console valksor:hot-reload
 
 # Build Tailwind CSS
-php bin/console valksor:tailwind-build
+php bin/console valksor:tailwind
 
 # Sync import maps
-php bin/console valksor:importmap-sync
+php bin/console valksor:importmap
+
+# Generate icons
+php bin/console valksor:icons
 
 # Ensure all binaries are downloaded
-php bin/console valksor:binary-ensure
+php bin/console valksor:binary
+
+# Install binaries
+php bin/console valksor:binaries:install
 ```
+
+### Service Registry Architecture
+
+The build system uses a clean, DRY service registry architecture with extensible flag-based service selection:
+
+#### Provider System
+
+All build services are implemented as **providers** that can be enabled/disabled and configured via flags:
+
+- **Service Registry**: Single source of truth for all available services
+- **Flag-Based Selection**: Services run based on flags (`init`, `dev`, `prod`, `custom`)
+- **Dependency Resolution**: Automatic service ordering and dependency handling
+- **Extensible**: Easy to add new providers without modifying core code
+
+#### Available Providers
+
+| Provider | Description | Flags | Dependencies |
+|----------|-------------|-------|--------------|
+| `binaries` | Binary download and management | `init`, `dev`, `prod` | None |
+| `hot_reload` | SSE server and browser reload | `dev` | `binaries` |
+| `tailwind` | Tailwind CSS compilation | `dev`, `prod` | `binaries` |
+| `importmap` | Import map synchronization | `dev`, `prod` | `binaries` |
+| `assets` | Asset building and optimization | `prod` | `binaries`, `tailwind` |
+| `icons` | Icon generation and optimization | `prod` | `binaries` |
+
+#### Service Configuration
+
+```yaml
+# config/packages/valksor.yaml
+valksor:
+    build:
+        services:
+            binaries:
+                enabled: true
+                flags: [init, dev, prod]
+                options:
+                    download_dir: 'bin/build-tools/'
+                    esbuild_version: 'latest'
+                    tailwind_version: 'latest'
+
+            hot_reload:
+                enabled: true
+                flags: [dev]
+                options:
+                    watch_paths: ['templates/', 'src/', 'assets/']
+
+            tailwind:
+                enabled: true
+                flags: [dev, prod]
+                options:
+                    input: 'assets/css/app.css'
+                    output: 'public/build/app.css'
+                    minify: false  # Will be true in prod
+```
+
+#### Command-Provider Mapping
+
+| Command | Flags Used | Services That Run |
+|---------|------------|------------------|
+| `valksor:dev` | `dev` | `binaries` + `hot_reload` |
+| `valksor:watch` | `dev` | All services with `dev` flag |
+| `valksor-prod:build` | `prod` | `binaries` + services with `prod` flag |
 
 ### Configuration
 
@@ -395,14 +474,17 @@ class CustomReloadService
 #### Typical Development Session
 
 ```bash
-# 1. Start the development environment
+# 1. Choose your development mode:
+
+# Lightweight development (SSE + hot reload only)
+php bin/console valksor:dev
+
+# OR Full development environment (all services)
 php bin/console valksor:watch
 
-# 2. The following will start automatically:
-#    - Hot reload server (port 8080)
-#    - Tailwind CSS watcher
-#    - Import map synchronizer
-#    - File system watcher
+# 2. Services that start automatically:
+#    valksor:dev → binaries + hot_reload
+#    valksor:watch → all services with 'dev' flag
 
 # 3. Work on your files:
 #    - Edit Twig templates → automatic browser reload
@@ -417,14 +499,31 @@ php bin/console valksor:watch
 #### Production Build
 
 ```bash
-# Build for production
-php bin/console valksor:tailwind-build --minify
+# Build all production assets (runs all services with 'prod' flag)
+php bin/console valksor-prod:build
 
-# Sync import maps for production
-php bin/console valksor:importmap-sync --optimize
+# This will automatically run:
+# 1. Initialization phase (binaries)
+# 2. Production services (tailwind, importmap, assets, icons)
+# 3. All services run with minification and optimization enabled
+```
 
-# Ensure all binaries are available
-php bin/console valksor:binary-ensure
+#### Service Selection Examples
+
+```bash
+# Quick frontend development (no heavy compilation)
+php bin/console valksor:dev
+
+# Full-stack development with all tooling
+php bin/console valksor:watch
+
+# Production deployment
+php bin/console valksor-prod:build
+
+# Individual service management
+php bin/console valksor:tailwind
+php bin/console valksor:importmap
+php bin/console valksor:binary
 ```
 
 ## Advanced Usage
@@ -521,13 +620,25 @@ services:
 
 ### Commands
 
-| Command                  | Description                   |
-|--------------------------|-------------------------------|
-| `valksor:watch`          | Start all development tools   |
-| `valksor:hot-reload`     | Start hot reload service only |
-| `valksor:tailwind-build` | Build Tailwind CSS            |
-| `valksor:importmap-sync` | Synchronize import maps       |
-| `valksor:binary-ensure`  | Download required binaries    |
+| Command                      | Description                                    |
+|------------------------------|------------------------------------------------|
+| `valksor:dev`                | Lightweight development (SSE + hot reload)     |
+| `valksor:watch`              | Full development environment (all services)    |
+| `valksor-prod:build`        | Production asset building                      |
+| `valksor:hot-reload`         | Start hot reload service only                  |
+| `valksor:tailwind`           | Build Tailwind CSS                             |
+| `valksor:importmap`          | Mirror JavaScript assets for importmap usage   |
+| `valksor:binary`             | Ensure tool binaries are downloaded            |
+| `valksor:binaries:install`   | Install all required binaries                  |
+| `valksor:icons`              | Generate Twig SVG icons                        |
+
+### Command Behavior
+
+| Command | Flags Used | Services Executed | Use Case |
+|---------|------------|------------------|----------|
+| `valksor:dev` | `dev` | `binaries`, `hot_reload` | Quick frontend development |
+| `valksor:watch` | `dev` | All services with `dev` flag | Full development environment |
+| `valksor-prod:build` | `prod` | `binaries` + all `prod` services | Production deployment |
 
 ### Configuration Options
 
@@ -553,7 +664,7 @@ services:
 1. **Binaries Not Downloaded**
    ```bash
    # Force re-download
-   php bin/console valksor:binary-ensure --force
+   php bin/console valksor:binary --force
    ```
 
 2. **File Watching Not Working**
@@ -571,8 +682,8 @@ services:
    # Check if port 8080 is in use
    lsof -i :8080
 
-   # Kill existing processes
-   php bin/console valksor:watch --kill-existing
+   # Kill existing processes manually (pkill or kill)
+   pkill -f valksor
    ```
 
 4. **Permissions Issues**

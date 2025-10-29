@@ -21,7 +21,9 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use ValksorDev\Build\Binary\LucideBinary;
+use ValksorDev\Build\Provider\ProviderRegistry;
 
 use function array_diff;
 use function array_intersect;
@@ -55,6 +57,15 @@ final class IconsGenerateCommand extends AbstractCommand
 {
     private string $cacheRoot;
     private SymfonyStyle $io;
+    private string $sharedIdentifier;
+
+    public function __construct(
+        ParameterBagInterface $parameterBag,
+        ProviderRegistry $providerRegistry,
+    ) {
+        parent::__construct($parameterBag, $providerRegistry);
+        $this->sharedIdentifier = $this->getInfrastructureDir();
+    }
 
     protected function configure(): void
     {

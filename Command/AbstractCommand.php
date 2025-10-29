@@ -32,11 +32,6 @@ abstract class AbstractCommand extends BundleAbstractCommand
 {
     use Helper;
 
-    /**
-     * Shared identifier for consistency.
-     */
-    protected string $sharedIdentifier = 'infrastructure';
-
     public function __construct(
         ParameterBagInterface $parameterBag,
         protected readonly ProviderRegistry $providerRegistry,

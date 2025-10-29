@@ -21,6 +21,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 use Valksor\Component\Sse\Service\AbstractService;
+use Valksor\FullStack;
 
 use function array_key_exists;
 use function array_keys;
@@ -232,6 +233,20 @@ final class ImportmapService extends AbstractService
 
         if (is_dir($sharedJs)) {
             $roots[] = ['label' => 'shared', 'source' => $sharedJs, 'dist' => $sharedDist];
+        }
+
+        $projectDir = $this->parameterBag->get('kernel.project_dir');
+
+        if (is_dir($projectDir . '/valksor')) {
+            $path = '/valksor/src/Valksor/Component/Sse/Resources/assets';
+        } elseif (class_exists(FullStack::class)) {
+            $path = '/vendor/valksor/valksor/src/Valksor/Component/Sse/Resources/assets';
+        } else {
+            $path = '/vendor/valksor/php-sse/Resources/assets';
+        }
+
+        if (is_dir($projectDir . $path . '/js')) {
+            $roots[] = ['label' => 'valksorsse', 'source' => $projectDir . $path . '/js', 'dist' => $sharedDist];
         }
 
         $appsDir = $this->parameterBag->get('kernel.project_dir') . DIRECTORY_SEPARATOR . $this->parameterBag->get('valksor.project.apps_dir');
