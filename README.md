@@ -1,10 +1,5 @@
 # ValksorDev Build Tools
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/valksor/php-dev-build.svg)](https://packagist.org/packages/valksor/php-dev-build)
-[![Total Downloads](https://img.shields.io/packagist/dt/valksor/php-dev-build.svg)](https://packagist.org/packages/valksor/php-dev-build)
-[![License](https://img.shields.io/packagist/l/valksor/php-dev-build.svg)](LICENSE)
-[![PHP Version Require](https://img.shields.io/packagist/require-v/valksor/php-dev-build/php)](https://packagist.org/packages/valksor/php-dev-build)
-
 A comprehensive development build tool suite for PHP applications that provides hot reloading, asset compilation, import map management, and development workflow automation. Designed to streamline modern PHP development with integrated tooling for Tailwind CSS, ESBuild, DaisyUI, and other frontend build tools.
 
 ## Features
