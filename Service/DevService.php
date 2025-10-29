@@ -21,10 +21,15 @@ use Symfony\Component\Process\Process;
 use ValksorDev\Build\Provider\ProviderRegistry;
 
 use function count;
+use function function_exists;
+use function in_array;
 use function sleep;
 use function sprintf;
 
-final class DevWatchService
+use const SIGINT;
+use const SIGTERM;
+
+final class DevService
 {
     private ?SymfonyStyle $io = null;
     private bool $isInteractive = true;
@@ -62,21 +67,61 @@ final class DevWatchService
     public function start(): int
     {
         if ($this->io) {
-            $this->io->title('Development Watch Mode');
+            $this->io->title('Development Mode');
         }
 
         // Initialize process manager for tracking background services
         $this->processManager = new ProcessManager($this->io);
 
+        // Register signal handlers for graceful shutdown
+        if (function_exists('pcntl_signal')) {
+            pcntl_async_signals(true);
+            pcntl_signal(SIGINT, function (): void {
+                if ($this->io) {
+                    $this->io->newLine();
+                    $this->io->warning('[INTERRUPT] Received Ctrl+C - shutting down gracefully...');
+                }
+                $this->processManager->terminateAll();
+                $this->running = false;
+
+                exit(0);
+            });
+            pcntl_signal(SIGTERM, function (): void {
+                if ($this->io) {
+                    $this->io->warning('[TERMINATE] Received termination signal - shutting down gracefully...');
+                }
+                $this->processManager->terminateAll();
+                $this->running = false;
+
+                exit(0);
+            });
+        }
+
+        // Run init phase first
+        $this->runInit();
+
         // Get services configuration from ParameterBag
         $servicesConfig = $this->parameterBag->get('valksor.build.services', []);
 
-        // Get all dev services (dev=true)
+        // Get lightweight dev services (hot_reload and any dev=true services)
         $devProviders = $this->providerRegistry->getProvidersByFlag($servicesConfig, 'dev');
 
-        if (empty($devProviders)) {
+        // Filter for lightweight services (SSE + hot_reload)
+        $lightweightProviders = [];
+
+        foreach ($devProviders as $name => $provider) {
+            $config = $servicesConfig[$name] ?? [];
+            $providerClass = $config['provider'] ?? $name;
+
+            // Only include lightweight providers (SSE and hot_reload)
+            if (in_array($providerClass, ['hot_reload'], true)) {
+                $lightweightProviders[$name] = $provider;
+            }
+        }
+
+        if (empty($lightweightProviders)) {
             if ($this->isInteractive && $this->io) {
-                $this->io->warning('No dev services are enabled in configuration.');
+                $this->io->warning('No lightweight dev services are enabled in configuration.');
             }
 
             return Command::SUCCESS;
@@ -92,9 +137,6 @@ final class DevWatchService
 
             return Command::FAILURE;
         }
-
-        // Run init phase first
-        $this->runInit();
 
         // Start SSE first before any providers (required for hot reload communication)
         if ($this->isInteractive && $this->io) {
@@ -113,13 +155,13 @@ final class DevWatchService
         if ($this->isInteractive && $this->io) {
             $this->io->success('✓ SSE server started and running');
             $this->io->newLine();
-            $this->io->text(sprintf('Starting %d dev service(s)...', count($devProviders)));
+            $this->io->text(sprintf('Running %d lightweight dev service(s)...', count($lightweightProviders)));
             $this->io->newLine();
         }
 
         $runningServices = [];
 
-        foreach ($devProviders as $name => $provider) {
+        foreach ($lightweightProviders as $name => $provider) {
             if ($this->isInteractive && $this->io) {
                 $this->io->section(sprintf('Starting %s', ucfirst($name)));
             }
@@ -137,7 +179,7 @@ final class DevWatchService
                     $this->io->text(sprintf('[INITIALIZING] %s service...', ucfirst($name)));
                 }
 
-                // Start the provider process and get the process
+                // Start the provider service and get the process
                 $process = $this->startProviderProcess($name, $provider, $options);
 
                 if (null === $process) {
@@ -187,6 +229,11 @@ final class DevWatchService
         if ($this->processManager) {
             $this->processManager->terminateAll();
         }
+    }
+
+    public static function getServiceName(): string
+    {
+        return 'dev';
     }
 
     /**
@@ -368,8 +415,6 @@ final class DevWatchService
     ): ?Process {
         $command = match ($name) {
             'hot_reload' => ['php', 'bin/console', 'valksor:hot-reload'],
-            'tailwind' => ['php', 'bin/console', 'valksor:tailwind', '--watch'],
-            'importmap' => ['php', 'bin/console', 'valksor:importmap', '--watch'],
             default => null,
         };
 

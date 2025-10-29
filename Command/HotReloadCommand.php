@@ -17,7 +17,7 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
-use ValksorDev\Build\Config\ProjectStructureConfig;
+use ValksorDev\Build\Provider\ProviderRegistry;
 use ValksorDev\Build\Service\HotReloadService;
 
 #[AsCommand(name: 'valksor:hot-reload', description: 'Run the hot reload service with file watching for development.')]
@@ -25,10 +25,10 @@ final class HotReloadCommand extends AbstractCommand
 {
     public function __construct(
         ParameterBagInterface $bag,
+        ProviderRegistry $providerRegistry,
         private readonly HotReloadService $hotReloadService,
-        ProjectStructureConfig $projectStructure,
     ) {
-        parent::__construct($bag, $projectStructure);
+        parent::__construct($bag, $providerRegistry);
     }
 
     protected function execute(

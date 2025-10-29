@@ -13,36 +13,70 @@
 namespace ValksorDev\Build\Provider;
 
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
-use Symfony\Component\Process\Process;
 
 /**
- * Interface for dev service providers.
+ * Unified interface for all service providers.
  *
- * Each provider represents a development service (tailwind, importmap, hot-reload, etc.)
- * and knows how to start the appropriate process(es) for that service.
+ * Each provider represents a service (binaries, icons, tailwind, importmap, hot-reload, etc.)
+ * and supports three execution phases: init, build, and watch.
  */
 #[AutoconfigureTag('valksor.service_provider')]
 interface ProviderInterface
 {
     /**
-     * Get the unique name/identifier for this service.
+     * Production build phase.
+     * Used for building assets, minifying files, etc.
      *
-     * @return string The service name (e.g., 'tailwind', 'importmap', 'hot-reload')
+     * @param array $options Service-specific options from configuration
+     *
+     * @return int Exit code (0 for success, non-zero for error)
+     */
+    public function build(
+        array $options,
+    ): int;
+
+    /**
+     * Services that must run before this one.
+     * Used for dependency resolution.
+     *
+     * @return array Array of service names that must run first
+     */
+    public function getDependencies(): array;
+
+    /**
+     * Get the unique name/identifier for this provider.
+     *
+     * @return string The provider name (e.g., 'tailwind', 'importmap', 'hot_reload')
      */
     public function getName(): string;
 
     /**
-     * Start the service and return process configuration(s).
+     * Service execution order (lower numbers run first).
+     * Used for dependency resolution and predictable execution.
      *
-     * @param ServiceContext $context Context with project info and process creation methods
-     *
-     * @return array<string, array{process: Process, readySignal?: string}>
-     *                                                                      Array of [label => [process, optional readySignal]]
-     *                                                                      - label: Display name for the process (e.g., 'tailwind', 'messenger-sentry-app1')
-     *                                                                      - process: The started Process instance
-     *                                                                      - readySignal: Optional string to detect when service is ready (e.g., 'Entering watch mode.')
+     * @return int Execution order (lower = earlier)
      */
-    public function startService(
-        ServiceContext $context,
-    ): array;
+    public function getServiceOrder(): int;
+
+    /**
+     * Initialize phase - runs before all other phases.
+     * Used for one-time setup like downloading binaries, generating templates, etc.
+     *
+     * @param array $options Service-specific options from configuration
+     */
+    public function init(
+        array $options,
+    ): void;
+
+    /**
+     * Development/watch phase.
+     * Used for starting long-running development processes with file watching.
+     *
+     * @param array $options Service-specific options from configuration
+     *
+     * @return int Exit code (0 for success, non-zero for error)
+     */
+    public function watch(
+        array $options,
+    ): int;
 }

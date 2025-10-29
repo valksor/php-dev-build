@@ -3,7 +3,8 @@
 /*
  * This file is part of the Valksor package.
  *
- * (c) Dāvis Zālītis (k0d3r1s) <packages@valksor.com>
+ * (c) Davis Zalitis (k0d3r1s)
+ * (c) SIA Valksor <packages@valksor.com>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -19,11 +20,8 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
-use ValksorDev\Build\Binary\BinaryAssetManager;
 use ValksorDev\Build\Binary\LucideBinary;
-use ValksorDev\Build\Config\ProjectStructureConfig;
 
 use function array_diff;
 use function array_intersect;
@@ -60,9 +58,9 @@ final class IconsGenerateCommand extends AbstractCommand
 
     public function __construct(
         ParameterBagInterface $bag,
-        ProjectStructureConfig $projectStructure,
+        \ValksorDev\Build\Provider\ProviderRegistry $providerRegistry,
     ) {
-        parent::__construct($bag, $projectStructure);
+        parent::__construct($bag, $providerRegistry);
     }
 
     protected function configure(): void

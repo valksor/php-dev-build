@@ -17,7 +17,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
-use ValksorDev\Build\Config\ProjectStructureConfig;
+use ValksorDev\Build\Provider\ProviderRegistry;
 use ValksorDev\Build\Service\ImportmapService;
 
 #[AsCommand(name: 'valksor:importmap', description: 'Mirror JavaScript assets into dist directories for importmap usage.')]
@@ -25,10 +25,10 @@ final class ImportmapSyncCommand extends AbstractCommand
 {
     public function __construct(
         ParameterBagInterface $bag,
+        ProviderRegistry $providerRegistry,
         private readonly ImportmapService $importmapService,
-        ProjectStructureConfig $projectStructure,
     ) {
-        parent::__construct($bag, $projectStructure);
+        parent::__construct($bag, $providerRegistry);
     }
 
     protected function configure(): void

@@ -12,6 +12,8 @@
 
 namespace ValksorDev\Build\Service;
 
+use Exception;
+use RuntimeException;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Valksor\Component\Sse\Service\AbstractService;
 
@@ -19,9 +21,9 @@ use function array_key_exists;
 use function array_keys;
 use function closedir;
 use function count;
+use function extension_loaded;
 use function file_put_contents;
 use function is_dir;
-use function is_file;
 use function json_encode;
 use function ltrim;
 use function max;
@@ -36,7 +38,6 @@ use function str_ends_with;
 use function str_replace;
 use function stream_select;
 use function strtolower;
-use function unlink;
 use function usleep;
 
 use const DIRECTORY_SEPARATOR;
@@ -64,11 +65,6 @@ final class HotReloadService extends AbstractService
         $this->filter = PathFilter::createDefault();
     }
 
-    public static function getServiceName(): string
-    {
-        return 'hot-reload';
-    }
-
     public function isRunning(): bool
     {
         return $this->running;
@@ -82,7 +78,6 @@ final class HotReloadService extends AbstractService
         }
     }
 
-    
     /**
      * @param array<string,mixed> $config Configuration from hot_reload config section
      */
@@ -91,18 +86,67 @@ final class HotReloadService extends AbstractService
     ): int {
         // SSE server communication now handled via direct service calls
 
-        $watchDirs = $this->bag->get('valksor.build.hot_reload.watch_dirs');
-        $debounceDelay = $this->bag->get('valksor.build.hot_reload.debounce_delay');
-        $extendedExtensions = $this->bag->get('valksor.build.hot_reload.extended_extensions');
-        $extendedSuffixes = $this->bag->get('valksor.build.hot_reload.extended_suffixes');
-        $fileTransformations = $this->bag->get('valksor.build.hot_reload.file_transformations') ?? [];
+        // Get hot reload configuration from new service-based structure
+        $hotReloadConfig = $this->bag->get('valksor.build.services.hot_reload.options', []);
+
+        // Validate configuration early
+        if (!$this->validateConfiguration($hotReloadConfig)) {
+            return 1; // Return error code for invalid config
+        }
+
+        $watchDirs = $hotReloadConfig['watch_dirs'] ?? [];
+
+        // Early return if no watch directories configured
+        if (empty($watchDirs)) {
+            if ($this->io) {
+                $this->io->warning('No watch directories configured. Hot reload disabled.');
+            }
+
+            return Command::SUCCESS;
+        }
+
+        $debounceDelay = $hotReloadConfig['debounce_delay'] ?? 0.3;
+        $extendedExtensions = $hotReloadConfig['extended_extensions'] ?? [];
+        $extendedSuffixes = $hotReloadConfig['extended_suffixes'] ?? ['.tailwind.css' => 0.5];
+        $fileTransformations = $hotReloadConfig['file_transformations'] ?? [
+            '*.tailwind.css' => [
+                'output_pattern' => '{path}/{name}.css',
+                'debounce_delay' => 0.5,
+                'track_output' => true,
+            ],
+        ];
 
         $this->fileTransformations = $fileTransformations;
-        $this->outputFiles = $this->discoverOutputFiles($this->bag->get('kernel.project_dir'), $fileTransformations);
+        // Lazy load output files only when needed, not during startup
+        $this->outputFiles = [];
 
-        $watcher = new RecursiveInotifyWatcher($this->filter, function (string $path) use ($extendedSuffixes, $debounceDelay, $extendedExtensions): void {
-            $this->handleFilesystemChange($path, $extendedSuffixes, $extendedExtensions, $debounceDelay);
-        });
+        // Initialize watcher with error handling
+        $watcher = null;
+
+        try {
+            $watcher = new RecursiveInotifyWatcher($this->filter, function (string $path) use ($extendedSuffixes, $debounceDelay, $extendedExtensions): void {
+                $this->handleFilesystemChange($path, $extendedSuffixes, $extendedExtensions, $debounceDelay);
+            });
+
+            if ($this->io) {
+                $this->io->text('File watcher initialized successfully');
+            }
+        } catch (RuntimeException $e) {
+            if ($this->io) {
+                $this->io->error(sprintf('Failed to initialize file watcher: %s', $e->getMessage()));
+                $this->io->warning('Hot reload will continue without file watching (manual reload only)');
+            }
+
+            // Continue without watcher - will fall back to manual mode
+            $watcher = null;
+        } catch (Exception $e) {
+            if ($this->io) {
+                $this->io->error(sprintf('Unexpected error initializing watcher: %s', $e->getMessage()));
+            }
+
+            // Continue without watcher
+            $watcher = null;
+        }
 
         $watchTargets = $this->collectWatchTargets($this->bag->get('kernel.project_dir'), $watchDirs);
 
@@ -127,7 +171,22 @@ final class HotReloadService extends AbstractService
             $this->io->success('Hot reload service started');
         }
 
+        // Add loop timeout protection - prevent infinite hangs
+        $loopCount = 0;
+        $maxLoopsWithoutActivity = 6000; // 10 minutes at 100ms intervals
+
         while ($this->running) {
+            $loopCount++;
+
+            // Timeout protection - exit if no activity for too long
+            if ($loopCount > $maxLoopsWithoutActivity && empty($this->pendingChanges)) {
+                if ($this->io) {
+                    $this->io->warning('Hot reload service timeout - no activity for 10 minutes, exiting gracefully');
+                }
+
+                break;
+            }
+
             if ($watcher) {
                 $read = [$watcher->getStream()];
                 $write = null;
@@ -137,16 +196,41 @@ final class HotReloadService extends AbstractService
                 $seconds = $timeout >= 1 ? (int) $timeout : 0;
                 $microseconds = $timeout >= 1 ? (int) (($timeout - $seconds) * 1_000_000) : (int) max($timeout * 1_000_000, 50_000);
 
-                $ready = @stream_select($read, $write, $except, $seconds, $microseconds);
+                // Add error handling around stream_select
+                try {
+                    $ready = @stream_select($read, $write, $except, $seconds, $microseconds);
 
-                if (false !== $ready && !empty($read)) {
-                    $watcher->poll();
+                    if (false === $ready) {
+                        // stream_select failed, likely due to signal interruption
+                        if ($this->io && 0 === $loopCount % 100) { // Log every 10 seconds
+                            $this->io->text('Stream select interrupted, continuing...');
+                        }
+                        usleep(100000); // Wait 100ms before retry
+
+                        continue;
+                    }
+
+                    if (!empty($read)) {
+                        $watcher->poll();
+                        // Reset loop counter on activity
+                        $loopCount = 0;
+                    }
+
+                    $this->flushPendingReloads();
+                } catch (Exception $e) {
+                    if ($this->io) {
+                        $this->io->error(sprintf('Error in file watching loop: %s', $e->getMessage()));
+                    }
+                    // Continue running but log the error
                 }
-
-                $this->flushPendingReloads();
             } else {
-                // No watcher available, just wait
+                // No watcher available, just wait with timeout
                 usleep(100000); // 100ms
+
+                // Reset loop counter periodically to prevent false timeouts
+                if (0 === $loopCount % 300) { // Every 30 seconds
+                    $loopCount = 0;
+                }
             }
         }
 
@@ -158,7 +242,11 @@ final class HotReloadService extends AbstractService
         $this->running = false;
     }
 
-    
+    public static function getServiceName(): string
+    {
+        return 'hot-reload';
+    }
+
     private function calculateSelectTimeout(): float
     {
         $now = microtime(true);
@@ -196,6 +284,11 @@ final class HotReloadService extends AbstractService
         array $extendedSuffixes,
         float $debounceDelay,
     ): float {
+        // Lazy load output files if not already discovered
+        if (empty($this->outputFiles)) {
+            $this->outputFiles = $this->discoverOutputFiles($this->bag->get('kernel.project_dir'), $this->fileTransformations);
+        }
+
         // Check if this is a tracked output file first
         // If it's a tracked output file, use transformation's debounce delay
         if (isset($this->outputFiles[$path])) {
@@ -275,10 +368,23 @@ final class HotReloadService extends AbstractService
         $this->pendingChanges = [];
         $this->debounceDeadline = 0.0;
 
-        // Write signal file for SSE service (optimized for fast response)
+        // Write signal file for SSE service with error handling
         $signalFile = $this->bag->get('kernel.project_dir') . '/var/run/valksor-reload.signal';
         $signalData = json_encode(['files' => $files, 'timestamp' => microtime(true)]);
-        file_put_contents($signalFile, $signalData);
+
+        try {
+            $result = file_put_contents($signalFile, $signalData);
+
+            if (false === $result) {
+                throw new RuntimeException('Failed to write signal file');
+            }
+        } catch (Exception $e) {
+            if ($this->io) {
+                $this->io->error(sprintf('Failed to write reload signal: %s', $e->getMessage()));
+            }
+
+            return;
+        }
 
         if ($this->io) {
             $this->io->success(sprintf('Reload signal sent for %d changed files', count($files)));
@@ -387,6 +493,49 @@ final class HotReloadService extends AbstractService
         $pattern = '#^' . preg_quote($this->bag->get('kernel.project_dir') . DIRECTORY_SEPARATOR, '#') . $pattern . '$#';
 
         return 1 === preg_match($pattern, $path);
+    }
+
+    /**
+     * Validate hot reload configuration before starting.
+     */
+    private function validateConfiguration(
+        array $config,
+    ): bool {
+        $projectRoot = $this->bag->get('kernel.project_dir');
+
+        // Validate var/run directory exists and is writable
+        $runDir = $projectRoot . '/var/run';
+        $this->ensureDirectory($runDir);
+
+        if (!is_writable($runDir)) {
+            if ($this->io) {
+                $this->io->error(sprintf('Run directory is not writable: %s', $runDir));
+            }
+
+            return false;
+        }
+
+        // Validate watch directories exist
+        $watchDirs = $config['watch_dirs'] ?? [];
+
+        foreach ($watchDirs as $dir) {
+            $fullPath = $projectRoot . '/' . ltrim($dir, '/');
+
+            if (!is_dir($fullPath)) {
+                if ($this->io) {
+                    $this->io->warning(sprintf('Watch directory does not exist: %s', $fullPath));
+                }
+            }
+        }
+
+        // Check if inotify extension is available
+        if (!extension_loaded('inotify')) {
+            if ($this->io) {
+                $this->io->warning('PHP inotify extension is not available. File watching may not work optimally.');
+            }
+        }
+
+        return true;
     }
 
     /**

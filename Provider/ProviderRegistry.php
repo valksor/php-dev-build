@@ -72,6 +72,39 @@ final class ProviderRegistry
     }
 
     /**
+     * Get providers filtered by service configuration flags.
+     *
+     * @param array  $servicesConfig Services configuration from valksor.php
+     * @param string $flag           The flag to filter by (init, dev, prod)
+     *
+     * @return array<string, ProviderInterface> Filtered providers [name => provider]
+     */
+    public function getProvidersByFlag(
+        array $servicesConfig,
+        string $flag,
+    ): array {
+        $filteredProviders = [];
+
+        foreach ($servicesConfig as $name => $config) {
+            if (!($config['enabled'] ?? false)) {
+                continue;
+            }
+
+            if (!($config['flags'][$flag] ?? false)) {
+                continue;
+            }
+
+            $providerName = $config['provider'] ?? $name;
+
+            if ($this->has($providerName)) {
+                $filteredProviders[$name] = $this->get($providerName);
+            }
+        }
+
+        return $this->sortProvidersByOrder($filteredProviders);
+    }
+
+    /**
      * Check if a provider is registered for the given service name.
      *
      * @param string $name The service name (e.g., 'tailwind')
@@ -93,5 +126,82 @@ final class ProviderRegistry
         ProviderInterface $provider,
     ): void {
         $this->providers[$provider->getName()] = $provider;
+    }
+
+    /**
+     * Validate that all configured providers exist.
+     *
+     * @param array $servicesConfig Services configuration from valksor.php
+     *
+     * @return array<string> Array of missing provider names
+     */
+    public function validateProviders(
+        array $servicesConfig,
+    ): array {
+        $missing = [];
+
+        foreach ($servicesConfig as $name => $config) {
+            if (!($config['enabled'] ?? false)) {
+                continue;
+            }
+
+            $providerName = $config['provider'] ?? $name;
+
+            if (!$this->has($providerName)) {
+                $missing[] = $providerName;
+            }
+        }
+
+        return $missing;
+    }
+
+    /**
+     * Sort providers by their service order and resolve dependencies.
+     *
+     * @param array<string, ProviderInterface> $providers Providers to sort
+     *
+     * @return array<string, ProviderInterface> Sorted providers
+     */
+    private function sortProvidersByOrder(
+        array $providers,
+    ): array {
+        // Sort by service order first
+        uasort($providers, fn (ProviderInterface $a, ProviderInterface $b) => $a->getServiceOrder() - $b->getServiceOrder());
+
+        // Simple dependency resolution - ensure dependencies run first
+        $sorted = [];
+        $remaining = $providers;
+
+        while (!empty($remaining)) {
+            $addedInIteration = false;
+
+            foreach ($remaining as $name => $provider) {
+                $dependencies = $provider->getDependencies();
+                $allDependenciesMet = true;
+
+                foreach ($dependencies as $dependency) {
+                    if (!isset($sorted[$dependency])) {
+                        $allDependenciesMet = false;
+
+                        break;
+                    }
+                }
+
+                if ($allDependenciesMet) {
+                    $sorted[$name] = $provider;
+                    unset($remaining[$name]);
+                    $addedInIteration = true;
+                }
+            }
+
+            if (!$addedInIteration) {
+                // Circular dependency or missing dependency - add remaining as-is
+                $sorted += $remaining;
+
+                break;
+            }
+        }
+
+        return $sorted;
     }
 }

@@ -3,7 +3,8 @@
 /*
  * This file is part of the Valksor package.
  *
- * (c) Dāvis Zālītis (k0d3r1s) <packages@valksor.com>
+ * (c) Davis Zalitis (k0d3r1s)
+ * (c) SIA Valksor <packages@valksor.com>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -12,9 +13,10 @@
 namespace ValksorDev\Build\Service;
 
 use Symfony\Component\Config\Definition\ConfigurationInterface;
-use ValksorDev\Build\Service\Config\ExtensionResolver;
+use Throwable;
 use ValksorDev\Build\Service\Config\CurrentConfigExtractor;
 use ValksorDev\Build\Service\Config\DefaultConfigProcessor;
+use ValksorDev\Build\Service\Config\ExtensionResolver;
 
 /**
  * Simplified service for reading Symfony configuration programmatically.
@@ -41,8 +43,9 @@ class ConfigurationReaderService
     /**
      * Get the configuration tree for a bundle.
      */
-    public function getConfigurationTree(string $bundle): ?ConfigurationInterface
-    {
+    public function getConfigurationTree(
+        string $bundle,
+    ): ?ConfigurationInterface {
         $extension = $this->extensionResolver->findExtension($bundle);
 
         if (!$extension) {
@@ -56,7 +59,7 @@ class ConfigurationReaderService
             if ($containerBuilder) {
                 return $extension->getConfiguration([], $containerBuilder);
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Fall through to return null
         }
 
@@ -66,16 +69,20 @@ class ConfigurationReaderService
     /**
      * Get current configuration for a bundle.
      */
-    public function getCurrentConfig(string $bundle, ?string $path = null): array
-    {
+    public function getCurrentConfig(
+        string $bundle,
+        ?string $path = null,
+    ): array {
         return $this->currentConfigExtractor->getCurrentConfig($bundle, $path);
     }
 
     /**
      * Get default configuration values for a bundle/extension.
      */
-    public function getDefaultConfig(string $bundle, ?string $path = null): array
-    {
+    public function getDefaultConfig(
+        string $bundle,
+        ?string $path = null,
+    ): array {
         return $this->defaultConfigProcessor->getDefaultConfig($bundle, $path);
     }
 

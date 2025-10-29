@@ -15,12 +15,7 @@ namespace ValksorDev\Build\Command;
 use RuntimeException;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use ValksorDev\Build\Binary\BinaryRegistry;
-use ValksorDev\Build\Config\ProjectStructureConfig;
 
 use function implode;
 use function sprintf;
@@ -30,45 +25,44 @@ use function ucfirst;
 final class BinaryEnsureCommand extends AbstractCommand
 {
     public function __construct(
-        ParameterBagInterface $bag,
-        #[Autowire(
-            param: 'valksor.build.binaries',
-        )]
-        private readonly array $availableBinaries,
         private readonly BinaryRegistry $binaryRegistry,
-        ProjectStructureConfig $projectStructure,
+        \Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface $bag,
+        \ValksorDev\Build\Provider\ProviderRegistry $providerRegistry,
     ) {
-        parent::__construct($bag, $projectStructure);
+        parent::__construct($bag, $providerRegistry);
     }
 
     protected function configure(): void
     {
+        $availableBinaries = $this->binaryRegistry->getAvailableNames();
         $this
-            ->addArgument('tool', InputArgument::REQUIRED, sprintf('Tool to download (%s)', implode(', ', $this->availableBinaries)));
+            ->addArgument('tool', InputArgument::REQUIRED, sprintf('Tool to download (%s)', implode(', ', $availableBinaries)));
     }
 
     protected function execute(
-        InputInterface $input,
-        OutputInterface $output,
+        \Symfony\Component\Console\Input\InputInterface $input,
+        \Symfony\Component\Console\Output\OutputInterface $output,
     ): int {
         $io = $this->createSymfonyStyle($input, $output);
         $tool = (string) $input->getArgument('tool');
 
         // Validate tool exists in registry
         if (!$this->binaryRegistry->has($tool)) {
-            return $this->handleCommandError(sprintf('Unsupported tool: %s. Supported tools: %s', $tool, implode(', ', $this->availableBinaries)), $io);
+            $availableBinaries = $this->binaryRegistry->getAvailableNames();
+
+            return $this->handleCommandError(sprintf('Unsupported tool: %s. Supported tools: %s', $tool, implode(', ', $availableBinaries)), $io);
         }
 
-        $projectRoot = $this->bag->get('kernel.project_dir');
+        $projectRoot = $this->resolveProjectRoot();
         $manager = $this->createManagerForTool($projectRoot, $tool);
 
         try {
             $tag = $manager->ensureLatest([$io, 'text']);
+
+            return $this->handleCommandSuccess(sprintf('%s assets ready (%s).', ucfirst($tool), $tag), $io);
         } catch (RuntimeException $exception) {
             return $this->handleCommandError($exception->getMessage(), $io);
         }
-
-        return $this->handleCommandSuccess(sprintf('%s assets ready (%s).', ucfirst($tool), $tag), $io);
     }
 
     private function createManagerForTool(

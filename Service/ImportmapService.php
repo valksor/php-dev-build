@@ -30,9 +30,7 @@ use function copy;
 use function count;
 use function dirname;
 use function file_exists;
-use function file_put_contents;
 use function function_exists;
-use function getmypid;
 use function is_array;
 use function is_dir;
 use function is_file;
@@ -66,11 +64,6 @@ final class ImportmapService extends AbstractService
         $this->filter = PathFilter::createDefault();
     }
 
-    public static function getServiceName(): string
-    {
-        return 'importmap';
-    }
-
     public function isRunning(): bool
     {
         return $this->running;
@@ -81,7 +74,6 @@ final class ImportmapService extends AbstractService
         $this->shouldReload = true;
     }
 
-    
     /**
      * @param array<string,mixed> $config Configuration: ['watch' => bool, 'minify' => bool, 'esbuild' => ?string]
      */
@@ -123,7 +115,11 @@ final class ImportmapService extends AbstractService
         $this->running = false;
     }
 
-    
+    public static function getServiceName(): string
+    {
+        return 'importmap';
+    }
+
     protected function shouldMinify(
         InputInterface $input,
     ): bool {
@@ -271,7 +267,6 @@ final class ImportmapService extends AbstractService
         return $roots;
     }
 
-    
     private function removeDirectory(
         string $directory,
     ): void {

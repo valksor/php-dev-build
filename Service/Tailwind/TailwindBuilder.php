@@ -3,7 +3,8 @@
 /*
  * This file is part of the Valksor package.
  *
- * (c) Dāvis Zālītis (k0d3r1s) <packages@valksor.com>
+ * (c) Davis Zalitis (k0d3r1s)
+ * (c) SIA Valksor <packages@valksor.com>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -16,57 +17,36 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
+use Valksor\Component\Sse\Helper;
 
 use function array_merge;
 use function count;
 use function dirname;
-use function is_dir;
 use function is_executable;
 use function is_file;
-use function mkdir;
 use function sprintf;
-
-use const DIRECTORY_SEPARATOR;
 
 /**
  * Service for building Tailwind CSS files.
  */
 final class TailwindBuilder
 {
+    use Helper;
+
     public function __construct(
         private readonly string $projectRoot,
     ) {
     }
 
     /**
-     * @param array<int,array{input:string,output:string,relative_input:string,relative_output:string,label:string,watchRoots:array<int,string>}> $sources
-     */
-    public function buildSources(array $sources, bool $minify, SymfonyStyle $io): int
-    {
-        $commandBase = $this->resolveTailwindCommandBase();
-        $tailwindCommand = $commandBase['command'];
-
-        $io->section(sprintf('Building Tailwind CSS for %d source%s', count($sources), 1 === count($sources) ? '' : 's'));
-        $io->note(sprintf('Using Tailwind command: %s', $commandBase['display']));
-
-        foreach ($sources as $source) {
-            $result = $this->buildSingleSource($source, $minify, $tailwindCommand, $io);
-
-            if (Command::SUCCESS !== $result) {
-                return $result;
-            }
-        }
-
-        $io->success('Tailwind build completed.');
-
-        return Command::SUCCESS;
-    }
-
-    /**
      * @param array{input:string,output:string,relative_input:string,relative_output:string,label:string,watchRoots:array<int,string>} $source
      */
-    public function buildSingleSource(array $source, bool $minify, array $tailwindCommand = null, SymfonyStyle $io = null): int
-    {
+    public function buildSingleSource(
+        array $source,
+        bool $minify,
+        ?array $tailwindCommand = null,
+        ?SymfonyStyle $io = null,
+    ): int {
         $outputPath = $source['output'];
         $relativeInput = $source['relative_input'];
         $relativeOutput = $source['relative_output'];
@@ -80,7 +60,7 @@ final class TailwindBuilder
         }
 
         if (null === $io) {
-            throw new \RuntimeException('SymfonyStyle is required for building');
+            throw new RuntimeException('SymfonyStyle is required for building');
         }
 
         $arguments = array_merge($tailwindCommand, ['--input', $relativeInput, '--output', $relativeOutput]);
@@ -116,20 +96,37 @@ final class TailwindBuilder
         return Command::SUCCESS;
     }
 
-    private function ensureDirectory(string $directory): void
-    {
-        if (!is_dir($directory)) {
-            mkdir($directory, 0o775, true);
+    /**
+     * @param array<int,array{input:string,output:string,relative_input:string,relative_output:string,label:string,watchRoots:array<int,string>}> $sources
+     */
+    public function buildSources(
+        array $sources,
+        bool $minify,
+        SymfonyStyle $io,
+    ): int {
+        $commandBase = $this->resolveTailwindCommandBase();
+        $tailwindCommand = $commandBase['command'];
+
+        $io->section(sprintf('Building Tailwind CSS for %d source%s', count($sources), 1 === count($sources) ? '' : 's'));
+        $io->note(sprintf('Using Tailwind command: %s', $commandBase['display']));
+
+        foreach ($sources as $source) {
+            $result = $this->buildSingleSource($source, $minify, $tailwindCommand, $io);
+
+            if (Command::SUCCESS !== $result) {
+                return $result;
+            }
         }
+
+        $io->success('Tailwind build completed.');
+
+        return Command::SUCCESS;
     }
 
     private function ensureTempDir(): string
     {
         $tmpDir = $this->projectRoot . '/var/tmp/tailwind';
-
-        if (!is_dir($tmpDir)) {
-            mkdir($tmpDir, 0o775, true);
-        }
+        $this->ensureDirectory($tmpDir);
 
         return $tmpDir;
     }

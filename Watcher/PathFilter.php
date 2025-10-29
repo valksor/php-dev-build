@@ -3,7 +3,8 @@
 /*
  * This file is part of the Valksor package.
  *
- * (c) Dāvis Zālītis (k0d3r1s) <packages@valksor.com>
+ * (c) Davis Zalitis (k0d3r1s)
+ * (c) SIA Valksor <packages@valksor.com>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -73,6 +74,17 @@ final class PathFilter
     }
 
     /**
+     * Create a PathFilter instance with the required parameters.
+     * This method replaces the PathFilterFactory.
+     */
+    public static function create(
+        array $excludePatterns,
+        array $excludeFiles,
+    ): self {
+        return self::createDefault($excludePatterns, $excludeFiles);
+    }
+
+    /**
      * Creates a default path filter with configurable exclude patterns.
      */
     public static function createDefault(
@@ -85,16 +97,5 @@ final class PathFilter
             $excludeFiles,
             array_map(static fn ($pattern) => '**/*' . $pattern, $excludeFiles),
         );
-    }
-
-    /**
-     * Create a PathFilter instance with the required parameters.
-     * This method replaces the PathFilterFactory.
-     */
-    public static function create(
-        array $excludePatterns,
-        array $excludeFiles,
-    ): self {
-        return self::createDefault($excludePatterns, $excludeFiles);
     }
 }

@@ -3,7 +3,8 @@
 /*
  * This file is part of the Valksor package.
  *
- * (c) Dāvis Zālītis (k0d3r1s) <packages@valksor.com>
+ * (c) Davis Zalitis (k0d3r1s)
+ * (c) SIA Valksor <packages@valksor.com>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -22,8 +23,8 @@ use function is_array;
 use function microtime;
 use function pcntl_async_signals;
 use function pcntl_signal;
-use function stream_select;
 use function str_starts_with;
+use function stream_select;
 
 use const SIGHUP;
 use const SIGINT;
@@ -65,10 +66,14 @@ final class TailwindWatcher
     /**
      * @param array<int,array{input:string,output:string,relative_input:string,relative_output:string,label:string,watchRoots:array<int,string>}> $sources
      */
-    public function watchSources(array $sources, bool $minify, SymfonyStyle $io): int
-    {
+    public function watchSources(
+        array $sources,
+        bool $minify,
+        SymfonyStyle $io,
+    ): int {
         if (!function_exists('pcntl_async_signals')) {
             $io->error('Watch mode requires the pcntl extension.');
+
             return Command::FAILURE;
         }
 

@@ -3,7 +3,8 @@
 /*
  * This file is part of the Valksor package.
  *
- * (c) Dāvis Zālītis (k0d3r1s) <packages@valksor.com>
+ * (c) Davis Zalitis (k0d3r1s)
+ * (c) SIA Valksor <packages@valksor.com>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -14,21 +15,23 @@ namespace ValksorDev\Build\Command;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
-use ValksorDev\Build\Config\DevCommandConfig;
-use ValksorDev\Build\Config\ProjectStructureConfig;
-use ValksorDev\Build\Service\DevWatchService;
+use ValksorDev\Build\Service\DevService;
 
-#[AsCommand(name: 'valksor:dev', description: 'Run SSE server and hot reload together for development.')]
+#[AsCommand(name: 'valksor:dev', description: 'Run lightweight development mode (SSE + hot reload).')]
 final class DevCommand extends AbstractCommand
 {
     public function __construct(
-        ParameterBagInterface $bag,
-        private readonly DevWatchService $devWatchService,
-        private readonly DevCommandConfig $devCommandConfig,
-        ProjectStructureConfig $projectStructure,
+        private readonly DevService $devService,
     ) {
-        parent::__construct($bag, $projectStructure);
+        parent::__construct(
+            $devService->getParameterBag(),
+            $devService->getProviderRegistry(),
+        );
+    }
+
+    protected function configure(): void
+    {
+        $this->addNonInteractiveOption();
     }
 
     protected function execute(
@@ -36,38 +39,13 @@ final class DevCommand extends AbstractCommand
         OutputInterface $output,
     ): int {
         $io = $this->createSymfonyStyle($input, $output);
+        $isInteractive = $this->shouldShowRealTimeOutput($input);
 
-        // Kill any conflicting SSE-related processes before starting
-        $this->devWatchService->killConflictingSseProcesses($io);
+        // Set IO and interactive mode on the service
+        $this->devService->setIo($io);
+        $this->devService->setInteractive($isInteractive);
 
-        $this->setServiceIo($this->devWatchService, $io);
-        $this->devWatchService->writePidFile();
-
-        try {
-            // Convert service names from underscore to hyphen format for compatibility
-            $services = [];
-
-            foreach ($this->devCommandConfig->services->getEnabledServices() as $serviceName => $serviceConfig) {
-                // Convert hot_reload -> hot-reload
-                $convertedName = str_replace('_', '-', $serviceName);
-                $services[$convertedName] = $serviceConfig;
-            }
-
-            $config = [
-                'services' => $services,
-                'skip_binaries' => $this->devCommandConfig->shouldSkipBinaries(),
-                'skip_initialization' => $this->devCommandConfig->shouldSkipInitialization(),
-                'skip_asset_cleanup' => $this->devCommandConfig->shouldSkipAssetCleanup(),
-            ];
-
-            return $this->devWatchService->start($config);
-        } finally {
-            $this->devWatchService->removePidFile();
-        }
-    }
-
-    protected function getSseProcessesToKill(): array
-    {
-        return ['sse', 'hot_reload', 'dev'];
+        // Start the dev service (handles PID management, signal handling, etc.)
+        return $this->devService->start();
     }
 }

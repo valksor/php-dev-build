@@ -15,19 +15,23 @@ namespace ValksorDev\Build\Command;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
-use ValksorDev\Build\Config\ProjectStructureConfig;
 use ValksorDev\Build\Service\DevWatchService;
 
-#[AsCommand(name: 'valksor:watch', description: 'Run Tailwind, importmap, and hot reload watchers in parallel.')]
+#[AsCommand(name: 'valksor:watch', description: 'Run all development services (Tailwind, importmap, hot reload) in parallel.')]
 final class DevWatchCommand extends AbstractCommand
 {
     public function __construct(
-        ParameterBagInterface $bag,
         private readonly DevWatchService $devWatchService,
-        ProjectStructureConfig $projectStructure,
     ) {
-        parent::__construct($bag, $projectStructure);
+        parent::__construct(
+            $devWatchService->getParameterBag(),
+            $devWatchService->getProviderRegistry(),
+        );
+    }
+
+    protected function configure(): void
+    {
+        $this->addNonInteractiveOption();
     }
 
     protected function execute(
@@ -35,24 +39,13 @@ final class DevWatchCommand extends AbstractCommand
         OutputInterface $output,
     ): int {
         $io = $this->createSymfonyStyle($input, $output);
-        $this->setServiceIo($this->devWatchService, $io);
+        $isInteractive = $this->shouldShowRealTimeOutput($input);
 
-        $this->devWatchService->createPidFilePath($this->devWatchService::getServiceName());
+        // Set IO and interactive mode on the service
+        $this->devWatchService->setIo($io);
+        $this->devWatchService->setInteractive($isInteractive);
 
-        // Kill any conflicting SSE-related processes before starting
-        $this->devWatchService->killConflictingSseProcesses($io);
-
-        $this->devWatchService->writePidFile();
-
-        try {
-            return $this->devWatchService->start();
-        } finally {
-            $this->devWatchService->removePidFile();
-        }
-    }
-
-    protected function getSseProcessesToKill(): array
-    {
-        return ['sse', 'hot-reload', 'watch'];
+        // Start the dev watch service (handles PID management, signal handling, etc.)
+        return $this->devWatchService->start();
     }
 }

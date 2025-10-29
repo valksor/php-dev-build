@@ -19,7 +19,6 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 use Valksor\Component\Sse\Service\AbstractService;
-use Valksor\Functions\Local\Traits\_MkDir;
 
 use function array_key_exists;
 use function array_merge;
@@ -28,9 +27,7 @@ use function array_values;
 use function closedir;
 use function count;
 use function dirname;
-use function file_put_contents;
 use function function_exists;
-use function getmypid;
 use function is_array;
 use function is_dir;
 use function is_executable;
@@ -50,7 +47,6 @@ use function stream_select;
 use function strlen;
 use function substr;
 use function trim;
-use function unlink;
 use function usort;
 
 use const DIRECTORY_SEPARATOR;
@@ -74,22 +70,6 @@ final class TailwindService extends AbstractService
         $this->filter = PathFilter::createDefault();
     }
 
-    public static function getServiceName(): string
-    {
-        return 'tailwind';
-    }
-
-    public function isRunning(): bool
-    {
-        return $this->running;
-    }
-
-    public function reload(): void
-    {
-        $this->shouldReload = true;
-    }
-
-    
     public function setActiveAppId(
         ?string $appId,
     ): void {
@@ -152,7 +132,11 @@ final class TailwindService extends AbstractService
         $this->running = false;
     }
 
-    
+    public static function getServiceName(): string
+    {
+        return 'tailwind';
+    }
+
     protected function shouldMinify(
         InputInterface $input,
     ): bool {
@@ -372,7 +356,6 @@ final class TailwindService extends AbstractService
         }
     }
 
-    
     private function ensureTempDir(): string
     {
         $tmpDir = $this->bag->get('kernel.project_dir') . '/var/tmp/tailwind';

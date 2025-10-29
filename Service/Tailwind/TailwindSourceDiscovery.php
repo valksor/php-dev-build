@@ -3,7 +3,8 @@
 /*
  * This file is part of the Valksor package.
  *
- * (c) Dāvis Zālītis (k0d3r1s) <packages@valksor.com>
+ * (c) Davis Zalitis (k0d3r1s)
+ * (c) SIA Valksor <packages@valksor.com>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -14,7 +15,6 @@ namespace ValksorDev\Build\Service\Tailwind;
 use ValksorDev\Build\Config\ProjectStructureConfig;
 use ValksorDev\Build\Watcher\PathFilter;
 
-use function array_merge;
 use function array_unique;
 use function array_values;
 use function closedir;
@@ -46,8 +46,10 @@ final class TailwindSourceDiscovery
     /**
      * @return array<int,array{input:string,output:string,relative_input:string,relative_output:string,label:string,watchRoots:array<int,string>}>
      */
-    public function collectTailwindSources(?string $activeAppId = null, bool $includeAllApps = false): array
-    {
+    public function collectTailwindSources(
+        ?string $activeAppId = null,
+        bool $includeAllApps = false,
+    ): array {
         $sources = [];
 
         // Multi-app project structure
@@ -93,10 +95,52 @@ final class TailwindSourceDiscovery
     }
 
     /**
+     * @return array{input:string,output:string,relative_input:string,relative_output:string,label:string,watchRoots:array<int,string>}
+     */
+    private function createSourceDefinition(
+        string $inputPath,
+    ): array {
+        $relativeInput = trim(str_replace('\\', '/', substr($inputPath, strlen($this->projectRoot))), '/');
+        $outputPath = preg_replace('/\.tailwind\.css$/', '.css', $inputPath);
+        $relativeOutput = trim(str_replace('\\', '/', substr($outputPath, strlen($this->projectRoot))), '/');
+
+        $label = $relativeInput;
+        $watchRoots = [];
+
+        // Multi-app project structure
+        if (1 === preg_match('#^apps/([^/]+)/#', $relativeInput, $matches)) {
+            $appName = $matches[1];
+            $label = $appName;
+            $watchRoots[] = $this->projectRoot . '/apps/' . $appName;
+
+            // Include shared directory if it exists
+            if (is_dir($this->projectRoot . '/shared')) {
+                $watchRoots[] = $this->projectRoot . '/shared';
+            }
+        } elseif (str_starts_with($relativeInput, 'shared/')) {
+            $label = 'shared';
+            $watchRoots[] = $this->projectRoot . '/shared';
+        } else {
+            $watchRoots[] = dirname($inputPath);
+        }
+
+        return [
+            'input' => $inputPath,
+            'output' => $outputPath,
+            'relative_input' => $relativeInput,
+            'relative_output' => $relativeOutput,
+            'label' => $label,
+            'watchRoots' => array_values(array_unique($watchRoots)),
+        ];
+    }
+
+    /**
      * @param array<int,array{input:string,output:string,relative_input:string,relative_output:string,label:string,watchRoots:array<int,string>}> $sources
      */
-    private function discoverSources(string $directory, array &$sources): void
-    {
+    private function discoverSources(
+        string $directory,
+        array &$sources,
+    ): void {
         if (!is_dir($directory)) {
             return;
         }
@@ -134,44 +178,5 @@ final class TailwindSourceDiscovery
         } finally {
             closedir($handle);
         }
-    }
-
-    /**
-     * @return array{input:string,output:string,relative_input:string,relative_output:string,label:string,watchRoots:array<int,string>}
-     */
-    private function createSourceDefinition(string $inputPath): array
-    {
-        $relativeInput = trim(str_replace('\\', '/', substr($inputPath, strlen($this->projectRoot))), '/');
-        $outputPath = preg_replace('/\.tailwind\.css$/', '.css', $inputPath);
-        $relativeOutput = trim(str_replace('\\', '/', substr($outputPath, strlen($this->projectRoot))), '/');
-
-        $label = $relativeInput;
-        $watchRoots = [];
-
-        // Multi-app project structure
-        if (1 === preg_match('#^apps/([^/]+)/#', $relativeInput, $matches)) {
-            $appName = $matches[1];
-            $label = $appName;
-            $watchRoots[] = $this->projectRoot . '/apps/' . $appName;
-
-            // Include shared directory if it exists
-            if (is_dir($this->projectRoot . '/shared')) {
-                $watchRoots[] = $this->projectRoot . '/shared';
-            }
-        } elseif (str_starts_with($relativeInput, 'shared/')) {
-            $label = 'shared';
-            $watchRoots[] = $this->projectRoot . '/shared';
-        } else {
-            $watchRoots[] = dirname($inputPath);
-        }
-
-        return [
-            'input' => $inputPath,
-            'output' => $outputPath,
-            'relative_input' => $relativeInput,
-            'relative_output' => $relativeOutput,
-            'label' => $label,
-            'watchRoots' => array_values(array_unique($watchRoots)),
-        ];
     }
 }
