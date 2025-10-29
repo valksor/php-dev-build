@@ -12,7 +12,6 @@
 
 namespace ValksorDev\Build\Command;
 
-use Exception;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -37,25 +36,6 @@ final class HotReloadCommand extends AbstractCommand
     ): int {
         $io = $this->createSymfonyStyle($input, $output);
 
-        // Kill any conflicting SSE processes before starting
-        $this->hotReloadService->killConflictingSseProcesses($io);
-
-        $this->setServiceIo($this->hotReloadService, $io);
-
-        $this->hotReloadService->createPidFilePath($this->hotReloadService::getServiceName());
-        $this->hotReloadService->writePidFile();
-
-        try {
-            $exitCode = $this->hotReloadService->start();
-
-            $this->hotReloadService->removePidFile();
-
-            return $exitCode;
-        } catch (Exception $e) {
-            $this->hotReloadService->removePidFile();
-            $io->error('Hot reload service failed: ' . $e->getMessage());
-
-            return 1;
-        }
+        return $this->hotReloadService->startWithLifecycle($io);
     }
 }

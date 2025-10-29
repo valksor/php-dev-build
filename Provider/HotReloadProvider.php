@@ -13,8 +13,7 @@
 namespace ValksorDev\Build\Provider;
 
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Process\Exception\ProcessTimedOutException;
-use Symfony\Component\Process\Process;
+use ValksorDev\Build\Service\ProcessManager;
 
 /**
  * Provider for hot reload service (development only with file watching).
@@ -57,44 +56,6 @@ final class HotReloadProvider implements ProviderInterface
         $arguments = ['valksor:hot-reload'];
         $isInteractive = $options['interactive'] ?? true;
 
-        $process = new Process(['php', 'bin/console', ...$arguments]);
-
-        if ($isInteractive) {
-            // Interactive mode - stream output in real-time for watch services
-            // No timeouts - let the process run indefinitely
-            try {
-                $process->start();
-
-                // Give process time to start
-                usleep(500000); // 500ms
-
-                if ($process->isRunning()) {
-                    // Process started successfully - let it run in background
-                    echo "[RUNNING] Hot reload service started and monitoring files for changes\n";
-
-                    return Command::SUCCESS;
-                }
-
-                // Process finished quickly - check if it was successful
-                return $process->isSuccessful() ? Command::SUCCESS : Command::FAILURE;
-            } catch (ProcessTimedOutException $e) {
-                // Timeout is expected behavior for watch services - they run continuously
-                if ($process->isRunning()) {
-                    // Let it continue running in the background
-                    return Command::SUCCESS;
-                }
-
-                // If it stopped, check if it was successful
-                return $process->isSuccessful() ? Command::SUCCESS : Command::FAILURE;
-            }
-        } else {
-            // Non-interactive mode - just run without output
-            $process->start();
-
-            // Give minimal time for process to start
-            usleep(250000); // 250ms
-
-            return Command::SUCCESS; // Always return success for non-interactive hot reload
-        }
+        return ProcessManager::executeProcess($arguments, $isInteractive, 'Hot reload service');
     }
 }

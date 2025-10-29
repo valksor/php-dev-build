@@ -13,14 +13,22 @@
 namespace ValksorDev\Build\Provider;
 
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Process\Exception\ProcessTimedOutException;
-use Symfony\Component\Process\Process;
+use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use ValksorDev\Build\Service\ProcessManager;
 
 /**
  * Provider for Importmap service.
  */
-final class ImportmapProvider implements ProviderInterface
+final class ImportmapProvider implements ProviderInterface, IoAwareInterface
 {
+    private ?SymfonyStyle $io = null;
+
+    public function __construct(
+        private readonly ParameterBagInterface $parameterBag,
+    ) {
+    }
+
     public function build(
         array $options,
     ): int {
@@ -29,11 +37,15 @@ final class ImportmapProvider implements ProviderInterface
         $shouldMinify = $isProductionEnvironment || ($options['minify'] ?? false);
 
         // Get available apps from the project
-        $projectDir = getcwd(); // Assumes we're in the project root
-        $appsDir = $projectDir . '/apps';
+        $projectDir = $this->parameterBag->get('kernel.project_dir');
+        $appsDir = $projectDir . '/' . $this->parameterBag->get('valksor.project.apps_dir');
 
         if (is_dir($appsDir)) {
-            $apps = array_filter(scandir($appsDir), fn ($item) => '.' !== $item && '..' !== $item && is_dir($appsDir . '/' . $item));
+            $apps = array_filter(scandir($appsDir), function ($item) use ($appsDir) {
+                $appPath = $appsDir . '/' . $item;
+
+                return '.' !== $item && '..' !== $item && is_dir($appPath);
+            });
 
             foreach ($apps as $app) {
                 $arguments = ['valksor:importmap', '--id', $app];
@@ -43,10 +55,9 @@ final class ImportmapProvider implements ProviderInterface
                     $arguments[] = '--minify';
                 }
 
-                $process = new Process(['php', 'bin/console', ...$arguments]);
-                $process->run();
+                $exitCode = ProcessManager::executeProcess($arguments, false, 'Importmap build for app ' . $app);
 
-                if (!$process->isSuccessful()) {
+                if (Command::SUCCESS !== $exitCode) {
                     return Command::FAILURE;
                 }
             }
@@ -59,10 +70,7 @@ final class ImportmapProvider implements ProviderInterface
                 $arguments[] = '--minify';
             }
 
-            $process = new Process(['php', 'bin/console', ...$arguments]);
-            $process->run();
-
-            return $process->isSuccessful() ? Command::SUCCESS : Command::FAILURE;
+            return ProcessManager::executeProcess($arguments, false, 'Importmap build');
         }
 
         return Command::SUCCESS;
@@ -89,73 +97,18 @@ final class ImportmapProvider implements ProviderInterface
         // Importmap doesn't need initialization
     }
 
+    public function setIo(
+        SymfonyStyle $io,
+    ): void {
+        $this->io = $io;
+    }
+
     public function watch(
         array $options,
     ): int {
         $arguments = ['valksor:importmap', '--watch'];
         $isInteractive = $options['interactive'] ?? true;
 
-        $process = new Process(['php', 'bin/console', ...$arguments]);
-
-        if ($isInteractive) {
-            // Interactive mode - show output and handle gracefully
-            $process->setTimeout(20); // 20 second timeout for startup
-            $process->setIdleTimeout(15); // 15 seconds idle timeout
-
-            try {
-                $process->start();
-
-                // Stream output to show what's happening
-                $startTime = time();
-                $maxStartupTime = 20;
-
-                echo "[INITIALIZING] Importmap service - setting up JavaScript dependency management\n";
-
-                while ($process->isRunning() && (time() - $startTime) < $maxStartupTime) {
-                    // Check if we have any output
-                    if ($process->getIncrementalOutput()) {
-                        echo $process->getIncrementalOutput();
-                    }
-
-                    if ($process->getIncrementalErrorOutput()) {
-                        echo $process->getIncrementalErrorOutput();
-                    }
-
-                    usleep(100000); // 100ms
-                }
-
-                // If process is still running after startup, that's success for importmap watch
-                if ($process->isRunning()) {
-                    echo "[RUNNING] Importmap service is monitoring JavaScript dependencies\n";
-
-                    return Command::SUCCESS;
-                }
-
-                // Process finished - check if it was successful
-                return $process->isSuccessful() ? Command::SUCCESS : Command::FAILURE;
-            } catch (ProcessTimedOutException $e) {
-                // Timeout is expected behavior for watch services
-                if ($process->isRunning()) {
-                    echo "[RUNNING] Importmap service started successfully (continuing in background)\n";
-
-                    return Command::SUCCESS;
-                }
-
-                return $process->isSuccessful() ? Command::SUCCESS : Command::FAILURE;
-            }
-        } else {
-            // Non-interactive mode - just run without output
-            $process->setTimeout(15);
-            $process->setIdleTimeout(10);
-
-            try {
-                $process->run();
-
-                return $process->isSuccessful() ? Command::SUCCESS : Command::FAILURE;
-            } catch (ProcessTimedOutException $e) {
-                // Expected for watch services
-                return $process->isSuccessful() ? Command::SUCCESS : Command::FAILURE;
-            }
-        }
+        return ProcessManager::executeProcess($arguments, $isInteractive, 'Importmap service');
     }
 }

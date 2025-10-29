@@ -15,7 +15,6 @@ namespace ValksorDev\Build\Provider;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
-use Symfony\Component\Process\Exception\ProcessTimedOutException;
 use Symfony\Component\Process\Process;
 
 /**
@@ -118,42 +117,6 @@ final class TailwindProvider implements ProviderInterface, IoAwareInterface
         $arguments = ['valksor:tailwind', '--watch'];
         $isInteractive = $options['interactive'] ?? true;
 
-        $process = new Process(['php', 'bin/console', ...$arguments]);
-
-        if ($isInteractive) {
-            // Stream output in real-time for interactive mode
-            // No timeouts for watch services - let them run indefinitely
-
-            try {
-                $process->start();
-
-                // Give process time to start
-                usleep(500000); // 500ms
-
-                if ($process->isRunning()) {
-                    // Process started successfully - let it run in background
-                    echo "[RUNNING] Tailwind service started and monitoring files for changes\n";
-
-                    return Command::SUCCESS;
-                }
-
-                // Process finished quickly - check if it was successful
-                return $process->isSuccessful() ? Command::SUCCESS : Command::FAILURE;
-            } catch (ProcessTimedOutException $e) {
-                // Timeout is expected for watch services - they run continuously
-                if ($process->isRunning()) {
-                    // Let it continue running in the background
-                    return Command::SUCCESS;
-                }
-
-                // If it stopped, check if it was successful
-                return $process->isSuccessful() ? Command::SUCCESS : Command::FAILURE;
-            }
-        } else {
-            // Non-interactive mode - just run without output
-            $process->run();
-
-            return $process->isSuccessful() ? Command::SUCCESS : Command::FAILURE;
-        }
+        return ProcessManager::executeProcess($arguments, $isInteractive, 'Tailwind service');
     }
 }

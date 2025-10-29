@@ -194,18 +194,6 @@ abstract class AbstractCommand extends BundleAbstractCommand
         }
     }
 
-    /**
-     * Set SymfonyStyle on service objects that support it.
-     */
-    protected function setServiceIo(
-        object $service,
-        SymfonyStyle $io,
-    ): void {
-        if (method_exists($service, 'setIo')) {
-            $service->setIo($io);
-        }
-    }
-
     protected function shouldMinify(
         InputInterface $input,
     ): bool {

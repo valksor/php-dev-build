@@ -13,12 +13,14 @@
 namespace ValksorDev\Build\Service;
 
 use JetBrains\PhpStorm\NoReturn;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Process\Process;
 
 use function count;
 use function function_exists;
 use function sprintf;
+use function usleep;
 
 use const SIGINT;
 use const SIGTERM;
@@ -250,5 +252,55 @@ final class ProcessManager
         }
 
         $this->io?->success('[SHUTDOWN] All processes terminated');
+    }
+
+    /**
+     * Execute a single process with interactive/foreground mode handling.
+     *
+     * @param array  $arguments     Command arguments
+     * @param bool   $isInteractive Whether to run in interactive mode
+     * @param string $serviceName   Name of the service for logging
+     *
+     * @return int Command exit code
+     */
+    public static function executeProcess(
+        array $arguments,
+        bool $isInteractive,
+        string $serviceName = 'Service',
+    ): int {
+        $process = new Process(['php', 'bin/console', ...$arguments]);
+
+        if ($isInteractive) {
+            try {
+                $process->start();
+
+                // Give process time to start
+                usleep(500000); // 500ms
+
+                if ($process->isRunning()) {
+                    // Process started successfully - let it run in background
+                    echo sprintf("[RUNNING] %s started and monitoring files for changes\n", $serviceName);
+
+                    return Command::SUCCESS;
+                }
+
+                // Process finished quickly - check if it was successful
+                return $process->isSuccessful() ? Command::SUCCESS : Command::FAILURE;
+            } catch (\Symfony\Component\Process\Exception\ProcessTimedOutException $e) {
+                // Timeout is expected for watch services - they run continuously
+                if ($process->isRunning()) {
+                    // Let it continue running in the background
+                    return Command::SUCCESS;
+                }
+
+                // If it stopped, check if it was successful
+                return $process->isSuccessful() ? Command::SUCCESS : Command::FAILURE;
+            }
+        } else {
+            // Non-interactive mode - just run without output
+            $process->run();
+
+            return $process->isSuccessful() ? Command::SUCCESS : Command::FAILURE;
+        }
     }
 }
