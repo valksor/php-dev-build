@@ -12,12 +12,16 @@
 
 namespace ValksorDev\Build\Service;
 
+use JetBrains\PhpStorm\NoReturn;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Process\Process;
 
 use function count;
 use function function_exists;
 use function sprintf;
+
+use const SIGINT;
+use const SIGTERM;
 
 /**
  * Manages background processes for the watch command.
@@ -38,8 +42,8 @@ final class ProcessManager
         // Register signal handlers for graceful shutdown
         if (function_exists('pcntl_signal')) {
             pcntl_async_signals(true);
-            pcntl_signal(\SIGINT, [$this, 'handleSignal']);
-            pcntl_signal(\SIGTERM, [$this, 'handleSignal']);
+            pcntl_signal(SIGINT, [$this, 'handleSignal']);
+            pcntl_signal(SIGTERM, [$this, 'handleSignal']);
         }
     }
 
@@ -56,9 +60,7 @@ final class ProcessManager
         $this->processes[$name] = $process;
         $this->processNames[$name] = $name;
 
-        if ($this->io) {
-            $this->io->text(sprintf('[TRACKING] Now monitoring %s process (PID: %d)', $name, $process->getPid()));
-        }
+        $this->io?->text(sprintf('[TRACKING] Now monitoring %s process (PID: %d)', $name, $process->getPid()));
     }
 
     /**
@@ -68,9 +70,7 @@ final class ProcessManager
     {
         foreach ($this->processes as $name => $process) {
             if (!$process->isRunning()) {
-                if ($this->io) {
-                    $this->io->warning(sprintf('[FAILED] Process %s has stopped (exit code: %d)', $name, $process->getExitCode()));
-                }
+                $this->io?->warning(sprintf('[FAILED] Process %s has stopped (exit code: %d)', $name, $process->getExitCode()));
 
                 return false;
             }
@@ -158,13 +158,14 @@ final class ProcessManager
     /**
      * Handle shutdown signals.
      */
+    #[NoReturn]
     public function handleSignal(
         int $signal,
     ): void {
         $this->shutdown = true;
 
         switch ($signal) {
-            case \SIGINT:
+            case SIGINT:
                 if ($this->io) {
                     $this->io->newLine();
                     $this->io->warning('[INTERRUPT] Received Ctrl+C - shutting down gracefully...');
@@ -172,10 +173,8 @@ final class ProcessManager
 
                 break;
 
-            case \SIGTERM:
-                if ($this->io) {
-                    $this->io->warning('[TERMINATE] Received termination signal - shutting down gracefully...');
-                }
+            case SIGTERM:
+                $this->io?->warning('[TERMINATE] Received termination signal - shutting down gracefully...');
 
                 break;
         }
@@ -224,9 +223,7 @@ final class ProcessManager
         if (isset($this->processes[$name])) {
             unset($this->processes[$name], $this->processNames[$name]);
 
-            if ($this->io) {
-                $this->io->text(sprintf('[CLEANUP] Removed %s from tracking', $name));
-            }
+            $this->io?->text(sprintf('[CLEANUP] Removed %s from tracking', $name));
         }
     }
 
@@ -235,15 +232,11 @@ final class ProcessManager
      */
     public function terminateAll(): void
     {
-        if ($this->io) {
-            $this->io->text('[SHUTDOWN] Terminating all background processes...');
-        }
+        $this->io?->text('[SHUTDOWN] Terminating all background processes...');
 
         foreach ($this->processes as $name => $process) {
             if ($process->isRunning()) {
-                if ($this->io) {
-                    $this->io->text(sprintf('[STOPPING] Terminating %s process (PID: %d)', $name, $process->getPid()));
-                }
+                $this->io?->text(sprintf('[STOPPING] Terminating %s process (PID: %d)', $name, $process->getPid()));
                 $process->stop(2); // Graceful termination with 2-second timeout
             }
         }
@@ -251,15 +244,11 @@ final class ProcessManager
         // Force kill any remaining processes (stop() already handles the timeout)
         foreach ($this->processes as $name => $process) {
             if ($process->isRunning()) {
-                if ($this->io) {
-                    $this->io->warning(sprintf('[FORCE-KILL] Forcefully killing %s process', $name));
-                }
+                $this->io?->warning(sprintf('[FORCE-KILL] Forcefully killing %s process', $name));
                 $process->signal(9); // SIGKILL
             }
         }
 
-        if ($this->io) {
-            $this->io->success('[SHUTDOWN] All processes terminated');
-        }
+        $this->io?->success('[SHUTDOWN] All processes terminated');
     }
 }

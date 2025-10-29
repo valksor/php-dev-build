@@ -20,12 +20,11 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
 use ValksorDev\Build\Binary\LucideBinary;
 
 use function array_diff;
 use function array_intersect;
-use function array_key_exists;
 use function array_map;
 use function array_values;
 use function closedir;
@@ -34,7 +33,7 @@ use function file_get_contents;
 use function file_put_contents;
 use function glob;
 use function implode;
-use function is_array;
+use function in_array;
 use function is_dir;
 use function is_file;
 use function json_decode;
@@ -44,6 +43,8 @@ use function readdir;
 use function rtrim;
 use function sprintf;
 use function str_ends_with;
+use function substr;
+use function unlink;
 
 use const DIRECTORY_SEPARATOR;
 use const GLOB_NOSORT;
@@ -54,29 +55,24 @@ final class IconsGenerateCommand extends AbstractCommand
 {
     private string $cacheRoot;
     private SymfonyStyle $io;
-    private string $projectRoot;
-
-    public function __construct(
-        ParameterBagInterface $bag,
-        \ValksorDev\Build\Provider\ProviderRegistry $providerRegistry,
-    ) {
-        parent::__construct($bag, $providerRegistry);
-    }
 
     protected function configure(): void
     {
         $this
-            ->addArgument('target', InputArgument::OPTIONAL, 'Generate icons for a specific app (or "shared"). Default: all', null)
+            ->addArgument('target', InputArgument::OPTIONAL, 'Generate icons for a specific app (or "shared"). Default: all')
             ->addOption('lucide-version', null, InputOption::VALUE_REQUIRED, 'Explicit Lucide version (e.g. 0.544.0). Defaults to latest release.');
     }
 
+    /**
+     * @throws JsonException
+     */
     protected function execute(
         InputInterface $input,
         OutputInterface $output,
     ): int {
         $this->io = $this->createSymfonyStyle($input, $output);
-        $this->projectRoot = $this->resolveProjectRoot();
-        $this->cacheRoot = $this->projectRoot . '/var/lucide';
+        $projectRoot = $this->resolveProjectRoot();
+        $this->cacheRoot = $projectRoot . '/var/lucide';
         $this->ensureDirectory($this->cacheRoot);
 
         $target = $input->getArgument('target');
@@ -88,19 +84,20 @@ final class IconsGenerateCommand extends AbstractCommand
             $this->io->warning('No Lucide icon source could be located. Only local and shared overrides will be used.');
         }
 
-        $sharedIcons = $this->readJsonList($this->getSharedDir() . '/assets/icons.json');
+        $sharedIcons = $this->readJsonList($this->getInfrastructureDir() . '/assets/icons.json');
         $appIcons = $this->collectAppIcons($sharedIcons);
 
         $targets = $this->determineTargets($target, $sharedIcons, $appIcons);
 
         if ([] === $targets) {
             $this->io->warning('No icon targets found.');
+            $this->cleanAllIconDirectories();
 
             return $this->handleCommandSuccess();
         }
 
-        $localIconsDir = $this->projectRoot . '/project/js/icons';
-        $sharedIconsDir = $this->getSharedDir() . '/assets/icons';
+        $localIconsDir = $projectRoot . '/project/js/icons';
+        $sharedIconsDir = $this->getInfrastructureDir() . '/assets/icons';
 
         $generated = 0;
 
@@ -124,6 +121,48 @@ final class IconsGenerateCommand extends AbstractCommand
         return $this->handleCommandSuccess(sprintf('Generated %d icon file%s.', $generated, 1 === $generated ? '' : 's'), $this->io);
     }
 
+    /**
+     * Clean all known icon directories when no targets are found.
+     */
+    private function cleanAllIconDirectories(): void
+    {
+        $this->io->text('[CLEANUP] No icon targets found, cleaning all known icon directories...');
+
+        // Clean shared icons directory
+        $sharedIconsDir = $this->getInfrastructureDir() . '/templates/icons';
+
+        if (is_dir($sharedIconsDir)) {
+            $this->cleanExistingTwigIcons($sharedIconsDir);
+            $this->io->text('[CLEANUP] Cleaned shared icons directory: ' . $sharedIconsDir);
+        }
+
+        // Clean app-specific icons directories
+        $appsDir = $this->getAppsDir();
+
+        if (is_dir($appsDir)) {
+            $handle = opendir($appsDir);
+
+            if (false !== $handle) {
+                try {
+                    while (($entry = readdir($handle)) !== false) {
+                        if ('.' === $entry || '..' === $entry) {
+                            continue;
+                        }
+
+                        $appIconsDir = $appsDir . '/' . $entry . '/templates/icons';
+
+                        if (is_dir($appIconsDir)) {
+                            $this->cleanExistingTwigIcons($appIconsDir);
+                            $this->io->text(sprintf('[CLEANUP] Cleaned app icons directory: %s (%s)', $appIconsDir, $entry));
+                        }
+                    }
+                } finally {
+                    closedir($handle);
+                }
+            }
+        }
+    }
+
     private function cleanExistingTwigIcons(
         string $directory,
     ): void {
@@ -144,6 +183,54 @@ final class IconsGenerateCommand extends AbstractCommand
                 }
 
                 @unlink($directory . DIRECTORY_SEPARATOR . $entry);
+            }
+        } finally {
+            closedir($handle);
+        }
+    }
+
+    /**
+     * Clean up orphaned icons that are no longer in the current icon list.
+     *
+     * @param array<int,string> $currentIcons
+     */
+    private function cleanOrphanedIcons(
+        string $directory,
+        array $currentIcons,
+    ): void {
+        if (!is_dir($directory)) {
+            return;
+        }
+
+        $handle = opendir($directory);
+
+        if (false === $handle) {
+            return;
+        }
+
+        try {
+            while (($entry = readdir($handle)) !== false) {
+                if ('.' === $entry || '..' === $entry) {
+                    continue;
+                }
+
+                if (!str_ends_with($entry, '.svg.twig')) {
+                    continue;
+                }
+
+                // Extract icon name from filename (remove .svg.twig extension)
+                $iconName = substr($entry, 0, -9);
+
+                // If this icon is not in the current list, remove it
+                if (!in_array($iconName, $currentIcons, true)) {
+                    $filePath = $directory . DIRECTORY_SEPARATOR . $entry;
+
+                    if (@unlink($filePath)) {
+                        $this->io->text(sprintf('[CLEANUP] Removed orphaned icon: %s', $iconName));
+                    } else {
+                        $this->io->warning(sprintf('[CLEANUP] Failed to remove orphaned icon: %s', $iconName));
+                    }
+                }
             }
         } finally {
             closedir($handle);
@@ -183,9 +270,7 @@ final class IconsGenerateCommand extends AbstractCommand
 
                 $icons = $this->readJsonList($iconsPath);
 
-                if ([] === $icons) {
-                    continue;
-                }
+                // Don't skip empty icons.json files - they need cleanup
 
                 $duplicates = array_values(array_intersect($icons, $sharedIcons));
 
@@ -200,6 +285,8 @@ final class IconsGenerateCommand extends AbstractCommand
                 $unique = array_values(array_diff($icons, $sharedIcons));
 
                 if ([] === $unique) {
+                    $result[$entry] = $unique; // Include empty array to trigger cleanup
+
                     continue;
                 }
 
@@ -225,7 +312,7 @@ final class IconsGenerateCommand extends AbstractCommand
         $targets = [];
 
         if (null === $targetArgument) {
-            $targets['shared'] = $sharedIcons;
+            $targets[$this->sharedIdentifier] = $sharedIcons;
 
             foreach ($appIcons as $app => $icons) {
                 $targets[$app] = $icons;
@@ -236,26 +323,29 @@ final class IconsGenerateCommand extends AbstractCommand
 
         $target = (string) $targetArgument;
 
-        $sharedIdentifier = $this->projectStructure->sharedIdentifier;
+        $sharedIdentifier = $this->sharedIdentifier;
 
         if ($target === $sharedIdentifier) {
-            $targets['shared'] = $sharedIcons;
+            $targets[$this->sharedIdentifier] = $sharedIcons;
 
             return $targets;
         }
 
-        if (is_array($appIcons) ? array_key_exists($target, $appIcons) : isset($appIcons[$target]) || [] === $appIcons[$target]) {
+        if (isset($appIcons[$target]) || [] === $appIcons[$target]) {
             $this->io->warning(sprintf('No icons.json found for app "%s" or no icons defined.', $target));
 
             return [];
         }
 
-        $targets['shared'] = $sharedIcons;
+        $targets[$this->sharedIdentifier] = $sharedIcons;
         $targets[$target] = $appIcons[$target];
 
         return $targets;
     }
 
+    /**
+     * @throws JsonException
+     */
     private function ensureLucideIcons(
         mixed $requestedVersion,
     ): ?string {
@@ -270,8 +360,7 @@ final class IconsGenerateCommand extends AbstractCommand
 
         // If no existing icons found, download them using BinaryAssetManager
         try {
-            $manager = LucideBinary::createForLucide($this->cacheRoot);
-            $tag = $manager->ensureLatest([$this->io, 'text']);
+            $tag = LucideBinary::createForLucide($this->cacheRoot)->ensureLatest([$this->io, 'text']);
             $version = ltrim($tag, 'v');
 
             // Look for the icons directory
@@ -317,29 +406,31 @@ final class IconsGenerateCommand extends AbstractCommand
         string $sharedIconsDir,
         ?string $lucideIconDir,
     ): int {
-        $icons = array_map(static fn ($icon) => (string) $icon, $icons);
+        $icons = array_map('strval', $icons);
 
-        $sharedIdentifier = $this->projectStructure->sharedIdentifier;
+        $sharedIdentifier = $this->sharedIdentifier;
 
         if ($target === $sharedIdentifier) {
-            $icons = array_map(static fn ($icon) => (string) $icon, array_diff($icons, $sharedIcons));
+            $icons = array_map('strval', array_diff($icons, $sharedIcons));
         }
 
         $icons = array_values($icons);
         $count = count($icons);
 
+        $destination = ($target === $sharedIdentifier)
+            ? $this->getInfrastructureDir() . '/templates/icons'
+            : $this->getAppsDir() . '/' . $target . '/templates/icons';
+
+        $this->ensureDirectory($destination);
+
         if (0 === $count) {
-            $this->io->text(sprintf('[%s] No icons to generate.', $target));
+            $this->io->text(sprintf('[%s] No icons to generate, cleaning up any orphaned icons.', $target));
+            // Clean up any orphaned icons even when no new icons are generated
+            $this->cleanOrphanedIcons($destination, $icons);
 
             return 0;
         }
 
-        $sharedIdentifier = $this->projectStructure->sharedIdentifier;
-        $destination = ($target === $sharedIdentifier)
-            ? $this->getSharedDir() . '/templates/icons'
-            : $this->getAppsDir() . '/' . $target . '/templates/icons';
-
-        $this->ensureDirectory($destination);
         $this->cleanExistingTwigIcons($destination);
 
         $generated = 0;
@@ -353,10 +444,13 @@ final class IconsGenerateCommand extends AbstractCommand
                 continue;
             }
 
-            if (true === $this->writeTwigIcon($icon, $source, $destination)) {
+            if ($this->writeTwigIcon($icon, $source, $destination)) {
                 $generated++;
             }
         }
+
+        // Clean up any orphaned icons after generation
+        $this->cleanOrphanedIcons($destination, $icons);
 
         $this->io->success(sprintf('[%s] Generated %d icon%s.', $target, $generated, 1 === $generated ? '' : 's'));
 
@@ -436,7 +530,7 @@ final class IconsGenerateCommand extends AbstractCommand
             return [];
         }
 
-        return array_map(static fn ($item) => (string) $item, $data);
+        return array_map('strval', $data);
     }
 
     private function writeTwigIcon(

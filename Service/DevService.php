@@ -18,6 +18,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Process\Process;
+use ValksorDev\Build\Provider\IoAwareInterface;
 use ValksorDev\Build\Provider\ProviderRegistry;
 
 use function count;
@@ -66,9 +67,7 @@ final class DevService
 
     public function start(): int
     {
-        if ($this->io) {
-            $this->io->title('Development Mode');
-        }
+        $this->io?->title('Development Mode');
 
         // Initialize process manager for tracking background services
         $this->processManager = new ProcessManager($this->io);
@@ -87,9 +86,7 @@ final class DevService
                 exit(0);
             });
             pcntl_signal(SIGTERM, function (): void {
-                if ($this->io) {
-                    $this->io->warning('[TERMINATE] Received termination signal - shutting down gracefully...');
-                }
+                $this->io?->warning('[TERMINATE] Received termination signal - shutting down gracefully...');
                 $this->processManager->terminateAll();
                 $this->running = false;
 
@@ -101,7 +98,7 @@ final class DevService
         $this->runInit();
 
         // Get services configuration from ParameterBag
-        $servicesConfig = $this->parameterBag->get('valksor.build.services', []);
+        $servicesConfig = $this->parameterBag->get('valksor.build.services');
 
         // Get lightweight dev services (hot_reload and any dev=true services)
         $devProviders = $this->providerRegistry->getProvidersByFlag($servicesConfig, 'dev');
@@ -131,9 +128,7 @@ final class DevService
         $missingProviders = $this->providerRegistry->validateProviders($servicesConfig);
 
         if (!empty($missingProviders)) {
-            if ($this->io) {
-                $this->io->error(sprintf('Missing providers for: %s', implode(', ', $missingProviders)));
-            }
+            $this->io?->error(sprintf('Missing providers for: %s', implode(', ', $missingProviders)));
 
             return Command::FAILURE;
         }
@@ -145,9 +140,7 @@ final class DevService
         $sseResult = $this->runSseCommand();
 
         if (Command::SUCCESS !== $sseResult) {
-            if ($this->io) {
-                $this->io->error('✗ SSE server failed to start');
-            }
+            $this->io?->error('✗ SSE server failed to start');
 
             return Command::FAILURE;
         }
@@ -183,9 +176,7 @@ final class DevService
                 $process = $this->startProviderProcess($name, $provider, $options);
 
                 if (null === $process) {
-                    if ($this->io) {
-                        $this->io->error(sprintf('Failed to start %s service', $name));
-                    }
+                    $this->io?->error(sprintf('Failed to start %s service', $name));
 
                     return Command::FAILURE;
                 }
@@ -198,9 +189,7 @@ final class DevService
                     $this->io->success(sprintf('[READY] %s service started successfully', ucfirst($name)));
                 }
             } catch (Exception $e) {
-                if ($this->io) {
-                    $this->io->error(sprintf('Service "%s" failed: %s', $name, $e->getMessage()));
-                }
+                $this->io?->error(sprintf('Service "%s" failed: %s', $name, $e->getMessage()));
 
                 return Command::FAILURE;
             }
@@ -226,9 +215,7 @@ final class DevService
     {
         $this->running = false;
 
-        if ($this->processManager) {
-            $this->processManager->terminateAll();
-        }
+        $this->processManager?->terminateAll();
     }
 
     public static function getServiceName(): string
@@ -305,22 +292,18 @@ final class DevService
      */
     private function runInit(): void
     {
-        $servicesConfig = $this->parameterBag->get('valksor.build.services', []);
+        $servicesConfig = $this->parameterBag->get('valksor.build.services');
         $initProviders = $this->providerRegistry->getProvidersByFlag($servicesConfig, 'init');
 
         if (empty($initProviders)) {
             return;
         }
 
-        if ($this->io) {
-            $this->io->section('Running initialization tasks...');
-        }
+        $this->io?->section('Running initialization tasks...');
 
         // Binaries always run first
         if (isset($initProviders['binaries'])) {
-            if ($this->io) {
-                $this->io->text('Ensuring binaries are available...');
-            }
+            $this->io?->text('Ensuring binaries are available...');
             $this->runProvider('binaries', $initProviders['binaries'], []);
             unset($initProviders['binaries']);
         }
@@ -332,9 +315,7 @@ final class DevService
             $this->runProvider($name, $provider, $options);
         }
 
-        if ($this->io) {
-            $this->io->success('Initialization completed');
-        }
+        $this->io?->success('Initialization completed');
     }
 
     /**
@@ -350,7 +331,7 @@ final class DevService
         } catch (Exception $e) {
             // In development, warn but continue; in production, fail
             if ('prod' === ($_ENV['APP_ENV'] ?? 'dev')) {
-                throw new RuntimeException("Provider '{$name}' failed: " . $e->getMessage(), 0, $e);
+                throw new RuntimeException("Provider '$name' failed: " . $e->getMessage(), 0, $e);
             }
             // Warning - continue but this could be problematic in non-interactive mode
             // TODO: Consider passing SymfonyStyle instance for proper warning display
@@ -400,7 +381,7 @@ final class DevService
         object $provider,
         SymfonyStyle $io,
     ): void {
-        if ($provider instanceof \ValksorDev\Build\Provider\IoAwareInterface) {
+        if ($provider instanceof IoAwareInterface) {
             $provider->setIo($io);
         }
     }
@@ -431,9 +412,7 @@ final class DevService
 
         // Check if it started successfully
         if (!$process->isRunning()) {
-            if ($this->io) {
-                $this->io->error(sprintf('Process %s failed to start (exit code: %d)', $name, $process->getExitCode()));
-            }
+            $this->io?->error(sprintf('Process %s failed to start (exit code: %d)', $name, $process->getExitCode()));
 
             return null;
         }

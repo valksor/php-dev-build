@@ -15,6 +15,7 @@ namespace ValksorDev\Build\Provider;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Component\Process\Exception\ProcessTimedOutException;
 use Symfony\Component\Process\Process;
 
 /**
@@ -61,9 +62,7 @@ final class TailwindProvider implements ProviderInterface, IoAwareInterface
 
                 if (!$process->isSuccessful()) {
                     // Log error output for debugging
-                    if ($this->io) {
-                        $this->io->error('Tailwind provider failed for app ' . $app . ': ' . $process->getErrorOutput());
-                    }
+                    $this->io?->error('Tailwind provider failed for app ' . $app . ': ' . $process->getErrorOutput());
 
                     return Command::FAILURE;
                 }
@@ -140,7 +139,7 @@ final class TailwindProvider implements ProviderInterface, IoAwareInterface
 
                 // Process finished quickly - check if it was successful
                 return $process->isSuccessful() ? Command::SUCCESS : Command::FAILURE;
-            } catch (\Symfony\Component\Process\Exception\ProcessTimedOutException $e) {
+            } catch (ProcessTimedOutException $e) {
                 // Timeout is expected for watch services - they run continuously
                 if ($process->isRunning()) {
                     // Let it continue running in the background

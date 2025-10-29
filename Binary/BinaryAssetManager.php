@@ -66,6 +66,9 @@ final class BinaryAssetManager
     ) {
     }
 
+    /**
+     * @throws JsonException
+     */
     public function ensureLatest(
         ?callable $logger = null,
     ): string {

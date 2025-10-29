@@ -19,18 +19,22 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use ValksorDev\Build\Provider\ProviderRegistry;
 
 use function count;
+use function implode;
 use function sprintf;
+use function ucfirst;
 
 #[AsCommand(name: 'valksor-prod:build', description: 'Build all production assets using the new flag-based service system.')]
 final class ProdBuildCommand extends AbstractCommand
 {
     public function __construct(
-        \Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface $bag,
-        \ValksorDev\Build\Provider\ProviderRegistry $providerRegistry,
+        ParameterBagInterface $parameterBag,
+        ProviderRegistry $providerRegistry,
     ) {
-        parent::__construct($bag, $providerRegistry);
+        parent::__construct($parameterBag, $providerRegistry);
     }
 
     protected function execute(
@@ -42,7 +46,7 @@ final class ProdBuildCommand extends AbstractCommand
         $io->title('Production Build');
 
         // Get services configuration from ParameterBag
-        $servicesConfig = $this->parameterBag->get('valksor.build.services', []);
+        $servicesConfig = $this->parameterBag->get('valksor.build.services');
 
         // Run init phase first
         $this->runInit($io);
@@ -148,7 +152,7 @@ final class ProdBuildCommand extends AbstractCommand
             $provider->init($options);
         } catch (Exception $e) {
             // In production, fail fast
-            throw new RuntimeException("Provider '{$name}' failed: " . $e->getMessage(), 0, $e);
+            throw new RuntimeException("Provider '$name' failed: " . $e->getMessage(), 0, $e);
         }
     }
 }

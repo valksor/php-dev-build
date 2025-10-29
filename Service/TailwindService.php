@@ -148,7 +148,7 @@ final class TailwindService extends AbstractService
             return true;
         }
 
-        return false !== $this->bag->get('valksor.build.minify') && 'dev' !== $this->bag->get('valksor.build.env');
+        return false !== $this->parameterBag->get('valksor.build.minify') && 'dev' !== $this->parameterBag->get('valksor.build.env');
     }
 
     /**
@@ -171,7 +171,7 @@ final class TailwindService extends AbstractService
             $arguments[] = '--minify';
         }
 
-        $process = new Process($arguments, $this->bag->get('kernel.project_dir'), [
+        $process = new Process($arguments, $this->parameterBag->get('kernel.project_dir'), [
             'TAILWIND_DISABLE_NATIVE' => '1',
             'TAILWIND_DISABLE_WATCHMAN' => '1',
             'TAILWIND_DISABLE_WATCHER' => '1',
@@ -230,7 +230,7 @@ final class TailwindService extends AbstractService
 
         // Multi-app project structure
         if ($includeAllApps) {
-            $appsDir = $this->bag->get('kernel.project_dir') . DIRECTORY_SEPARATOR . $this->bag->get('valksor.project.apps_dir');
+            $appsDir = $this->parameterBag->get('kernel.project_dir') . DIRECTORY_SEPARATOR . $this->parameterBag->get('valksor.project.apps_dir');
 
             if (is_dir($appsDir)) {
                 $handle = opendir($appsDir);
@@ -260,7 +260,7 @@ final class TailwindService extends AbstractService
                 }
             }
         } elseif (null !== $this->activeAppId) {
-            $appRoot = $this->bag->get('kernel.project_dir') . DIRECTORY_SEPARATOR . $this->bag->get('valksor.project.apps_dir') . '/' . $this->activeAppId;
+            $appRoot = $this->parameterBag->get('kernel.project_dir') . DIRECTORY_SEPARATOR . $this->parameterBag->get('valksor.project.apps_dir') . '/' . $this->activeAppId;
 
             if (is_dir($appRoot)) {
                 $this->discoverSources($appRoot, $sources);
@@ -276,26 +276,26 @@ final class TailwindService extends AbstractService
     private function createSourceDefinition(
         string $inputPath,
     ): array {
-        $relativeInput = trim(str_replace('\\', '/', substr($inputPath, strlen($this->bag->get('kernel.project_dir')))), '/');
+        $relativeInput = trim(str_replace('\\', '/', substr($inputPath, strlen($this->parameterBag->get('kernel.project_dir')))), '/');
         $outputPath = preg_replace('/\.tailwind\.css$/', '.css', $inputPath);
-        $relativeOutput = trim(str_replace('\\', '/', substr($outputPath, strlen($this->bag->get('kernel.project_dir')))), '/');
+        $relativeOutput = trim(str_replace('\\', '/', substr($outputPath, strlen($this->parameterBag->get('kernel.project_dir')))), '/');
 
         $label = $relativeInput;
         $watchRoots = [];
 
         // Multi-app project structure
-        if (1 === preg_match('#^' . $this->bag->get('valksor.project.apps_dir') . '/([^/]+)/#', $relativeInput, $matches)) {
+        if (1 === preg_match('#^' . $this->parameterBag->get('valksor.project.apps_dir') . '/([^/]+)/#', $relativeInput, $matches)) {
             $appName = $matches[1];
             $label = $appName;
-            $watchRoots[] = $this->bag->get('kernel.project_dir') . '/' . $this->bag->get('valksor.project.apps_dir') . '/' . $appName;
+            $watchRoots[] = $this->parameterBag->get('kernel.project_dir') . '/' . $this->parameterBag->get('valksor.project.apps_dir') . '/' . $appName;
 
             // Include shared directory if it exists
-            if (is_dir($this->bag->get('kernel.project_dir') . '/' . $this->bag->get('valksor.project.infrastructure_dir'))) {
-                $watchRoots[] = $this->bag->get('kernel.project_dir') . '/' . $this->bag->get('valksor.project.infrastructure_dir');
+            if (is_dir($this->parameterBag->get('kernel.project_dir') . '/' . $this->parameterBag->get('valksor.project.infrastructure_dir'))) {
+                $watchRoots[] = $this->parameterBag->get('kernel.project_dir') . '/' . $this->parameterBag->get('valksor.project.infrastructure_dir');
             }
-        } elseif (str_starts_with($relativeInput, $this->bag->get('valksor.project.infrastructure_dir') . '/')) {
-            $label = $this->bag->get('valksor.project.infrastructure_dir');
-            $watchRoots[] = $this->bag->get('kernel.project_dir') . '/' . $this->bag->get('valksor.project.infrastructure_dir');
+        } elseif (str_starts_with($relativeInput, $this->parameterBag->get('valksor.project.infrastructure_dir') . '/')) {
+            $label = $this->parameterBag->get('valksor.project.infrastructure_dir');
+            $watchRoots[] = $this->parameterBag->get('kernel.project_dir') . '/' . $this->parameterBag->get('valksor.project.infrastructure_dir');
         } else {
             $watchRoots[] = dirname($inputPath);
         }
@@ -358,7 +358,7 @@ final class TailwindService extends AbstractService
 
     private function ensureTempDir(): string
     {
-        $tmpDir = $this->bag->get('kernel.project_dir') . '/var/tmp/tailwind';
+        $tmpDir = $this->parameterBag->get('kernel.project_dir') . '/var/tmp/tailwind';
 
         $this->ensureDirectory($tmpDir);
 
@@ -384,9 +384,9 @@ final class TailwindService extends AbstractService
     private function resolveTailwindExecutable(): string
     {
         $candidates = [
-            $this->bag->get('kernel.project_dir') . '/var/tailwindcss/tailwindcss',
+            $this->parameterBag->get('kernel.project_dir') . '/var/tailwindcss/tailwindcss',
             '/usr/local/bin/tailwindcss',
-            $this->bag->get('kernel.project_dir') . '/vendor/bin/tailwindcss',
+            $this->parameterBag->get('kernel.project_dir') . '/vendor/bin/tailwindcss',
         ];
 
         foreach ($candidates as $candidate) {

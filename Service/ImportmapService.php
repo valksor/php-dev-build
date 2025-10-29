@@ -131,7 +131,7 @@ final class ImportmapService extends AbstractService
             return true;
         }
 
-        return false !== $this->bag->get('valksor.build.minify') && 'dev' !== $this->bag->get('valksor.build.env');
+        return false !== $this->parameterBag->get('valksor.build.minify') && 'dev' !== $this->parameterBag->get('valksor.build.env');
     }
 
     /**
@@ -227,14 +227,14 @@ final class ImportmapService extends AbstractService
         $roots = [];
 
         // Multi-app project structure
-        $sharedJs = $this->bag->get('kernel.project_dir') . DIRECTORY_SEPARATOR . $this->bag->get('valksor.project.infrastructure_dir') . '/assets/js';
-        $sharedDist = $this->bag->get('kernel.project_dir') . DIRECTORY_SEPARATOR . $this->bag->get('valksor.project.infrastructure_dir') . '/assets/dist';
+        $sharedJs = $this->parameterBag->get('kernel.project_dir') . DIRECTORY_SEPARATOR . $this->parameterBag->get('valksor.project.infrastructure_dir') . '/assets/js';
+        $sharedDist = $this->parameterBag->get('kernel.project_dir') . DIRECTORY_SEPARATOR . $this->parameterBag->get('valksor.project.infrastructure_dir') . '/assets/dist';
 
         if (is_dir($sharedJs)) {
             $roots[] = ['label' => 'shared', 'source' => $sharedJs, 'dist' => $sharedDist];
         }
 
-        $appsDir = $this->bag->get('kernel.project_dir') . DIRECTORY_SEPARATOR . $this->bag->get('valksor.project.apps_dir');
+        $appsDir = $this->parameterBag->get('kernel.project_dir') . DIRECTORY_SEPARATOR . $this->parameterBag->get('valksor.project.apps_dir');
 
         if (is_dir($appsDir)) {
             $handle = opendir($appsDir);
@@ -305,7 +305,7 @@ final class ImportmapService extends AbstractService
             return null;
         }
 
-        return $this->bag->get('kernel.project_dir') . '/var/esbuild/esbuild';
+        return $this->parameterBag->get('kernel.project_dir') . '/var/esbuild/esbuild';
     }
 
     /**
@@ -352,7 +352,7 @@ final class ImportmapService extends AbstractService
 
                 $relative = substr($path, strlen($root) + 1);
 
-                if (false === $relative || '' === $relative || !str_ends_with($relative, '.js')) {
+                if ('' === $relative || !str_ends_with($relative, '.js')) {
                     continue;
                 }
 
@@ -465,7 +465,7 @@ final class ImportmapService extends AbstractService
                 '--format=esm',
                 '--target=es2020',
                 '--minify',
-            ], $this->bag->get('kernel.project_dir'));
+            ], $this->parameterBag->get('kernel.project_dir'));
             $process->setTimeout(null);
 
             try {

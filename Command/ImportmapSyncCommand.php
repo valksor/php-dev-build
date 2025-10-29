@@ -24,11 +24,11 @@ use ValksorDev\Build\Service\ImportmapService;
 final class ImportmapSyncCommand extends AbstractCommand
 {
     public function __construct(
-        ParameterBagInterface $bag,
+        ParameterBagInterface $parameterBag,
         ProviderRegistry $providerRegistry,
         private readonly ImportmapService $importmapService,
     ) {
-        parent::__construct($bag, $providerRegistry);
+        parent::__construct($parameterBag, $providerRegistry);
     }
 
     protected function configure(): void

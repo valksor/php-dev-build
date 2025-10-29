@@ -12,10 +12,15 @@
 
 namespace ValksorDev\Build\Command;
 
+use JsonException;
 use RuntimeException;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use ValksorDev\Build\Binary\BinaryRegistry;
+use ValksorDev\Build\Provider\ProviderRegistry;
 
 use function implode;
 use function sprintf;
@@ -26,8 +31,8 @@ final class BinaryEnsureCommand extends AbstractCommand
 {
     public function __construct(
         private readonly BinaryRegistry $binaryRegistry,
-        \Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface $bag,
-        \ValksorDev\Build\Provider\ProviderRegistry $providerRegistry,
+        ParameterBagInterface $bag,
+        ProviderRegistry $providerRegistry,
     ) {
         parent::__construct($bag, $providerRegistry);
     }
@@ -39,9 +44,12 @@ final class BinaryEnsureCommand extends AbstractCommand
             ->addArgument('tool', InputArgument::REQUIRED, sprintf('Tool to download (%s)', implode(', ', $availableBinaries)));
     }
 
+    /**
+     * @throws JsonException
+     */
     protected function execute(
-        \Symfony\Component\Console\Input\InputInterface $input,
-        \Symfony\Component\Console\Output\OutputInterface $output,
+        InputInterface $input,
+        OutputInterface $output,
     ): int {
         $io = $this->createSymfonyStyle($input, $output);
         $tool = (string) $input->getArgument('tool');

@@ -24,11 +24,11 @@ use ValksorDev\Build\Service\TailwindService;
 final class TailwindBuildCommand extends AbstractCommand
 {
     public function __construct(
-        ParameterBagInterface $bag,
+        ParameterBagInterface $parameterBag,
         ProviderRegistry $providerRegistry,
         private readonly TailwindService $tailwindService,
     ) {
-        parent::__construct($bag, $providerRegistry);
+        parent::__construct($parameterBag, $providerRegistry);
     }
 
     protected function configure(): void

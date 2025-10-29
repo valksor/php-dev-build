@@ -13,6 +13,7 @@
 namespace ValksorDev\Build\Provider;
 
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Process\Exception\ProcessTimedOutException;
 use Symfony\Component\Process\Process;
 
 /**
@@ -76,7 +77,7 @@ final class HotReloadProvider implements ProviderInterface
 
                 // Process finished quickly - check if it was successful
                 return $process->isSuccessful() ? Command::SUCCESS : Command::FAILURE;
-            } catch (\Symfony\Component\Process\Exception\ProcessTimedOutException $e) {
+            } catch (ProcessTimedOutException $e) {
                 // Timeout is expected behavior for watch services - they run continuously
                 if ($process->isRunning()) {
                     // Let it continue running in the background

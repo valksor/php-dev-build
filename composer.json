@@ -4,9 +4,12 @@
     "type": "library",
     "require": {
         "php": ">=8.4",
+        "ext-dom": "*",
         "ext-inotify": "*",
+        "ext-mbstring": "*",
         "ext-pcntl": "*",
         "ext-posix": "*",
+        "ext-zip": "*",
         "symfony/config": "*",
         "symfony/console": "*",
         "symfony/dependency-injection": "*",

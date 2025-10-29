@@ -20,11 +20,15 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Process\Process;
+use Valksor\Bundle\Command\AbstractCommand as BundleAbstractCommand;
 use Valksor\Component\Sse\Helper;
 use ValksorDev\Build\Provider\IoAwareInterface;
 use ValksorDev\Build\Provider\ProviderRegistry;
 
-abstract class AbstractCommand extends Command
+use function method_exists;
+use function usleep;
+
+abstract class AbstractCommand extends BundleAbstractCommand
 {
     use Helper;
 
@@ -34,10 +38,10 @@ abstract class AbstractCommand extends Command
     protected string $sharedIdentifier = 'infrastructure';
 
     public function __construct(
-        protected readonly ParameterBagInterface $parameterBag,
+        ParameterBagInterface $parameterBag,
         protected readonly ProviderRegistry $providerRegistry,
     ) {
-        parent::__construct();
+        parent::__construct($parameterBag);
     }
 
     protected function addNonInteractiveOption(): void
@@ -48,80 +52,6 @@ abstract class AbstractCommand extends Command
     protected function addWatchOption(): void
     {
         $this->addOption('watch', null, InputOption::VALUE_NONE, 'Run in watch mode');
-    }
-
-    /**
-     * Create SymfonyStyle instance.
-     */
-    protected function createSymfonyStyle(
-        InputInterface $input,
-        $output,
-    ): SymfonyStyle {
-        return new SymfonyStyle($input, $output);
-    }
-
-    /**
-     * Execute sub command.
-     */
-    protected function executeSubCommand(
-        string $command,
-        SymfonyStyle $io,
-        array $arguments = [],
-    ): int {
-        $process = new Process(['php', 'bin/console', $command, ...$arguments]);
-        $process->run();
-
-        return $process->isSuccessful() ? Command::SUCCESS : Command::FAILURE;
-    }
-
-    protected function getAppsDir(): string
-    {
-        $appsDir = $this->parameterBag->get('valksor.project.apps_dir');
-
-        return $this->resolveProjectRoot() . '/' . ltrim($appsDir, '/');
-    }
-
-    protected function getInfrastructureDir(): string
-    {
-        $infrastructureDir = $this->parameterBag->get('valksor.project.infrastructure_dir');
-
-        return $this->resolveProjectRoot() . '/' . ltrim($infrastructureDir, '/');
-    }
-
-    /**
-     * Get shared directory (infrastructure).
-     */
-    protected function getSharedDir(): string
-    {
-        return $this->getInfrastructureDir();
-    }
-
-    /**
-     * Handle command error.
-     */
-    protected function handleCommandError(
-        string $message,
-        ?SymfonyStyle $io = null,
-    ): int {
-        if ($io) {
-            $io->error($message);
-        }
-
-        return Command::FAILURE;
-    }
-
-    /**
-     * Handle command success.
-     */
-    protected function handleCommandSuccess(
-        string $message = 'Command completed successfully!',
-        ?SymfonyStyle $io = null,
-    ): int {
-        if ($io) {
-            $io->success($message);
-        }
-
-        return Command::SUCCESS;
     }
 
     /**
@@ -140,7 +70,7 @@ abstract class AbstractCommand extends Command
         }
 
         // For watch mode, set up cleanup that will stop the service
-        return function () use ($service): void {
+        return static function () use ($service): void {
             if (method_exists($service, 'stop')) {
                 $service->stop();
             }
@@ -158,20 +88,10 @@ abstract class AbstractCommand extends Command
         return (bool) $input->getOption('non-interactive');
     }
 
-    protected function isProductionEnvironment(): bool
-    {
-        return 'prod' === ($_ENV['APP_ENV'] ?? 'dev');
-    }
-
     protected function isWatchMode(
         InputInterface $input,
     ): bool {
         return (bool) $input->getOption('watch');
-    }
-
-    protected function resolveProjectRoot(): string
-    {
-        return $this->parameterBag->get('kernel.project_dir');
     }
 
     /**
@@ -180,7 +100,7 @@ abstract class AbstractCommand extends Command
     protected function runInit(
         SymfonyStyle $io,
     ): void {
-        $servicesConfig = $this->parameterBag->get('valksor.build.services', []);
+        $servicesConfig = $this->parameterBag->get('valksor.build.services');
         $initProviders = $this->providerRegistry->getProvidersByFlag($servicesConfig, 'init');
 
         if (empty($initProviders)) {
@@ -219,7 +139,7 @@ abstract class AbstractCommand extends Command
         } catch (Exception $e) {
             // In development, warn but continue; in production, fail
             if ($this->isProductionEnvironment()) {
-                throw new RuntimeException("Provider '{$name}' failed: " . $e->getMessage(), 0, $e);
+                throw new RuntimeException("Provider '$name' failed: " . $e->getMessage(), 0, $e);
             }
             // Warning - continue but this could be problematic in non-interactive mode
             // TODO: Consider passing SymfonyStyle instance for proper warning display

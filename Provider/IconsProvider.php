@@ -47,7 +47,7 @@ final class IconsProvider implements ProviderInterface
         array $options,
     ): void {
         // Generate icon templates
-        $process = new Process(['php', 'bin/console', 'valksor:icons:generate']);
+        $process = new Process(['php', 'bin/console', 'valksor:icons']);
         $process->run();
     }
 

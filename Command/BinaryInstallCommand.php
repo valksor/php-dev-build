@@ -18,24 +18,27 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use ValksorDev\Build\Binary\BinaryRegistry;
+use ValksorDev\Build\Provider\ProviderRegistry;
 
 use function count;
 use function sprintf;
 
 #[AsCommand(name: 'valksor:binaries:install', description: 'Install all required binaries.')]
-final class BinaryInstallCommand extends Command
+final class BinaryInstallCommand extends AbstractCommand
 {
     public function __construct(
-        private readonly ParameterBagInterface $parameterBag,
+        ParameterBagInterface $parameterParameterBag,
         private readonly BinaryRegistry $binaryRegistry,
-        #[\Symfony\Component\DependencyInjection\Attribute\Autowire(
+        #[Autowire(
             param: 'valksor.build.services',
         )]
         private readonly array $servicesConfig,
+        ProviderRegistry $providerRegistry,
     ) {
-        parent::__construct();
+        parent::__construct($parameterParameterBag, $providerRegistry);
     }
 
     protected function execute(
@@ -72,8 +75,7 @@ final class BinaryInstallCommand extends Command
             }
 
             try {
-                $manager = $this->binaryRegistry->get($binary)->createManager($varDir);
-                $tag = $manager->ensureLatest([$io, 'text']);
+                $tag = $this->binaryRegistry->get($binary)->createManager($varDir)->ensureLatest([$io, 'text']);
                 $io->success(sprintf('✓ %s installed (%s)', $binary, $tag));
                 $successCount++;
             } catch (Exception $e) {

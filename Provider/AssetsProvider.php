@@ -14,13 +14,13 @@ namespace ValksorDev\Build\Provider;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\DependencyInjection\Attribute\AutowireTag;
+use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 use Symfony\Component\Process\Process;
 
 /**
  * Provider for Symfony assets build steps.
  */
-#[AutowireTag('valksor.service_provider')]
+#[AutoconfigureTag('valksor.service_provider')]
 final class AssetsProvider implements ProviderInterface, IoAwareInterface
 {
     private ?SymfonyStyle $io = null;
@@ -33,9 +33,7 @@ final class AssetsProvider implements ProviderInterface, IoAwareInterface
         $process1->run();
 
         if (!$process1->isSuccessful()) {
-            if ($this->io) {
-                $this->io->error('[ASSETS] assets:install failed: ' . trim($process1->getErrorOutput()));
-            }
+            $this->io?->error('[ASSETS] assets:install failed: ' . trim($process1->getErrorOutput()));
 
             return Command::FAILURE;
         }
@@ -45,9 +43,7 @@ final class AssetsProvider implements ProviderInterface, IoAwareInterface
         $process2->run();
 
         if (!$process2->isSuccessful()) {
-            if ($this->io) {
-                $this->io->error('[IMPORTMAP] importmap:install failed: ' . trim($process2->getErrorOutput()));
-            }
+            $this->io?->error('[IMPORTMAP] importmap:install failed: ' . trim($process2->getErrorOutput()));
 
             return Command::FAILURE;
         }
@@ -57,9 +53,7 @@ final class AssetsProvider implements ProviderInterface, IoAwareInterface
         $process3->run();
 
         if (!$process3->isSuccessful()) {
-            if ($this->io) {
-                $this->io->error('[ASSET-MAP] asset-map:compile failed: ' . trim($process3->getErrorOutput()));
-            }
+            $this->io?->error('[ASSET-MAP] asset-map:compile failed: ' . trim($process3->getErrorOutput()));
 
             return Command::FAILURE;
         }

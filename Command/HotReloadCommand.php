@@ -24,11 +24,11 @@ use ValksorDev\Build\Service\HotReloadService;
 final class HotReloadCommand extends AbstractCommand
 {
     public function __construct(
-        ParameterBagInterface $bag,
+        ParameterBagInterface $parameterBag,
         ProviderRegistry $providerRegistry,
         private readonly HotReloadService $hotReloadService,
     ) {
-        parent::__construct($bag, $providerRegistry);
+        parent::__construct($parameterBag, $providerRegistry);
     }
 
     protected function execute(
@@ -57,10 +57,5 @@ final class HotReloadCommand extends AbstractCommand
 
             return 1;
         }
-    }
-
-    protected function getSseProcessesToKill(): array
-    {
-        return ['hot-reload'];
     }
 }

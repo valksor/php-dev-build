@@ -13,6 +13,7 @@
 namespace ValksorDev\Build\Provider;
 
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Process\Exception\ProcessTimedOutException;
 use Symfony\Component\Process\Process;
 
 /**
@@ -94,11 +95,6 @@ final class ImportmapProvider implements ProviderInterface
         $arguments = ['valksor:importmap', '--watch'];
         $isInteractive = $options['interactive'] ?? true;
 
-        // Add watch option if configured
-        if ($options['watch'] ?? true) {
-            // Already in watch mode
-        }
-
         $process = new Process(['php', 'bin/console', ...$arguments]);
 
         if ($isInteractive) {
@@ -137,7 +133,7 @@ final class ImportmapProvider implements ProviderInterface
 
                 // Process finished - check if it was successful
                 return $process->isSuccessful() ? Command::SUCCESS : Command::FAILURE;
-            } catch (\Symfony\Component\Process\Exception\ProcessTimedOutException $e) {
+            } catch (ProcessTimedOutException $e) {
                 // Timeout is expected behavior for watch services
                 if ($process->isRunning()) {
                     echo "[RUNNING] Importmap service started successfully (continuing in background)\n";
@@ -156,7 +152,7 @@ final class ImportmapProvider implements ProviderInterface
                 $process->run();
 
                 return $process->isSuccessful() ? Command::SUCCESS : Command::FAILURE;
-            } catch (\Symfony\Component\Process\Exception\ProcessTimedOutException $e) {
+            } catch (ProcessTimedOutException $e) {
                 // Expected for watch services
                 return $process->isSuccessful() ? Command::SUCCESS : Command::FAILURE;
             }

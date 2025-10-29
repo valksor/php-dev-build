@@ -53,7 +53,7 @@ return [
 ];
 ```
 
-2. Enable the build tools component:
+1. Enable the build tools component:
 
 ```yaml
 # config/packages/valksor.yaml
@@ -336,7 +336,6 @@ import { stimulus } from '@hotwired/stimulus';
 ```
 
 ```json
-// Generated importmap.json
 {
   "imports": {
     "@hotwired/turbo": "/assets/vendor/turbo.min.js",
@@ -522,30 +521,30 @@ services:
 
 ### Commands
 
-| Command | Description |
-|---------|-------------|
-| `valksor:watch` | Start all development tools |
-| `valksor:hot-reload` | Start hot reload service only |
-| `valksor:tailwind-build` | Build Tailwind CSS |
-| `valksor:importmap-sync` | Synchronize import maps |
-| `valksor:binary-ensure` | Download required binaries |
+| Command                  | Description                   |
+|--------------------------|-------------------------------|
+| `valksor:watch`          | Start all development tools   |
+| `valksor:hot-reload`     | Start hot reload service only |
+| `valksor:tailwind-build` | Build Tailwind CSS            |
+| `valksor:importmap-sync` | Synchronize import maps       |
+| `valksor:binary-ensure`  | Download required binaries    |
 
 ### Configuration Options
 
-| Section | Option | Type | Default | Description |
-|---------|--------|------|---------|-------------|
-| `hot_reload` | `enabled` | boolean | true | Enable hot reload |
-| | `watch_paths` | array | [] | Paths to watch |
-| | `exclude_patterns` | array | [] | Patterns to exclude |
-| | `debounce_ms` | int | 100 | Debounce time |
-| `tailwind` | `enabled` | boolean | true | Enable Tailwind |
-| | `input` | string | assets/css/app.css | Input CSS file |
-| | `output` | string | public/build/app.css | Output CSS file |
-| | `minify` | boolean | false | Minify CSS |
-| `importmap` | `enabled` | boolean | true | Enable import maps |
-| | `importmap_path` | string | importmap.json | Import map file |
-| `binaries` | `download_dir` | string | bin/build-tools/ | Binary directory |
-| | `esbuild_version` | string | latest | ESBuild version |
+| Section      | Option             | Type    | Default              | Description         |
+|--------------|--------------------|---------|----------------------|---------------------|
+| `hot_reload` | `enabled`          | boolean | true                 | Enable hot reload   |
+|              | `watch_paths`      | array   | []                   | Paths to watch      |
+|              | `exclude_patterns` | array   | []                   | Patterns to exclude |
+|              | `debounce_ms`      | int     | 100                  | Debounce time       |
+| `tailwind`   | `enabled`          | boolean | true                 | Enable Tailwind     |
+|              | `input`            | string  | assets/css/app.css   | Input CSS file      |
+|              | `output`           | string  | public/build/app.css | Output CSS file     |
+|              | `minify`           | boolean | false                | Minify CSS          |
+| `importmap`  | `enabled`          | boolean | true                 | Enable import maps  |
+|              | `importmap_path`   | string  | importmap.json       | Import map file     |
+| `binaries`   | `download_dir`     | string  | bin/build-tools/     | Binary directory    |
+|              | `esbuild_version`  | string  | latest               | ESBuild version     |
 
 ## Troubleshooting
 
@@ -600,8 +599,6 @@ valksor:
 
 ## Contributing
 
-Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) for details on:
-
 - Code style requirements (PSR-12)
 - Testing requirements for PRs
 - One feature per pull request
@@ -628,8 +625,6 @@ When adding support for new build tools:
 ## Security
 
 If you discover any security-related issues, please email us at security@valksor.dev instead of using the issue tracker.
-
-For security policy and vulnerability reporting guidelines, please see our [Security Policy](SECURITY.md).
 
 ## Support
 

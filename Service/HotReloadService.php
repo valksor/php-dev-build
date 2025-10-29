@@ -14,6 +14,7 @@ namespace ValksorDev\Build\Service;
 
 use Exception;
 use RuntimeException;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Valksor\Component\Sse\Service\AbstractService;
 
@@ -73,9 +74,7 @@ final class HotReloadService extends AbstractService
     public function reload(): void
     {
         // Hot reload service doesn't support manual reload
-        if ($this->io) {
-            $this->io->note('Hot reload service reload requested (no action needed)');
-        }
+        $this->io?->note('Hot reload service reload requested (no action needed)');
     }
 
     /**
@@ -87,7 +86,7 @@ final class HotReloadService extends AbstractService
         // SSE server communication now handled via direct service calls
 
         // Get hot reload configuration from new service-based structure
-        $hotReloadConfig = $this->bag->get('valksor.build.services.hot_reload.options', []);
+        $hotReloadConfig = $this->parameterBag->get('valksor.build.services.hot_reload.options');
 
         // Validate configuration early
         if (!$this->validateConfiguration($hotReloadConfig)) {
@@ -98,9 +97,7 @@ final class HotReloadService extends AbstractService
 
         // Early return if no watch directories configured
         if (empty($watchDirs)) {
-            if ($this->io) {
-                $this->io->warning('No watch directories configured. Hot reload disabled.');
-            }
+            $this->io?->warning('No watch directories configured. Hot reload disabled.');
 
             return Command::SUCCESS;
         }
@@ -128,9 +125,7 @@ final class HotReloadService extends AbstractService
                 $this->handleFilesystemChange($path, $extendedSuffixes, $extendedExtensions, $debounceDelay);
             });
 
-            if ($this->io) {
-                $this->io->text('File watcher initialized successfully');
-            }
+            $this->io?->text('File watcher initialized successfully');
         } catch (RuntimeException $e) {
             if ($this->io) {
                 $this->io->error(sprintf('Failed to initialize file watcher: %s', $e->getMessage()));
@@ -140,36 +135,28 @@ final class HotReloadService extends AbstractService
             // Continue without watcher - will fall back to manual mode
             $watcher = null;
         } catch (Exception $e) {
-            if ($this->io) {
-                $this->io->error(sprintf('Unexpected error initializing watcher: %s', $e->getMessage()));
-            }
+            $this->io?->error(sprintf('Unexpected error initializing watcher: %s', $e->getMessage()));
 
             // Continue without watcher
             $watcher = null;
         }
 
-        $watchTargets = $this->collectWatchTargets($this->bag->get('kernel.project_dir'), $watchDirs);
+        $watchTargets = $this->collectWatchTargets($this->parameterBag->get('kernel.project_dir'), $watchDirs);
 
         if ([] === $watchTargets) {
-            if ($this->io) {
-                $this->io->warning('No watch targets found. Hot reload will remain idle.');
-            }
+            $this->io?->warning('No watch targets found. Hot reload will remain idle.');
         } else {
             foreach ($watchTargets as $target) {
                 $watcher->addRoot($target);
             }
 
-            if ($this->io) {
-                $this->io->note(sprintf('Watching %d directories for changes', count($watchTargets)));
-            }
+            $this->io?->note(sprintf('Watching %d directories for changes', count($watchTargets)));
         }
 
         $this->running = true;
         $this->lastContentChange = microtime(true);
 
-        if ($this->io) {
-            $this->io->success('Hot reload service started');
-        }
+        $this->io?->success('Hot reload service started');
 
         // Add loop timeout protection - prevent infinite hangs
         $loopCount = 0;
@@ -180,9 +167,7 @@ final class HotReloadService extends AbstractService
 
             // Timeout protection - exit if no activity for too long
             if ($loopCount > $maxLoopsWithoutActivity && empty($this->pendingChanges)) {
-                if ($this->io) {
-                    $this->io->warning('Hot reload service timeout - no activity for 10 minutes, exiting gracefully');
-                }
+                $this->io?->warning('Hot reload service timeout - no activity for 10 minutes, exiting gracefully');
 
                 break;
             }
@@ -218,9 +203,7 @@ final class HotReloadService extends AbstractService
 
                     $this->flushPendingReloads();
                 } catch (Exception $e) {
-                    if ($this->io) {
-                        $this->io->error(sprintf('Error in file watching loop: %s', $e->getMessage()));
-                    }
+                    $this->io?->error(sprintf('Error in file watching loop: %s', $e->getMessage()));
                     // Continue running but log the error
                 }
             } else {
@@ -286,7 +269,7 @@ final class HotReloadService extends AbstractService
     ): float {
         // Lazy load output files if not already discovered
         if (empty($this->outputFiles)) {
-            $this->outputFiles = $this->discoverOutputFiles($this->bag->get('kernel.project_dir'), $this->fileTransformations);
+            $this->outputFiles = $this->discoverOutputFiles($this->parameterBag->get('kernel.project_dir'), $this->fileTransformations);
         }
 
         // Check if this is a tracked output file first
@@ -340,8 +323,8 @@ final class HotReloadService extends AbstractService
             }
 
             $roots = $config['watch_dirs'] ?? [
-                $projectRoot . $this->bag->get('valksor.project.apps_dir'),
-                $projectRoot . $this->bag->get('valksor.project.infrastructure_dir'),
+                $projectRoot . $this->parameterBag->get('valksor.project.apps_dir'),
+                $projectRoot . $this->parameterBag->get('valksor.project.infrastructure_dir'),
             ];
 
             foreach ($roots as $root) {
@@ -369,7 +352,7 @@ final class HotReloadService extends AbstractService
         $this->debounceDeadline = 0.0;
 
         // Write signal file for SSE service with error handling
-        $signalFile = $this->bag->get('kernel.project_dir') . '/var/run/valksor-reload.signal';
+        $signalFile = $this->parameterBag->get('kernel.project_dir') . '/var/run/valksor-reload.signal';
         $signalData = json_encode(['files' => $files, 'timestamp' => microtime(true)]);
 
         try {
@@ -379,16 +362,12 @@ final class HotReloadService extends AbstractService
                 throw new RuntimeException('Failed to write signal file');
             }
         } catch (Exception $e) {
-            if ($this->io) {
-                $this->io->error(sprintf('Failed to write reload signal: %s', $e->getMessage()));
-            }
+            $this->io?->error(sprintf('Failed to write reload signal: %s', $e->getMessage()));
 
             return;
         }
 
-        if ($this->io) {
-            $this->io->success(sprintf('Reload signal sent for %d changed files', count($files)));
-        }
+        $this->io?->success(sprintf('Reload signal sent for %d changed files', count($files)));
     }
 
     /**
@@ -431,34 +410,28 @@ final class HotReloadService extends AbstractService
         $fileDelay = $this->determineReloadDelay($path, $extendedExtensions, $extendedSuffixes, $debounceDelay);
 
         // Debug logging
-        if ($this->io) {
-            $this->io->text(sprintf(
-                'DEBUG: File %s | Output: %s | Delay: %.2fs',
-                $path,
-                $isOutputFile ? 'YES' : 'NO',
-                $fileDelay,
-            ));
-        }
+        $this->io?->text(sprintf(
+            'DEBUG: File %s | Output: %s | Delay: %.2fs',
+            $path,
+            $isOutputFile ? 'YES' : 'NO',
+            $fileDelay,
+        ));
 
         // Rate limiting for output files
         if ($isOutputFile && ($now - $this->lastContentChange) < $fileDelay) {
-            if ($this->io) {
-                $this->io->text(sprintf(
-                    'DEBUG: Rate limiting %s (last change: %.2fs ago, limit: %.2fs)',
-                    $path,
-                    $now - $this->lastContentChange,
-                    $fileDelay,
-                ));
-            }
+            $this->io?->text(sprintf(
+                'DEBUG: Rate limiting %s (last change: %.2fs ago, limit: %.2fs)',
+                $path,
+                $now - $this->lastContentChange,
+                $fileDelay,
+            ));
 
             return;
         }
 
         // Check if this is a duplicate pending change
         if (isset($this->pendingChanges[$path])) {
-            if ($this->io) {
-                $this->io->text(sprintf('DEBUG: Skipping duplicate change for %s', $path));
-            }
+            $this->io?->text(sprintf('DEBUG: Skipping duplicate change for %s', $path));
 
             // Don't update timing for duplicate changes
             return;
@@ -476,9 +449,7 @@ final class HotReloadService extends AbstractService
             $this->debounceDeadline = $desiredDeadline;
         }
 
-        if ($this->io) {
-            $this->io->text('File changed: ' . $path);
-        }
+        $this->io?->text('File changed: ' . $path);
     }
 
     /**
@@ -490,7 +461,7 @@ final class HotReloadService extends AbstractService
     ): bool {
         // Convert glob pattern to regex
         $pattern = str_replace(['*', '?'], ['.*', '.'], $pattern);
-        $pattern = '#^' . preg_quote($this->bag->get('kernel.project_dir') . DIRECTORY_SEPARATOR, '#') . $pattern . '$#';
+        $pattern = '#^' . preg_quote($this->parameterBag->get('kernel.project_dir') . DIRECTORY_SEPARATOR, '#') . $pattern . '$#';
 
         return 1 === preg_match($pattern, $path);
     }
@@ -501,16 +472,14 @@ final class HotReloadService extends AbstractService
     private function validateConfiguration(
         array $config,
     ): bool {
-        $projectRoot = $this->bag->get('kernel.project_dir');
+        $projectRoot = $this->parameterBag->get('kernel.project_dir');
 
         // Validate var/run directory exists and is writable
         $runDir = $projectRoot . '/var/run';
         $this->ensureDirectory($runDir);
 
         if (!is_writable($runDir)) {
-            if ($this->io) {
-                $this->io->error(sprintf('Run directory is not writable: %s', $runDir));
-            }
+            $this->io?->error(sprintf('Run directory is not writable: %s', $runDir));
 
             return false;
         }
@@ -522,17 +491,13 @@ final class HotReloadService extends AbstractService
             $fullPath = $projectRoot . '/' . ltrim($dir, '/');
 
             if (!is_dir($fullPath)) {
-                if ($this->io) {
-                    $this->io->warning(sprintf('Watch directory does not exist: %s', $fullPath));
-                }
+                $this->io?->warning(sprintf('Watch directory does not exist: %s', $fullPath));
             }
         }
 
         // Check if inotify extension is available
         if (!extension_loaded('inotify')) {
-            if ($this->io) {
-                $this->io->warning('PHP inotify extension is not available. File watching may not work optimally.');
-            }
+            $this->io?->warning('PHP inotify extension is not available. File watching may not work optimally.');
         }
 
         return true;
@@ -575,11 +540,11 @@ final class HotReloadService extends AbstractService
                 }
 
                 // Generate output file path
-                $relativePath = str_replace($this->bag->get('kernel.project_dir') . DIRECTORY_SEPARATOR, '', $full);
+                $relativePath = str_replace($this->parameterBag->get('kernel.project_dir') . DIRECTORY_SEPARATOR, '', $full);
                 $pathInfo = pathinfo($relativePath);
 
                 $outputFile = $this->generateOutputPath(
-                    $this->bag->get('kernel.project_dir'),
+                    $this->parameterBag->get('kernel.project_dir'),
                     $pathInfo['dirname'] ?? '',
                     $pathInfo['filename'],
                     $outputPattern,
