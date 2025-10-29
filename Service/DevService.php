@@ -30,11 +30,54 @@ use function sprintf;
 use const SIGINT;
 use const SIGTERM;
 
+/**
+ * Lightweight development service for minimal development environment.
+ *
+ * This service provides a streamlined development experience by running only
+ * the essential services needed for hot reload functionality, without the
+ * overhead of full build processes (Tailwind compilation, Importmap processing).
+ *
+ * Lightweight Service Strategy:
+ * - Runs only SSE server and hot reload service
+ * - Excludes heavy build processes (Tailwind, Importmap) for faster startup
+ * - Perfect for quick development sessions or lightweight projects
+ * - Provides instant file watching and browser refresh capabilities
+ *
+ * Key Differences from DevWatchService:
+ * - Faster startup time (fewer services to initialize)
+ * - Lower resource usage (no compilation processes)
+ * - Simplified monitoring (fewer processes to track)
+ * - Focused on hot reload functionality only
+ * - Assumes pre-compiled assets are already available
+ *
+ * Signal Handling:
+ * - Registers graceful shutdown handlers for SIGINT (Ctrl+C) and SIGTERM
+ * - Ensures clean process termination and resource cleanup
+ */
 final class DevService
 {
+    /**
+     * Symfony console output interface for user interaction and status reporting.
+     * Provides rich console output with sections, progress indicators, and formatted text.
+     */
     private ?SymfonyStyle $io = null;
+
+    /**
+     * Flag indicating whether the service should provide interactive console output.
+     * When false, runs silently in the background for automated/CI environments.
+     */
     private bool $isInteractive = true;
+
+    /**
+     * Process manager for tracking and coordinating lightweight development services.
+     * Handles startup, monitoring, and graceful shutdown of SSE and hot reload processes.
+     */
     private ?ProcessManager $processManager = null;
+
+    /**
+     * Runtime flag indicating the service is active and should continue monitoring.
+     * Set to false during shutdown to signal the monitoring loop to exit gracefully.
+     */
     private bool $running = false;
 
     public function __construct(
@@ -65,6 +108,31 @@ final class DevService
         $this->io = $io;
     }
 
+    /**
+     * Start the lightweight development service.
+     *
+     * This method implements a streamlined startup sequence that focuses on
+     * essential services only, providing faster startup and lower resource usage:
+     *
+     * Startup Sequence:
+     * 1. Process manager initialization and signal handler registration
+     * 2. Initialization phase (binary downloads, dependency setup)
+     * 3. Provider discovery and lightweight service filtering
+     * 4. SSE server startup for hot reload communication
+     * 5. Hot reload service startup
+     * 6. Continuous monitoring loop
+     *
+     * Lightweight Filtering Logic:
+     * - Discovers all dev-flagged services
+     * - Filters to include only 'hot_reload' provider
+     * - Excludes heavy build services (Tailwind, Importmap)
+     * - Ensures fast startup and minimal resource consumption
+     *
+     * This approach is ideal for quick development sessions where build
+     * processes can be run separately or aren't needed.
+     *
+     * @return int Command exit code (Command::SUCCESS or Command::FAILURE)
+     */
     public function start(): int
     {
         $this->io?->title('Development Mode');
@@ -72,7 +140,8 @@ final class DevService
         // Initialize process manager for tracking background services
         $this->processManager = new ProcessManager($this->io);
 
-        // Register signal handlers for graceful shutdown
+        // Register signal handlers for graceful shutdown (SIGINT, SIGTERM)
+        // This ensures clean process termination when user presses Ctrl+C
         if (function_exists('pcntl_signal')) {
             pcntl_async_signals(true);
             pcntl_signal(SIGINT, function (): void {
@@ -94,23 +163,27 @@ final class DevService
             });
         }
 
-        // Run init phase first
+        // Run initialization phase (binary downloads, dependency setup)
+        // This ensures all required tools and dependencies are available
         $this->runInit();
 
         // Get services configuration from ParameterBag
+        // Contains service definitions, flags, and options for all build services
         $servicesConfig = $this->parameterBag->get('valksor.build.services');
 
-        // Get lightweight dev services (hot_reload and any dev=true services)
+        // Get all dev services (dev=true) with dependency resolution
         $devProviders = $this->providerRegistry->getProvidersByFlag($servicesConfig, 'dev');
 
-        // Filter for lightweight services (SSE + hot_reload)
+        // Filter for lightweight services only (exclude heavy build processes)
+        // This is the key difference from DevWatchService - we only want hot reload
         $lightweightProviders = [];
 
         foreach ($devProviders as $name => $provider) {
             $config = $servicesConfig[$name] ?? [];
             $providerClass = $config['provider'] ?? $name;
 
-            // Only include lightweight providers (SSE and hot_reload)
+            // Only include lightweight providers (hot_reload service)
+            // Excludes Tailwind CSS compilation and Importmap processing
             if (in_array($providerClass, ['hot_reload'], true)) {
                 $lightweightProviders[$name] = $provider;
             }
@@ -387,30 +460,54 @@ final class DevService
     }
 
     /**
-     * Start a provider process and return the Process object for tracking.
+     * Start a lightweight provider process for background execution.
+     *
+     * This method creates and starts processes for the limited set of services
+     * supported by the lightweight development mode. Unlike DevWatchService,
+     * this only supports the hot_reload service since we intentionally exclude
+     * heavy build processes.
+     *
+     * Supported Services in Lightweight Mode:
+     * - hot_reload: File watching and browser refresh functionality
+     *
+     * Excluded Services (handled by DevWatchService):
+     * - tailwind: CSS compilation and processing
+     * - importmap: JavaScript module processing
+     *
+     * The process startup includes verification to ensure the service
+     * started successfully before adding it to the process manager.
+     *
+     * @param string $name     Service name (e.g., 'hot_reload')
+     * @param object $provider Service provider instance
+     * @param array  $options  Service-specific configuration options
+     *
+     * @return Process|null Process object for tracking, or null if startup failed
      */
     private function startProviderProcess(
         string $name,
         object $provider,
         array $options,
     ): ?Process {
+        // Command mapping for lightweight services only
+        // Intentionally excludes heavy build services (tailwind, importmap)
         $command = match ($name) {
             'hot_reload' => ['php', 'bin/console', 'valksor:hot-reload'],
-            default => null,
+            default => null, // Unsupported service in lightweight mode
         };
 
         if (null === $command) {
             return null;
         }
 
-        // Create and start the process
+        // Create and start the process for background execution
         $process = new Process($command);
         $process->start();
 
-        // Give process time to start
+        // Allow time for process initialization and startup verification
+        // 500ms provides sufficient time for the hot reload service to initialize
         usleep(500000); // 500ms
 
-        // Check if it started successfully
+        // Verify that the process started successfully and is running
         if (!$process->isRunning()) {
             $this->io?->error(sprintf('Process %s failed to start (exit code: %d)', $name, $process->getExitCode()));
 

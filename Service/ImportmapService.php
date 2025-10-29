@@ -54,8 +54,21 @@ use const SIGHUP;
 use const SIGINT;
 use const SIGTERM;
 
+/**
+ * Importmap service for building and watching JavaScript modules.
+ *
+ * This service handles:
+ * - Processing JavaScript modules across multi-app structure
+ * - Building with optional esbuild minification
+ * - Watch mode with file system monitoring
+ * - Managing shared infrastructure and app-specific assets
+ * - Integration with ValkSSE component assets
+ */
 final class ImportmapService extends AbstractService
 {
+    /**
+     * Path filter for ignoring directories and files during asset discovery.
+     */
     private PathFilter $filter;
 
     public function __construct(
@@ -65,11 +78,22 @@ final class ImportmapService extends AbstractService
         $this->filter = PathFilter::createDefault();
     }
 
+    /**
+     * Check if the importmap service is currently running.
+     *
+     * @return bool True if the service is active and monitoring files
+     */
     public function isRunning(): bool
     {
         return $this->running;
     }
 
+    /**
+     * Trigger a reload of all JavaScript modules.
+     *
+     * This method is called during watch mode to rebuild all modules
+     * when a configuration change or external reload signal is received.
+     */
     public function reload(): void
     {
         $this->shouldReload = true;
@@ -110,12 +134,23 @@ final class ImportmapService extends AbstractService
         return $this->watchRoots($roots, $esbuild, $minify);
     }
 
+    /**
+     * Stop the importmap service gracefully.
+     *
+     * This method is called during shutdown to signal the watch loop
+     * to exit cleanly and stop monitoring JavaScript files.
+     */
     public function stop(): void
     {
         $this->shouldShutdown = true;
         $this->running = false;
     }
 
+    /**
+     * Get the service name for identification in the build system.
+     *
+     * @return string The service identifier 'importmap'
+     */
     public static function getServiceName(): string
     {
         return 'importmap';
@@ -143,11 +178,14 @@ final class ImportmapService extends AbstractService
         ?string $esbuild,
         bool $minify,
     ): void {
+        // Clear and recreate all dist directories for clean builds
         foreach ($roots as $root) {
             $this->removeDirectory($root['dist']);
             $this->ensureDirectory($root['dist']);
         }
 
+        // Collect all JavaScript modules from all root directories
+        // This includes shared infrastructure, ValkSSE components, and app-specific modules
         $modules = [];
 
         foreach ($roots as $root) {
@@ -227,7 +265,9 @@ final class ImportmapService extends AbstractService
     {
         $roots = [];
 
-        // Multi-app project structure
+        // Multi-app project structure: Discover shared and component assets
+
+        // Shared infrastructure JavaScript (common utilities, components used across apps)
         $sharedJs = $this->parameterBag->get('kernel.project_dir') . DIRECTORY_SEPARATOR . $this->parameterBag->get('valksor.project.infrastructure_dir') . '/assets/js';
         $sharedDist = $this->parameterBag->get('kernel.project_dir') . DIRECTORY_SEPARATOR . $this->parameterBag->get('valksor.project.infrastructure_dir') . '/assets/dist';
 
@@ -235,13 +275,17 @@ final class ImportmapService extends AbstractService
             $roots[] = ['label' => 'shared', 'source' => $sharedJs, 'dist' => $sharedDist];
         }
 
+        // Determine ValkSSE component assets path based on installation type
         $projectDir = $this->parameterBag->get('kernel.project_dir');
 
         if (is_dir($projectDir . '/valksor')) {
+            // Development/local installation
             $path = '/valksor/src/Valksor/Component/Sse/Resources/assets';
         } elseif (class_exists(FullStack::class)) {
+            // Full-stack package installation
             $path = '/vendor/valksor/valksor/src/Valksor/Component/Sse/Resources/assets';
         } else {
+            // Standalone SSE package installation
             $path = '/vendor/valksor/php-sse/Resources/assets';
         }
 
@@ -249,6 +293,7 @@ final class ImportmapService extends AbstractService
             $roots[] = ['label' => 'valksorsse', 'source' => $projectDir . $path . '/js', 'dist' => $sharedDist];
         }
 
+        // Discover application-specific JavaScript modules
         $appsDir = $this->parameterBag->get('kernel.project_dir') . DIRECTORY_SEPARATOR . $this->parameterBag->get('valksor.project.apps_dir');
 
         if (is_dir($appsDir)) {
@@ -261,6 +306,7 @@ final class ImportmapService extends AbstractService
                             continue;
                         }
 
+                        // Each app has its own assets/js directory for app-specific modules
                         $appSource = $appsDir . DIRECTORY_SEPARATOR . $entry . '/assets/js';
 
                         if (!is_dir($appSource)) {
@@ -317,9 +363,10 @@ final class ImportmapService extends AbstractService
         bool $minify,
     ): ?string {
         if (!$minify) {
-            return null;
+            return null; // No minification needed, use simple copy
         }
 
+        // Use project-local esbuild binary downloaded via valksor:binary command
         return $this->parameterBag->get('kernel.project_dir') . '/var/esbuild/esbuild';
     }
 
@@ -473,13 +520,14 @@ final class ImportmapService extends AbstractService
         $this->ensureDirectory(dirname($target));
 
         if ($minify && null !== $esbuild) {
+            // Use esbuild for minification when enabled
             $process = new Process([
                 $esbuild,
                 $source,
                 '--outfile=' . $target,
-                '--format=esm',
-                '--target=es2020',
-                '--minify',
+                '--format=esm',      // ES Module format for modern browsers
+                '--target=es2020',   // Target modern JavaScript features
+                '--minify',          // Enable minification
             ], $this->parameterBag->get('kernel.project_dir'));
             $process->setTimeout(null);
 
@@ -494,6 +542,7 @@ final class ImportmapService extends AbstractService
             }
         }
 
+        // Simple copy when minification is disabled
         if (!copy($source, $target)) {
             $this->io->error(sprintf('Failed to copy %s to %s', $source, $target));
 

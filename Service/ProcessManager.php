@@ -26,16 +26,40 @@ use const SIGINT;
 use const SIGTERM;
 
 /**
- * Manages background processes for the watch command.
+ * Process lifecycle manager for the Valksor build system.
+ *
+ * This class manages background processes used in watch mode, providing:
+ * - Process tracking and health monitoring
+ * - Graceful shutdown handling with signal management
+ * - Process status reporting and failure detection
+ * - Interactive vs non-interactive process execution modes
+ * - Multi-process coordination and cleanup strategies
+ *
+ * The manager ensures all build services (Tailwind, Importmap, Hot Reload) can run
+ * simultaneously while providing proper cleanup and error handling.
  */
 final class ProcessManager
 {
-    /** @var array<string,string> */
+    /**
+     * Mapping of service names to process identifiers.
+     * Used for logging and process identification.
+     *
+     * @var array<string,string>
+     */
     private array $processNames = [];
 
-    /** @var array<string,Process> */
+    /**
+     * Registry of managed background processes.
+     * Maps service names to Symfony Process instances for lifecycle management.
+     *
+     * @var array<string,Process>
+     */
     private array $processes = [];
 
+    /**
+     * Flag indicating whether shutdown has been initiated.
+     * Prevents duplicate shutdown operations and signals.
+     */
     private bool $shutdown = false;
 
     public function __construct(
@@ -158,16 +182,26 @@ final class ProcessManager
     }
 
     /**
-     * Handle shutdown signals.
+     * Handle shutdown signals for graceful process termination.
+     *
+     * This method is called when SIGINT (Ctrl+C) or SIGTERM signals are received.
+     * It coordinates the shutdown of all managed processes to ensure clean
+     * termination and proper resource cleanup.
+     *
+     * @param int $signal The signal number (SIGINT or SIGTERM)
+     *
+     * @return never This method terminates the process
      */
     #[NoReturn]
     public function handleSignal(
         int $signal,
     ): void {
+        // Prevent multiple shutdown attempts
         $this->shutdown = true;
 
         switch ($signal) {
             case SIGINT:
+                // User pressed Ctrl+C - provide clear feedback
                 if ($this->io) {
                     $this->io->newLine();
                     $this->io->warning('[INTERRUPT] Received Ctrl+C - shutting down gracefully...');
@@ -176,11 +210,13 @@ final class ProcessManager
                 break;
 
             case SIGTERM:
+                // System or process manager requested termination
                 $this->io?->warning('[TERMINATE] Received termination signal - shutting down gracefully...');
 
                 break;
         }
 
+        // Terminate all managed processes before exiting
         $this->terminateAll();
 
         exit(0);
@@ -230,24 +266,34 @@ final class ProcessManager
     }
 
     /**
-     * Terminate all tracked processes gracefully.
+     * Terminate all tracked processes using a graceful shutdown strategy.
+     *
+     * This method implements a two-phase termination approach:
+     * 1. Graceful termination (SIGTERM) with 2-second timeout
+     * 2. Force kill (SIGKILL) for stubborn processes
+     *
+     * This ensures that processes have time to clean up resources and
+     * complete any in-progress operations before being forcefully stopped.
      */
     public function terminateAll(): void
     {
         $this->io?->text('[SHUTDOWN] Terminating all background processes...');
 
+        // Phase 1: Graceful termination using SIGTERM (signal 15)
+        // This allows processes to clean up and exit cleanly
         foreach ($this->processes as $name => $process) {
             if ($process->isRunning()) {
                 $this->io?->text(sprintf('[STOPPING] Terminating %s process (PID: %d)', $name, $process->getPid()));
-                $process->stop(2); // Graceful termination with 2-second timeout
+                $process->stop(2); // Send SIGTERM with 2-second timeout for graceful shutdown
             }
         }
 
-        // Force kill any remaining processes (stop() already handles the timeout)
+        // Phase 2: Force kill any remaining processes using SIGKILL (signal 9)
+        // This immediately terminates processes that didn't respond to SIGTERM
         foreach ($this->processes as $name => $process) {
             if ($process->isRunning()) {
                 $this->io?->warning(sprintf('[FORCE-KILL] Forcefully killing %s process', $name));
-                $process->signal(9); // SIGKILL
+                $process->signal(9); // SIGKILL - cannot be caught or ignored
             }
         }
 
@@ -255,13 +301,18 @@ final class ProcessManager
     }
 
     /**
-     * Execute a single process with interactive/foreground mode handling.
+     * Execute a single process with support for interactive and non-interactive modes.
      *
-     * @param array  $arguments     Command arguments
-     * @param bool   $isInteractive Whether to run in interactive mode
-     * @param string $serviceName   Name of the service for logging
+     * This static method handles different execution scenarios:
+     * - Interactive mode: Starts process and allows it to run continuously (for watch services)
+     * - Non-interactive mode: Runs process to completion and returns exit code
+     * - Timeout handling: Manages processes that are expected to run indefinitely
      *
-     * @return int Command exit code
+     * @param array  $arguments     Command arguments to pass to the console
+     * @param bool   $isInteractive Whether to run in interactive (background) mode
+     * @param string $serviceName   Name of the service for logging and user feedback
+     *
+     * @return int Command exit code (Command::SUCCESS or Command::FAILURE)
      */
     public static function executeProcess(
         array $arguments,
@@ -271,33 +322,40 @@ final class ProcessManager
         $process = new Process(['php', 'bin/console', ...$arguments]);
 
         if ($isInteractive) {
+            // Interactive mode - start process and let it run in background
+            // Used for watch services that should continue running
             try {
                 $process->start();
 
-                // Give process time to start
-                usleep(500000); // 500ms
+                // Give the process time to initialize and start monitoring
+                usleep(500000); // 500ms for startup
 
                 if ($process->isRunning()) {
-                    // Process started successfully - let it run in background
+                    // Process started successfully and is running in background
+                    // This is the expected behavior for watch services
                     echo sprintf("[RUNNING] %s started and monitoring files for changes\n", $serviceName);
 
                     return Command::SUCCESS;
                 }
 
-                // Process finished quickly - check if it was successful
+                // Process finished quickly (likely an error or quick operation)
+                // Check if the execution was successful
                 return $process->isSuccessful() ? Command::SUCCESS : Command::FAILURE;
             } catch (\Symfony\Component\Process\Exception\ProcessTimedOutException $e) {
-                // Timeout is expected for watch services - they run continuously
+                // Timeout exception occurs when the process runs longer than expected
+                // This is normal for watch services - they are designed to run continuously
                 if ($process->isRunning()) {
-                    // Let it continue running in the background
+                    // Process is still running despite timeout - let it continue
                     return Command::SUCCESS;
                 }
 
-                // If it stopped, check if it was successful
+                // Process stopped during or after the timeout
+                // Check if it completed successfully before stopping
                 return $process->isSuccessful() ? Command::SUCCESS : Command::FAILURE;
             }
         } else {
-            // Non-interactive mode - just run without output
+            // Non-interactive mode - run process to completion without output
+            // Used for one-time operations like build commands
             $process->run();
 
             return $process->isSuccessful() ? Command::SUCCESS : Command::FAILURE;

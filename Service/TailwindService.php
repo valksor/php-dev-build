@@ -54,13 +54,40 @@ use const SIGHUP;
 use const SIGINT;
 use const SIGTERM;
 
+/**
+ * Tailwind CSS build service for compiling and watching Tailwind stylesheets.
+ *
+ * This service handles:
+ * - Building individual Tailwind CSS files
+ * - Watch mode with file system monitoring
+ * - Multi-app project structure support
+ * - Integration with the Valksor build system
+ */
 final class TailwindService extends AbstractService
 {
+    /**
+     * Debounce delay for watch mode to prevent excessive rebuilds
+     * when multiple files change rapidly (e.g., during git operations).
+     */
     private const float WATCH_DEBOUNCE_SECONDS = 0.25;
+
+    /**
+     * Current active app ID for single-app mode.
+     * When null, operates in multi-app mode watching all applications.
+     */
     private ?string $activeAppId = null;
+
+    /**
+     * Path filter for ignoring directories and files during source discovery.
+     */
     private PathFilter $filter;
 
-    /** @var array<int,string> */
+    /**
+     * Base Tailwind CLI command configuration.
+     * Contains the executable path and basic command arguments.
+     *
+     * @var array<int,string>
+     */
     private array $tailwindCommandBase = [];
 
     public function __construct(
@@ -70,6 +97,15 @@ final class TailwindService extends AbstractService
         $this->filter = PathFilter::createDefault();
     }
 
+    /**
+     * Set the active application ID for single-app mode.
+     *
+     * When set, the service will only process Tailwind files within
+     * the specified application directory. When null, operates in
+     * multi-app mode watching all applications.
+     *
+     * @param string|null $appId The application ID or null for multi-app mode
+     */
     public function setActiveAppId(
         ?string $appId,
     ): void {
@@ -85,18 +121,23 @@ final class TailwindService extends AbstractService
         $watchMode = $config['watch'] ?? false;
         $minify = $config['minify'] ?? $this->shouldMinify();
 
+        // Resolve Tailwind CLI command and configuration
         $commandBase = $this->resolveTailwindCommandBase();
         $this->tailwindCommandBase = $commandBase['command'];
         $tailwindCommandDisplay = $commandBase['display'];
 
+        // Discover all Tailwind CSS source files in the project
         $sources = $this->collectTailwindSources((bool) $watchMode);
 
+        // Exit gracefully if no Tailwind sources are found
         if ([] === $sources) {
             $this->io->warning('No *.tailwind.css sources found.');
 
             return Command::SUCCESS;
         }
 
+        // Sort sources by app label first, then by input file path
+        // This ensures consistent processing order across different environments
         usort($sources, static function (array $left, array $right): int {
             $labelComparison = $left['label'] <=> $right['label'];
 
@@ -126,12 +167,23 @@ final class TailwindService extends AbstractService
         return $this->watchSources($sources, $minify);
     }
 
+    /**
+     * Stop the Tailwind service gracefully.
+     *
+     * This method is called during shutdown to signal the watch loop
+     * to exit cleanly and stop monitoring file changes.
+     */
     public function stop(): void
     {
         $this->shouldShutdown = true;
         $this->running = false;
     }
 
+    /**
+     * Get the service name for identification in the build system.
+     *
+     * @return string The service identifier 'tailwind'
+     */
     public static function getServiceName(): string
     {
         return 'tailwind';
@@ -171,12 +223,15 @@ final class TailwindService extends AbstractService
             $arguments[] = '--minify';
         }
 
+        // Configure Tailwind process with environment variables
+        // These variables disable various Tailwind features that can cause issues
+        // in development environments and ensure consistent behavior
         $process = new Process($arguments, $this->parameterBag->get('kernel.project_dir'), [
-            'TAILWIND_DISABLE_NATIVE' => '1',
-            'TAILWIND_DISABLE_WATCHMAN' => '1',
-            'TAILWIND_DISABLE_WATCHER' => '1',
-            'TAILWIND_DISABLE_FILE_DEPENDENCY_SCAN' => '1',
-            'TMPDIR' => $this->ensureTempDir(),
+            'TAILWIND_DISABLE_NATIVE' => '1',           // Disable native CSS compiler for compatibility
+            'TAILWIND_DISABLE_WATCHMAN' => '1',         // Disable Facebook Watchman for better cross-platform support
+            'TAILWIND_DISABLE_WATCHER' => '1',          // Disable Tailwind's built-in file watcher (we use our own)
+            'TAILWIND_DISABLE_FILE_DEPENDENCY_SCAN' => '1', // Disable automatic file dependency scanning
+            'TMPDIR' => $this->ensureTempDir(),         // Use project-specific temp directory for isolation
         ]);
         $process->setTimeout(null);
 
@@ -228,8 +283,9 @@ final class TailwindService extends AbstractService
     ): array {
         $sources = [];
 
-        // Multi-app project structure
+        // Multi-app project structure discovery
         if ($includeAllApps) {
+            // In watch mode, scan all application directories for Tailwind sources
             $appsDir = $this->parameterBag->get('kernel.project_dir') . DIRECTORY_SEPARATOR . $this->parameterBag->get('valksor.project.apps_dir');
 
             if (is_dir($appsDir)) {
@@ -242,6 +298,7 @@ final class TailwindService extends AbstractService
                                 continue;
                             }
 
+                            // Skip ignored directories (e.g., node_modules, vendor, .git)
                             if ($this->filter->shouldIgnoreDirectory($entry)) {
                                 continue;
                             }
@@ -252,6 +309,7 @@ final class TailwindService extends AbstractService
                                 continue;
                             }
 
+                            // Recursively discover Tailwind CSS files in this app
                             $this->discoverSources($appRoot, $sources);
                         }
                     } finally {
@@ -260,6 +318,7 @@ final class TailwindService extends AbstractService
                 }
             }
         } elseif (null !== $this->activeAppId) {
+            // In single-app mode, only scan the specified application directory
             $appRoot = $this->parameterBag->get('kernel.project_dir') . DIRECTORY_SEPARATOR . $this->parameterBag->get('valksor.project.apps_dir') . '/' . $this->activeAppId;
 
             if (is_dir($appRoot)) {
@@ -276,27 +335,33 @@ final class TailwindService extends AbstractService
     private function createSourceDefinition(
         string $inputPath,
     ): array {
+        // Convert absolute paths to relative paths from project root
         $relativeInput = trim(str_replace('\\', '/', substr($inputPath, strlen($this->parameterBag->get('kernel.project_dir')))), '/');
+
+        // Generate output file path by replacing .tailwind.css with .css
         $outputPath = preg_replace('/\.tailwind\.css$/', '.css', $inputPath);
         $relativeOutput = trim(str_replace('\\', '/', substr($outputPath, strlen($this->parameterBag->get('kernel.project_dir')))), '/');
 
         $label = $relativeInput;
         $watchRoots = [];
 
-        // Multi-app project structure
+        // Multi-app project structure: determine watch roots based on file location
         if (1 === preg_match('#^' . $this->parameterBag->get('valksor.project.apps_dir') . '/([^/]+)/#', $relativeInput, $matches)) {
+            // File is within an app directory - watch the entire app and shared infrastructure
             $appName = $matches[1];
             $label = $appName;
             $watchRoots[] = $this->parameterBag->get('kernel.project_dir') . '/' . $this->parameterBag->get('valksor.project.apps_dir') . '/' . $appName;
 
-            // Include shared directory if it exists
+            // Include shared infrastructure directory if it exists (common utilities, shared components)
             if (is_dir($this->parameterBag->get('kernel.project_dir') . '/' . $this->parameterBag->get('valksor.project.infrastructure_dir'))) {
                 $watchRoots[] = $this->parameterBag->get('kernel.project_dir') . '/' . $this->parameterBag->get('valksor.project.infrastructure_dir');
             }
         } elseif (str_starts_with($relativeInput, $this->parameterBag->get('valksor.project.infrastructure_dir') . '/')) {
+            // File is in shared infrastructure - watch only the infrastructure directory
             $label = $this->parameterBag->get('valksor.project.infrastructure_dir');
             $watchRoots[] = $this->parameterBag->get('kernel.project_dir') . '/' . $this->parameterBag->get('valksor.project.infrastructure_dir');
         } else {
+            // File is outside the standard structure - watch its parent directory
             $watchRoots[] = dirname($inputPath);
         }
 
@@ -383,19 +448,14 @@ final class TailwindService extends AbstractService
 
     private function resolveTailwindExecutable(): string
     {
-        $candidates = [
-            $this->parameterBag->get('kernel.project_dir') . '/var/tailwindcss/tailwindcss',
-            '/usr/local/bin/tailwindcss',
-            $this->parameterBag->get('kernel.project_dir') . '/vendor/bin/tailwindcss',
-        ];
+        // Use project-local Tailwind binary downloaded via valksor:binary command
+        $tailwindBinary = $this->parameterBag->get('kernel.project_dir') . '/var/tailwindcss/tailwindcss';
 
-        foreach ($candidates as $candidate) {
-            if (is_file($candidate) && is_executable($candidate)) {
-                return $candidate;
-            }
+        if (!is_file($tailwindBinary) || !is_executable($tailwindBinary)) {
+            throw new RuntimeException('Tailwind executable not found at ' . $tailwindBinary . '. Run "bin/console valksor:binary tailwindcss" to download it.');
         }
 
-        throw new RuntimeException('Tailwind executable not found. Run "bin/console valksor:binary tailwindcss" to download it, or install it system-wide (e.g. /usr/local/bin/tailwindcss) or via vendor/bin.');
+        return $tailwindBinary;
     }
 
     /**

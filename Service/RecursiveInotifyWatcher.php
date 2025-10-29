@@ -43,57 +43,119 @@ use const IN_MOVED_FROM;
 use const IN_MOVED_TO;
 
 /**
- * Recursively registers directories with inotify and emits callbacks for file
- * changes. Automatically tracks new directories and cleans up when watched
- * paths are removed.
+ * Recursive inotify-based file system watcher for hot reload functionality.
+ *
+ * This class provides efficient file system monitoring using Linux's inotify API.
+ * It handles:
+ * - Recursive directory watching with automatic new directory detection
+ * - Efficient event-based file change notifications
+ * - Automatic cleanup when directories are deleted
+ * - Path filtering to ignore unwanted files and directories
+ * - Retry mechanism for failed watch registrations
+ * - Bidirectional mapping between paths and watch descriptors for efficient lookups
+ *
+ * The watcher is optimized for development scenarios where files change frequently
+ * and performance is critical for responsive hot reload.
  */
 final class RecursiveInotifyWatcher
 {
+    /**
+     * Inotify watch mask defining which file system events to monitor.
+     *
+     * Events watched:
+     * - IN_ATTRIB: File metadata changes (permissions, ownership, etc.)
+     * - IN_CLOSE_WRITE: File closed after being written to
+     * - IN_CREATE: File/directory created in watched directory
+     * - IN_DELETE: File/directory deleted from watched directory
+     * - IN_DELETE_SELF: Watched file/directory was deleted
+     * - IN_MOVE_SELF: Watched file/directory was moved
+     * - IN_MOVED_FROM: File moved out of watched directory
+     * - IN_MOVED_TO: File moved into watched directory
+     *
+     * Note: We don't watch IN_MODIFY to avoid getting events during file writes,
+     * only when files are closed after writing (IN_CLOSE_WRITE).
+     */
     private const int WATCH_MASK =
-        IN_ATTRIB
-        | IN_CLOSE_WRITE
-        | IN_CREATE
-        | IN_DELETE
-        | IN_DELETE_SELF
-        | IN_MOVE_SELF
-        | IN_MOVED_FROM
-        | IN_MOVED_TO;
+        IN_ATTRIB           // File attribute changes
+        | IN_CLOSE_WRITE   // File written and closed
+        | IN_CREATE        // File/directory created
+        | IN_DELETE        // File/directory deleted
+        | IN_DELETE_SELF   // Watched item deleted
+        | IN_MOVE_SELF     // Watched item moved
+        | IN_MOVED_FROM    // File moved from watched directory
+        | IN_MOVED_TO;     // File moved to watched directory
 
-    /** @var callable */
+    /**
+     * Callback function invoked when a file change is detected.
+     *
+     * @var callable(string):void
+     */
     private $callback;
 
-    /** @var resource */
+    /**
+     * Inotify instance resource for kernel communication.
+     *
+     * @var resource
+     */
     private $inotify;
 
-    /** @var array<string,int> */
+    /**
+     * Mapping from file paths to inotify watch descriptors.
+     * Enables quick lookup of existing watches for path checking.
+     *
+     * @var array<string,int>
+     */
     private array $pathToWatchDescriptor = [];
 
-    /** @var array<string,bool> */
+    /**
+     * Pending directory registrations that failed initially.
+     * These are retried periodically to handle timing issues.
+     *
+     * @var array<string,bool>
+     */
     private array $pendingRegistrations = [];
 
-    /** @var array<string,bool> */
+    /**
+     * Set of registered root directories to prevent duplicate registrations.
+     *
+     * @var array<string,bool>
+     */
     private array $registeredRoots = [];
 
-    /** @var array<int,string> */
+    /**
+     * Reverse mapping from inotify watch descriptors to file paths.
+     * Used for efficient event processing when events reference descriptors.
+     *
+     * @var array<int,string>
+     */
     private array $watchDescriptorToPath = [];
 
     /**
-     * @param callable(string $path):void $onChange
+     * Initialize the inotify watcher with path filtering and change callback.
+     *
+     * @param PathFilter                  $filter   Filter for ignoring unwanted paths and directories
+     * @param callable(string $path):void $onChange Callback invoked when file changes are detected
+     *
+     * @throws RuntimeException If inotify extension is not available or initialization fails
      */
     public function __construct(
         private readonly PathFilter $filter,
         callable $onChange,
     ) {
+        // Verify inotify extension is available
         if (!function_exists('inotify_init')) {
             throw new RuntimeException('inotify extension is required but not available.');
         }
 
+        // Initialize inotify instance for kernel communication
         $this->inotify = inotify_init();
 
         if (!is_resource($this->inotify)) {
             throw new RuntimeException('Failed to initialise inotify.');
         }
 
+        // Set non-blocking mode to prevent the watcher from blocking the main process
+        // This allows integration with event loops and stream_select()
         stream_set_blocking($this->inotify, false);
 
         $this->callback = $onChange;
@@ -119,18 +181,24 @@ final class RecursiveInotifyWatcher
 
     public function poll(): void
     {
+        // Read available inotify events from the kernel
+        // Returns array of events or false if no events are available
         $events = inotify_read($this->inotify);
 
         if (false === $events || [] === $events) {
+            // No events available - use this opportunity to retry failed registrations
             $this->retryPendingRegistrations();
 
             return;
         }
 
+        // Process each inotify event
         foreach ($events as $event) {
             $this->handleEvent($event);
         }
 
+        // Retry any pending directory registrations after processing events
+        // New directories might have been created during event processing
         $this->retryPendingRegistrations();
     }
 
@@ -150,41 +218,62 @@ final class RecursiveInotifyWatcher
     }
 
     /**
-     * @param array{wd:int,mask:int,name?:string} $event
+     * Handle a single inotify event, processing file system changes.
+     *
+     * This method implements the core event processing logic including:
+     * - Event validation and path reconstruction
+     * - Automatic directory registration for new subdirectories
+     * - Watch cleanup when directories are deleted
+     * - Path filtering and callback invocation
+     *
+     * @param array{wd:int,mask:int,name?:string} $event Inotify event data structure
      */
     private function handleEvent(
         array $event,
     ): void {
         $watchDescriptor = $event['wd'] ?? null;
 
+        // Validate that we know about this watch descriptor
+        // This can happen if the watch was removed but events are still pending
         if (!array_key_exists($watchDescriptor, $this->watchDescriptorToPath)) {
             return;
         }
 
+        // Reconstruct the full path from watch descriptor and event data
         $basePath = $this->watchDescriptorToPath[$watchDescriptor];
         $name = $event['name'] ?? '';
         $fullPath = '' !== $name ? $basePath . DIRECTORY_SEPARATOR . $name : $basePath;
 
+        // Handle IN_IGNORED events (watch was automatically removed by kernel)
+        // This happens when the watched directory is deleted or the filesystem is unmounted
         if (($event['mask'] & IN_IGNORED) === IN_IGNORED) {
             $this->removeWatch($watchDescriptor, $basePath);
 
-            return;
+            return; // Don't notify for ignored events
         }
 
+        // Handle directory creation events - automatically watch new subdirectories
+        // This enables true recursive watching without manual rescanning
         if (($event['mask'] & IN_ISDIR) === IN_ISDIR) {
             if (($event['mask'] & (IN_CREATE | IN_MOVED_TO)) !== 0) {
                 $this->registerDirectoryRecursively($fullPath);
             }
         }
 
+        // Handle watched directory deletion or movement events
+        // Clean up our internal tracking when the watched item disappears
         if (($event['mask'] & (IN_DELETE_SELF | IN_MOVE_SELF)) !== 0) {
             $this->removeWatch($watchDescriptor, $basePath);
+
+            return; // Don't notify for self-deletion events
         }
 
+        // Apply path filtering to ignore unwanted files and directories
         if ($this->filter->shouldIgnorePath($fullPath)) {
             return;
         }
 
+        // Invoke the user callback with the full path to the changed file/directory
         ($this->callback)($fullPath);
     }
 

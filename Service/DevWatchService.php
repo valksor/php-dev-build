@@ -25,13 +25,67 @@ use function count;
 use function sleep;
 use function sprintf;
 
+/**
+ * Development watch service orchestrator for the Valksor build system.
+ *
+ * This service manages the complete development workflow, coordinating multiple
+ * build services (Tailwind, Importmap, Hot Reload) in the proper sequence.
+ * It handles:
+ *
+ * Service Orchestration:
+ * - Initialization phase (binaries, dependency setup)
+ * - SSE server startup for hot reload communication
+ * - Multi-service startup with dependency resolution
+ * - Background process lifecycle management
+ *
+ * Monitoring and Status:
+ * - Process health monitoring with failure detection
+ * - Interactive status display and progress reporting
+ * - Graceful shutdown handling with signal management
+ * - Error reporting and debugging information
+ *
+ * Environment Support:
+ * - Interactive vs non-interactive execution modes
+ * - IO injection for providers that need console access
+ * - Configuration-based service discovery and filtering
+ * - Cross-platform process management
+ */
 final class DevWatchService
 {
+    /**
+     * Symfony console output interface for user interaction and status reporting.
+     * Enables rich console output with sections, progress indicators, and formatted text.
+     */
     private ?SymfonyStyle $io = null;
+
+    /**
+     * Flag indicating whether the service should provide interactive console output.
+     * When false, runs silently in the background for automated/CI environments.
+     */
     private bool $isInteractive = true;
+
+    /**
+     * Process manager for tracking and coordinating background build services.
+     * Handles startup, monitoring, and graceful shutdown of all child processes.
+     */
     private ?ProcessManager $processManager = null;
+
+    /**
+     * Runtime flag indicating the service is active and should continue monitoring.
+     * Set to false during shutdown to signal the monitoring loop to exit gracefully.
+     */
     private bool $running = false;
 
+    /**
+     * Initialize the development watch service orchestrator.
+     *
+     * The service requires access to the application configuration and the provider
+     * registry to discover and manage build services. These dependencies are injected
+     * via Symfony's dependency injection container.
+     *
+     * @param ParameterBagInterface $parameterBag     Application configuration and parameters
+     * @param ProviderRegistry      $providerRegistry Registry of available service providers
+     */
     public function __construct(
         private readonly ParameterBagInterface $parameterBag,
         private readonly ProviderRegistry $providerRegistry,
@@ -60,17 +114,36 @@ final class DevWatchService
         $this->io = $io;
     }
 
+    /**
+     * Start the development watch service orchestrator.
+     *
+     * This method executes the complete development workflow in phases:
+     * 1. Process manager initialization for background service tracking
+     * 2. Configuration validation and provider discovery
+     * 3. Initialization phase (binary downloads, dependency setup)
+     * 4. SSE server startup for hot reload communication
+     * 5. Sequential provider startup with dependency resolution
+     * 6. Continuous monitoring loop for process health
+     *
+     * The orchestration ensures proper service startup order and provides
+     * comprehensive error handling and status reporting throughout the process.
+     *
+     * @return int Command exit code (Command::SUCCESS or Command::FAILURE)
+     */
     public function start(): int
     {
         $this->io?->title('Development Watch Mode');
 
         // Initialize process manager for tracking background services
+        // Handles process lifecycle, health monitoring, and graceful shutdown
         $this->processManager = new ProcessManager($this->io);
 
         // Get services configuration from ParameterBag
+        // Contains service definitions, flags, and options for all build services
         $servicesConfig = $this->parameterBag->get('valksor.build.services');
 
-        // Get all dev services (dev=true)
+        // Get all dev services (dev=true) with dependency resolution
+        // Returns providers sorted by execution order and dependencies
         $devProviders = $this->providerRegistry->getProvidersByFlag($servicesConfig, 'dev');
 
         if (empty($devProviders)) {
@@ -179,7 +252,20 @@ final class DevWatchService
     }
 
     /**
-     * Monitor running services and keep the service alive.
+     * Monitor running services and maintain the orchestrator lifecycle.
+     *
+     * This method implements the main monitoring loop that:
+     * - Continuously checks the health of all background processes
+     * - Detects and reports service failures with detailed error information
+     * - Provides periodic status updates in interactive mode
+     * - Manages failed process cleanup and removal from tracking
+     * - Maintains the service alive until shutdown signal is received
+     *
+     * The monitoring uses configurable intervals to balance responsiveness
+     * with system resource usage. Failed services are logged but don't
+     * immediately terminate the entire development environment.
+     *
+     * @return int Command exit code (always SUCCESS for monitoring loop)
      */
     private function monitorServices(): int
     {
@@ -187,9 +273,9 @@ final class DevWatchService
             $this->io->text('[MONITOR] Starting service monitoring loop...');
         }
 
-        $checkInterval = 5; // Check every 5 seconds
+        $checkInterval = 5; // Check every 5 seconds - balances responsiveness with resource usage
         $lastStatusTime = 0;
-        $statusDisplayInterval = 30; // Show status every 30 seconds
+        $statusDisplayInterval = 30; // Show status every 30 seconds - prevents console spam
 
         while ($this->running) {
             // Check if all processes are still running
@@ -294,38 +380,57 @@ final class DevWatchService
     }
 
     /**
-     * Get SSE command for integration.
+     * Start the SSE (Server-Sent Events) server for hot reload communication.
+     *
+     * This method launches the SSE server in the background, which is essential
+     * for the hot reload service to communicate browser refresh signals.
+     * The SSE server must be started before any build services that generate
+     * output files (CSS, JS) that might trigger hot reload events.
+     *
+     * The startup process includes a sophisticated polling mechanism:
+     * - Starts the process in non-blocking mode
+     * - Polls process status at 250ms intervals for up to 3 seconds
+     * - Allows 1 second for the server to stabilize before proceeding
+     * - Detects early startup failures and port binding issues
+     *
+     * This approach handles race conditions where the SSE server needs time
+     * to bind to the port and initialize before build services start sending signals.
+     *
+     * @return int Command exit code (SUCCESS if server started, FAILURE otherwise)
      */
     private function runSseCommand(): int
     {
         $process = new Process(['php', 'bin/console', 'valksor:sse']);
 
-        // Start SSE server in background (non-blocking)
+        // Start SSE server in background (non-blocking mode)
+        // This allows the orchestrator to continue with other service startups
         $process->start();
 
-        // Give SSE server more time to start and bind to port
-        $maxWaitTime = 3; // 3 seconds max wait time
-        $waitInterval = 250000; // 250ms intervals
+        // Poll-based startup verification to handle race conditions
+        // The SSE server needs time to bind to port and initialize
+        $maxWaitTime = 3; // 3 seconds max wait time for startup
+        $waitInterval = 250000; // 250ms intervals - frequent but not aggressive
         $elapsedTime = 0;
 
         while ($elapsedTime < $maxWaitTime) {
             usleep($waitInterval);
             $elapsedTime += ($waitInterval / 1000000);
 
-            // Check if process is still running and hasn't failed
+            // Check if process is still running and hasn't failed immediately
             if (!$process->isRunning()) {
-                // Process stopped - check if it was successful
+                // Process stopped during startup - check if it was successful
+                // This catches port conflicts, missing dependencies, etc.
                 return $process->isSuccessful() ? Command::SUCCESS : Command::FAILURE;
             }
 
-            // After 1 second, check if we can verify the server is actually stable
+            // After 1 second, assume the SSE server is stable and ready
+            // Most startup failures occur immediately, so 1s is sufficient
             if ($elapsedTime >= 1.0) {
-                // The SSE server should be stable by now, proceed
-                break;
+                break; // Server should be stable by now, proceed with other services
             }
         }
 
-        // Final check - is the process still running successfully?
+        // Final verification - ensure the process is still running
         return $process->isRunning() ? Command::SUCCESS : Command::FAILURE;
     }
 

@@ -28,10 +28,51 @@ use ValksorDev\Build\Provider\ProviderRegistry;
 use function method_exists;
 use function usleep;
 
+/**
+ * Abstract base class for Valksor build system commands.
+ *
+ * This class provides common patterns, utilities, and configuration handling
+ * for all build commands in the Valksor development system. It establishes
+ * consistent behavior across build commands and reduces code duplication.
+ *
+ * Command Patterns Provided:
+ * - Watch mode handling with automatic cleanup
+ * - Non-interactive mode support for CI/automation
+ * - Initialization phase execution (binary downloads, dependency setup)
+ * - SSE server startup and management
+ * - Minification control based on environment
+ * - Provider registry integration for service coordination
+ *
+ * Key Features:
+ * - Extends BundleAbstractCommand for core Valksor functionality
+ * - Provides utility methods for common command operations
+ * - Handles service lifecycle management in watch mode
+ * - Integrates with the provider registry for service discovery
+ * - Supports both development and production environments
+ *
+ * Design Principles:
+ * - Consistent command interface across all build tools
+ * - Graceful degradation in different environments
+ * - Proper resource cleanup and shutdown handling
+ * - Flexible configuration through command options
+ */
 abstract class AbstractCommand extends BundleAbstractCommand
 {
     use Helper;
 
+    /**
+     * Initialize the abstract command with required dependencies.
+     *
+     * The constructor receives core dependencies needed by all build commands:
+     * - Parameter bag for accessing application configuration and build settings
+     * - Provider registry for service discovery and coordination
+     *
+     * The provider registry is marked as protected readonly to allow extending
+     * commands to access service providers while preventing modification.
+     *
+     * @param ParameterBagInterface $parameterBag     Application configuration and build parameters
+     * @param ProviderRegistry      $providerRegistry Registry of available service providers
+     */
     public function __construct(
         ParameterBagInterface $parameterBag,
         protected readonly ProviderRegistry $providerRegistry,
@@ -50,7 +91,36 @@ abstract class AbstractCommand extends BundleAbstractCommand
     }
 
     /**
-     * Handle watch mode setup and cleanup for services.
+     * Handle watch mode setup and cleanup for long-running services.
+     *
+     * This method implements the watch mode pattern used throughout the build system.
+     * It provides automatic cleanup and resource management for services that run
+     * indefinitely in watch mode, ensuring proper shutdown and preventing resource leaks.
+     *
+     * Watch Mode Pattern:
+     * - Returns a cleanup function that can be called during shutdown
+     * - Handles service lifecycle management (start/stop)
+     * - Manages PID file cleanup for background processes
+     * - Provides no-op cleanup for non-watch mode execution
+     *
+     * Usage Pattern:
+     * ```php
+     * $cleanup = $this->handleWatchMode($service, $input, 'tailwind');
+     * try {
+     *     // Run service logic here
+     * } finally {
+     *     $cleanup(); // Always cleanup, even on exceptions
+     * }
+     * ```
+     *
+     * This approach ensures that long-running services (file watchers, compilers)
+     * are properly cleaned up when the command terminates or receives signals.
+     *
+     * @param object         $service     The service instance to manage
+     * @param InputInterface $input       Command input to determine watch mode
+     * @param string         $serviceName Service name for logging/debugging
+     *
+     * @return callable Cleanup function that should be called when the command finishes
      */
     protected function handleWatchMode(
         object $service,
@@ -59,18 +129,23 @@ abstract class AbstractCommand extends BundleAbstractCommand
     ): callable {
         if (!$this->isWatchMode($input)) {
             // Return a no-op cleanup function for non-watch mode
+            // This allows consistent cleanup calling without conditional logic
             return function (): void {
-                // No cleanup needed for non-watch mode
+                // No cleanup needed for one-time execution
             };
         }
 
-        // For watch mode, set up cleanup that will stop the service
+        // For watch mode, create a cleanup function that handles graceful shutdown
+        // This ensures resources are properly released when the command exits
         return static function () use ($service): void {
+            // Stop the service if it supports lifecycle management
+            // Most long-running services implement a stop() method for graceful shutdown
             if (method_exists($service, 'stop')) {
                 $service->stop();
             }
 
-            // Clean up PID files if the service supports it
+            // Clean up PID files if the service supports process tracking
+            // This prevents stale PID files from interfering with future runs
             if (method_exists($service, 'removePidFile')) {
                 $service->removePidFile();
             }
@@ -189,17 +264,47 @@ abstract class AbstractCommand extends BundleAbstractCommand
         }
     }
 
+    /**
+     * Determine whether build output should be minified based on configuration.
+     *
+     * This method implements the minification decision pattern used across build commands.
+     * It provides a hierarchical approach to determining minification settings:
+     *
+     * Decision Priority (highest to lowest):
+     * 1. Command-line --no-minify flag (explicitly disable minification)
+     * 2. Command-line --minify flag (explicitly enable minification)
+     * 3. Environment-based setting (production = minify, development = unminified)
+     *
+     * This approach allows developers to override default behavior while maintaining
+     * sensible defaults for different environments.
+     *
+     * Use Cases:
+     * - Development: Debuggable, unminified output for easier troubleshooting
+     * - Production: Optimized, minified output for better performance
+     * - CI/CD: Explicit control via command-line flags
+     * - Testing: Disable minification for better assertion debugging
+     *
+     * @param InputInterface $input Command input containing minification options
+     *
+     * @return bool True if output should be minified, false otherwise
+     */
     protected function shouldMinify(
         InputInterface $input,
     ): bool {
+        // Priority 1: Explicit --no-minify flag overrides all other settings
+        // This allows developers to force unminified output even in production
         if ($input->hasOption('no-minify') && $input->getOption('no-minify')) {
             return false;
         }
 
+        // Priority 2: Explicit --minify flag enables minification
+        // Useful for testing production builds in development
         if ($input->hasOption('minify') && $input->getOption('minify')) {
             return true;
         }
 
+        // Priority 3: Default behavior based on environment
+        // Production environments typically want minified assets for performance
         return $this->isProductionEnvironment();
     }
 
