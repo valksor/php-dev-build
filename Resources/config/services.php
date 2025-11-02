@@ -22,5 +22,5 @@ return static function (
         ->autoconfigure();
 
     $services->load(namespace: 'ValksorDev\\Build\\', resource: __DIR__ . '/../../*')
-        ->exclude(excludes: [__DIR__ . '/../../{Resources}']);
+        ->exclude(excludes: [__DIR__ . '/../../{Resources,vendor,Tests}']);
 };
