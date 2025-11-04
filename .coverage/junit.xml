@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="" tests="136" assertions="196" errors="0" failures="0" skipped="1" time="0.000000">
+    <testsuite name="ValksorDev\Build\Tests\AbstractCommandTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/AbstractCommandTest.php" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.000000">
+      <testcase name="testWithProductionEnvironment" class="ValksorDev\Build\Tests\AbstractCommandTest" classname="ValksorDev.Build.Tests.AbstractCommandTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/AbstractCommandTest.php" line="83" assertions="1" time="0.000000"/>
+    </testsuite>
+    <testsuite name="ValksorDev\Build\Tests\BinaryAssetManagerTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryAssetManagerTest.php" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.000000">
+      <testcase name="testGetLatestReleaseWithInvalidGithubResponse" class="ValksorDev\Build\Tests\BinaryAssetManagerTest" classname="ValksorDev.Build.Tests.BinaryAssetManagerTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryAssetManagerTest.php" line="206" assertions="1" time="0.000000"/>
+    </testsuite>
+    <testsuite name="ValksorDev\Build\Tests\BinaryEnsureCommandTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryEnsureCommandTest.php" tests="2" assertions="4" errors="0" failures="0" skipped="0" time="0.000000">
+      <testcase name="testCommandConfiguration" class="ValksorDev\Build\Tests\BinaryEnsureCommandTest" classname="ValksorDev.Build.Tests.BinaryEnsureCommandTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryEnsureCommandTest.php" line="37" assertions="2" time="0.000000"/>
+      <testcase name="testCommandHasRequiredToolArgument" class="ValksorDev\Build\Tests\BinaryEnsureCommandTest" classname="ValksorDev.Build.Tests.BinaryEnsureCommandTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryEnsureCommandTest.php" line="74" assertions="2" time="0.000000"/>
+    </testsuite>
+    <testsuite name="ValksorDev\Build\Tests\BinaryRegistryTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryRegistryTest.php" tests="1" assertions="2" errors="0" failures="0" skipped="0" time="0.000000">
+      <testcase name="testRegisterProvider" class="ValksorDev\Build\Tests\BinaryRegistryTest" classname="ValksorDev.Build.Tests.BinaryRegistryTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryRegistryTest.php" line="84" assertions="2" time="0.000000"/>
+    </testsuite>
+    <testsuite name="ValksorDev\Build\Tests\DevCommandTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php" tests="2" assertions="3" errors="0" failures="0" skipped="0" time="0.000000">
+      <testcase name="testCommandConfiguration" class="ValksorDev\Build\Tests\DevCommandTest" classname="ValksorDev.Build.Tests.DevCommandTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php" line="37" assertions="2" time="0.000000"/>
+      <testcase name="testGetProviderRegistry" class="ValksorDev\Build\Tests\DevCommandTest" classname="ValksorDev.Build.Tests.DevCommandTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php" line="85" assertions="1" time="0.000000"/>
+    </testsuite>
+    <testsuite name="ValksorDev\Build\Tests\DevServiceTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.000000">
+      <testcase name="testGetProviderRegistry" class="ValksorDev\Build\Tests\DevServiceTest" classname="ValksorDev.Build.Tests.DevServiceTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php" line="41" assertions="1" time="0.000000"/>
+    </testsuite>
+    <testsuite name="ValksorDev\Build\Tests\DevWatchCommandTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php" tests="2" assertions="3" errors="0" failures="0" skipped="0" time="0.000000">
+      <testcase name="testCommandConfiguration" class="ValksorDev\Build\Tests\DevWatchCommandTest" classname="ValksorDev.Build.Tests.DevWatchCommandTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php" line="39" assertions="3" time="0.000000"/>
+      <testcase name="testWithEmptyServices" class="ValksorDev\Build\Tests\DevWatchCommandTest" classname="ValksorDev.Build.Tests.DevWatchCommandTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php" line="122" assertions="0" time="0.000000"/>
+    </testsuite>
+    <testsuite name="ValksorDev\Build\Tests\DevWatchServiceTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.000000">
+      <testcase name="testWithDifferentEnvironment" class="ValksorDev\Build\Tests\DevWatchServiceTest" classname="ValksorDev.Build.Tests.DevWatchServiceTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php" line="96" assertions="1" time="0.000000"/>
+    </testsuite>
+    <testsuite name="ValksorDev\Build\Tests\HotReloadCommandTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadCommandTest.php" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.000000">
+      <testcase name="testCommandExecution" class="ValksorDev\Build\Tests\HotReloadCommandTest" classname="ValksorDev.Build.Tests.HotReloadCommandTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadCommandTest.php" line="45" assertions="1" time="0.000000"/>
+    </testsuite>
+    <testsuite name="ValksorDev\Build\Tests\HotReloadServiceTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadServiceTest.php" tests="2" assertions="2" errors="0" failures="0" skipped="0" time="0.000000">
+      <testcase name="testGetServiceName" class="ValksorDev\Build\Tests\HotReloadServiceTest" classname="ValksorDev.Build.Tests.HotReloadServiceTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadServiceTest.php" line="33" assertions="1" time="0.000000"/>
+      <testcase name="testStartWithMinimalConfig" class="ValksorDev\Build\Tests\HotReloadServiceTest" classname="ValksorDev.Build.Tests.HotReloadServiceTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadServiceTest.php" line="75" assertions="1" time="0.000000"/>
+    </testsuite>
+    <testsuite name="ValksorDev\Build\Tests\PathFilterTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/PathFilterTest.php" tests="1" assertions="13" errors="0" failures="0" skipped="0" time="0.000000">
+      <testcase name="testPathFilteringRules" class="ValksorDev\Build\Tests\PathFilterTest" classname="ValksorDev.Build.Tests.PathFilterTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/PathFilterTest.php" line="30" assertions="13" time="0.000000"/>
+    </testsuite>
+    <testsuite name="ValksorDev\Build\Tests\ProcessManagerTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProcessManagerTest.php" tests="2" assertions="2" errors="0" failures="0" skipped="0" time="0.000000">
+      <testcase name="testAllProcessesRunning" class="ValksorDev\Build\Tests\ProcessManagerTest" classname="ValksorDev.Build.Tests.ProcessManagerTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProcessManagerTest.php" line="40" assertions="1" time="0.000000"/>
+      <testcase name="testTerminateAll" class="ValksorDev\Build\Tests\ProcessManagerTest" classname="ValksorDev.Build.Tests.ProcessManagerTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProcessManagerTest.php" line="211" assertions="1" time="0.000000"/>
+    </testsuite>
+    <testsuite name="ValksorDev\Build\Tests\ProviderRegistryTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProviderRegistryTest.php" tests="1" assertions="2" errors="0" failures="0" skipped="0" time="0.000000">
+      <testcase name="testGetProvidersByFlagWithCustomProvider" class="ValksorDev\Build\Tests\ProviderRegistryTest" classname="ValksorDev.Build.Tests.ProviderRegistryTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProviderRegistryTest.php" line="94" assertions="2" time="0.000000"/>
+    </testsuite>
+    <testsuite name="ValksorDev\Build\Tests\RecursiveInotifyWatcherTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/RecursiveInotifyWatcherTest.php" tests="2" assertions="1" errors="0" failures="0" skipped="1" time="0.000000">
+      <testcase name="testConstructorWithoutInotify" class="ValksorDev\Build\Tests\RecursiveInotifyWatcherTest" classname="ValksorDev.Build.Tests.RecursiveInotifyWatcherTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/RecursiveInotifyWatcherTest.php" line="157" assertions="0" time="0.000000">
+        <skipped/>
+      </testcase>
+      <testcase name="testGetStream" class="ValksorDev\Build\Tests\RecursiveInotifyWatcherTest" classname="ValksorDev.Build.Tests.RecursiveInotifyWatcherTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/RecursiveInotifyWatcherTest.php" line="172" assertions="1" time="0.000000"/>
+    </testsuite>
+    <testsuite name="ValksorDev\Build\Tests\TailwindBuildCommandTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindBuildCommandTest.php" tests="2" assertions="4" errors="0" failures="0" skipped="0" time="0.000000">
+      <testcase name="testCommandConfiguration" class="ValksorDev\Build\Tests\TailwindBuildCommandTest" classname="ValksorDev.Build.Tests.TailwindBuildCommandTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindBuildCommandTest.php" line="39" assertions="3" time="0.000000"/>
+      <testcase name="testWithDifferentProviderRegistry" class="ValksorDev\Build\Tests\TailwindBuildCommandTest" classname="ValksorDev.Build.Tests.TailwindBuildCommandTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindBuildCommandTest.php" line="125" assertions="1" time="0.000000"/>
+    </testsuite>
+    <testsuite name="ValksorDev\Build\Tests\TailwindServiceTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindServiceTest.php" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.000000">
+      <testcase name="testStartWithNoSources" class="ValksorDev\Build\Tests\TailwindServiceTest" classname="ValksorDev.Build.Tests.TailwindServiceTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindServiceTest.php" line="106" assertions="1" time="0.000000"/>
+    </testsuite>
+  </testsuite>
+</testsuites>
