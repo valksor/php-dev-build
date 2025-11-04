@@ -16,7 +16,6 @@ use Exception;
 use RuntimeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Process\Process;
@@ -78,16 +77,6 @@ abstract class AbstractCommand extends BundleAbstractCommand
         protected readonly ProviderRegistry $providerRegistry,
     ) {
         parent::__construct($parameterBag);
-    }
-
-    protected function addNonInteractiveOption(): void
-    {
-        $this->addOption('non-interactive', null, InputOption::VALUE_NONE, 'Run in non-interactive mode (no real-time output)');
-    }
-
-    protected function addWatchOption(): void
-    {
-        $this->addOption('watch', null, InputOption::VALUE_NONE, 'Run in watch mode');
     }
 
     /**
@@ -212,7 +201,6 @@ abstract class AbstractCommand extends BundleAbstractCommand
                 throw new RuntimeException("Provider '$name' failed: " . $e->getMessage(), 0, $e);
             }
             // Warning - continue but this could be problematic in non-interactive mode
-            // TODO: Consider passing SymfonyStyle instance for proper warning display
         }
     }
 

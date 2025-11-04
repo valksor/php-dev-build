@@ -28,36 +28,6 @@ final class AbstractCommandTest extends TestCase
     private ParameterBagInterface $parameterBag;
     private ProviderRegistry $providerRegistry;
 
-    public function testAddNonInteractiveOption(): void
-    {
-        $command = new class($this->parameterBag, $this->providerRegistry) extends AbstractCommand {
-            public function testAddNonInteractiveOption(): void
-            {
-                $this->addNonInteractiveOption();
-            }
-        };
-
-        // Test that adding non-interactive option doesn't throw exception
-        $command->testAddNonInteractiveOption();
-
-        self::assertTrue(true); // If we get here, option was added successfully
-    }
-
-    public function testAddWatchOption(): void
-    {
-        $command = new class($this->parameterBag, $this->providerRegistry) extends AbstractCommand {
-            public function testAddWatchOption(): void
-            {
-                $this->addWatchOption();
-            }
-        };
-
-        // Test that adding watch option doesn't throw exception
-        $command->testAddWatchOption();
-
-        self::assertTrue(true); // If we get here, option was added successfully
-    }
-
     public function testCommandInheritance(): void
     {
         $command = new class($this->parameterBag, $this->providerRegistry) extends AbstractCommand {
@@ -72,24 +42,6 @@ final class AbstractCommandTest extends TestCase
         self::assertIsString($command->getCommandName());
     }
 
-    public function testConstructor(): void
-    {
-        // Create a concrete implementation of AbstractCommand for testing
-        $command = new class($this->parameterBag, $this->providerRegistry) extends AbstractCommand {
-            public function testAddNonInteractiveOption(): void
-            {
-                $this->addNonInteractiveOption();
-            }
-
-            public function testAddWatchOption(): void
-            {
-                $this->addWatchOption();
-            }
-        };
-
-        self::assertInstanceOf(AbstractCommand::class, $command);
-    }
-
     public function testGetProviderRegistry(): void
     {
         $command = new class($this->parameterBag, $this->providerRegistry) extends AbstractCommand {
@@ -100,22 +52,6 @@ final class AbstractCommandTest extends TestCase
         };
 
         self::assertSame($this->providerRegistry, $command->getProviderRegistryForTest());
-    }
-
-    public function testMultipleOptions(): void
-    {
-        $command = new class($this->parameterBag, $this->providerRegistry) extends AbstractCommand {
-            public function testAddMultipleOptions(): void
-            {
-                $this->addNonInteractiveOption();
-                $this->addWatchOption();
-            }
-        };
-
-        // Test adding multiple options
-        $command->testAddMultipleOptions();
-
-        self::assertTrue(true); // If we get here, both options were added successfully
     }
 
     public function testWithDifferentProviderRegistry(): void

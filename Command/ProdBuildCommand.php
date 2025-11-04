@@ -19,8 +19,6 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
-use ValksorDev\Build\Provider\ProviderRegistry;
 
 use function count;
 use function implode;
@@ -30,14 +28,7 @@ use function ucfirst;
 #[AsCommand(name: 'valksor-prod:build', description: 'Build all production assets using the new flag-based service system.')]
 final class ProdBuildCommand extends AbstractCommand
 {
-    public function __construct(
-        ParameterBagInterface $parameterBag,
-        ProviderRegistry $providerRegistry,
-    ) {
-        parent::__construct($parameterBag, $providerRegistry);
-    }
-
-    protected function execute(
+    public function __invoke(
         InputInterface $input,
         OutputInterface $output,
     ): int {
@@ -106,38 +97,6 @@ final class ProdBuildCommand extends AbstractCommand
         $io->success('Production build completed successfully!');
 
         return Command::SUCCESS;
-    }
-
-    /**
-     * Run init phase - always runs first for all commands.
-     */
-    protected function runInit(
-        SymfonyStyle $io,
-    ): void {
-        $servicesConfig = $this->parameterBag->get('valksor.build.services', []);
-        $initProviders = $this->providerRegistry->getProvidersByFlag($servicesConfig, 'init');
-
-        if (empty($initProviders)) {
-            return;
-        }
-
-        $io->section('Running initialization tasks...');
-
-        // Binaries always run first
-        if (isset($initProviders['binaries'])) {
-            $io->text('Ensuring binaries are available...');
-            $this->runProvider('binaries', $initProviders['binaries'], []);
-            unset($initProviders['binaries']);
-        }
-
-        // Run remaining init providers
-        foreach ($initProviders as $name => $provider) {
-            $config = $servicesConfig[$name] ?? [];
-            $options = $config['options'] ?? [];
-            $this->runProvider($name, $provider, $options);
-        }
-
-        $io->success('Initialization completed');
     }
 
     /**

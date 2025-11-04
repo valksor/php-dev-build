@@ -15,10 +15,9 @@ namespace ValksorDev\Build\Command;
 use DOMDocument;
 use JsonException;
 use RuntimeException;
+use Symfony\Component\Console\Attribute\Argument;
 use Symfony\Component\Console\Attribute\AsCommand;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
@@ -39,7 +38,6 @@ use function in_array;
 use function is_dir;
 use function is_file;
 use function json_decode;
-use function ltrim;
 use function opendir;
 use function readdir;
 use function rtrim;
@@ -67,17 +65,14 @@ final class IconsGenerateCommand extends AbstractCommand
         $this->sharedIdentifier = $this->getInfrastructureDir();
     }
 
-    protected function configure(): void
-    {
-        $this
-            ->addArgument('target', InputArgument::OPTIONAL, 'Generate icons for a specific app (or "shared"). Default: all')
-            ->addOption('lucide-version', null, InputOption::VALUE_REQUIRED, 'Explicit Lucide version (e.g. 0.544.0). Defaults to latest release.');
-    }
-
     /**
      * @throws JsonException
      */
-    protected function execute(
+    public function __invoke(
+        #[Argument(
+            description: 'Generate icons for a specific app (or "shared"). Default: all',
+        )]
+        ?string $target,
         InputInterface $input,
         OutputInterface $output,
     ): int {
@@ -86,10 +81,7 @@ final class IconsGenerateCommand extends AbstractCommand
         $this->cacheRoot = $projectRoot . '/var/lucide';
         $this->ensureDirectory($this->cacheRoot);
 
-        $target = $input->getArgument('target');
-        $requestedVersion = $input->getOption('lucide-version');
-
-        $lucideDir = $this->ensureLucideIcons($requestedVersion);
+        $lucideDir = $this->ensureLucideIcons();
 
         if (null === $lucideDir) {
             $this->io->warning('No Lucide icon source could be located. Only local and shared overrides will be used.');
@@ -357,9 +349,8 @@ final class IconsGenerateCommand extends AbstractCommand
     /**
      * @throws JsonException
      */
-    private function ensureLucideIcons(
-        mixed $requestedVersion,
-    ): ?string {
+    private function ensureLucideIcons(): ?string
+    {
         // First check if Lucide icons already exist locally
         $existingIconsDir = $this->findExistingLucideIcons();
 
@@ -371,11 +362,10 @@ final class IconsGenerateCommand extends AbstractCommand
 
         // If no existing icons found, download them using BinaryAssetManager
         try {
-            $tag = LucideBinary::createForLucide($this->cacheRoot)->ensureLatest([$this->io, 'text']);
-            $version = ltrim($tag, 'v');
+            LucideBinary::createForLucide($this->cacheRoot)->ensureLatest([$this->io, 'text']);
 
             // Look for the icons directory
-            $iconsDir = $this->locateIconsDirectory($this->cacheRoot, $version);
+            $iconsDir = $this->locateIconsDirectory($this->cacheRoot);
 
             if (null === $iconsDir) {
                 throw new RuntimeException('Lucide icons directory could not be located after download.');
@@ -495,18 +485,11 @@ final class IconsGenerateCommand extends AbstractCommand
             $candidates[] = rtrim($lucideDir, '/') . '/' . $icon . '.svg';
         }
 
-        foreach ($candidates as $candidate) {
-            if (is_file($candidate)) {
-                return $candidate;
-            }
-        }
-
-        return null;
+        return array_find($candidates, static fn ($candidate) => is_file($candidate));
     }
 
     private function locateIconsDirectory(
         string $baseDir,
-        string $version,
     ): ?string {
         // Since BinaryAssetManager downloads to var/lucide, just look for icons subdirectory
         $iconsDir = $baseDir . '/icons';

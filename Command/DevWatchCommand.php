@@ -13,6 +13,7 @@
 namespace ValksorDev\Build\Command;
 
 use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\Attribute\Option;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use ValksorDev\Build\Service\DevWatchService;
@@ -29,17 +30,17 @@ final class DevWatchCommand extends AbstractCommand
         );
     }
 
-    protected function configure(): void
-    {
-        $this->addNonInteractiveOption();
-    }
-
-    protected function execute(
+    public function __invoke(
         InputInterface $input,
         OutputInterface $output,
+        #[Option(
+            description: 'Run in non-interactive mode (no real-time output)',
+            name: 'non-interactive',
+        )]
+        bool $nonInteractive = false,
     ): int {
         $io = $this->createSymfonyStyle($input, $output);
-        $isInteractive = $this->shouldShowRealTimeOutput($input);
+        $isInteractive = !$nonInteractive;
 
         // Set IO and interactive mode on the service
         $this->devWatchService->setIo($io);

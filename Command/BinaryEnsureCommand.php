@@ -14,8 +14,8 @@ namespace ValksorDev\Build\Command;
 
 use JsonException;
 use RuntimeException;
+use Symfony\Component\Console\Attribute\Argument;
 use Symfony\Component\Console\Attribute\AsCommand;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
@@ -37,22 +37,20 @@ final class BinaryEnsureCommand extends AbstractCommand
         parent::__construct($bag, $providerRegistry);
     }
 
-    protected function configure(): void
-    {
-        $availableBinaries = $this->binaryRegistry->getAvailableNames();
-        $this
-            ->addArgument('tool', InputArgument::REQUIRED, sprintf('Tool to download (%s)', implode(', ', $availableBinaries)));
-    }
-
     /**
+     * Execute the binary ensure command.
+     *
      * @throws JsonException
      */
-    protected function execute(
+    public function __invoke(
+        #[Argument(
+            description: 'Tool binary to download',
+        )]
+        string $tool,
         InputInterface $input,
         OutputInterface $output,
     ): int {
         $io = $this->createSymfonyStyle($input, $output);
-        $tool = (string) $input->getArgument('tool');
 
         // Validate tool exists in registry
         if (!$this->binaryRegistry->has($tool)) {

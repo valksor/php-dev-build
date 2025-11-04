@@ -41,7 +41,7 @@ final class BinaryInstallCommand extends AbstractCommand
         parent::__construct($parameterParameterBag, $providerRegistry);
     }
 
-    protected function execute(
+    public function __invoke(
         InputInterface $input,
         OutputInterface $output,
     ): int {

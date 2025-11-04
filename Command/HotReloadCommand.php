@@ -30,7 +30,7 @@ final class HotReloadCommand extends AbstractCommand
         parent::__construct($parameterBag, $providerRegistry);
     }
 
-    protected function execute(
+    public function __invoke(
         InputInterface $input,
         OutputInterface $output,
     ): int {
