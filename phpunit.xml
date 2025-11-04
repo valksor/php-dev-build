@@ -4,9 +4,10 @@
     bootstrap="Tests/bootstrap.php"
     colors="true"
     cacheDirectory="/tmp/.phpunit.cache"
-    executionOrder="depends,defects"
+    executionOrder="depends"
     beStrictAboutOutputDuringTests="true"
     beStrictAboutCoverageMetadata="true"
+    controlGarbageCollector="true"
 >
 
     <php>
