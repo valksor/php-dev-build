@@ -15,6 +15,7 @@ namespace ValksorDev\Build\Service;
 use JetBrains\PhpStorm\NoReturn;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\Process\Exception\ProcessTimedOutException;
 use Symfony\Component\Process\Process;
 
 use function count;
@@ -344,7 +345,7 @@ final class ProcessManager
                 // Process finished quickly (likely an error or quick operation)
                 // Check if the execution was successful
                 return $process->isSuccessful() ? Command::SUCCESS : Command::FAILURE;
-            } catch (\Symfony\Component\Process\Exception\ProcessTimedOutException $e) {
+            } catch (ProcessTimedOutException $e) {
                 // Timeout exception occurs when the process runs longer than expected
                 // This is normal for watch services - they are designed to run continuously
                 if ($process->isRunning()) {
