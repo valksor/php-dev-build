@@ -21,11 +21,20 @@ use Symfony\Component\Process\Process;
 use ValksorDev\Build\Provider\IoAwareInterface;
 use ValksorDev\Build\Provider\ProviderRegistry;
 
+use function array_keys;
 use function count;
+use function date;
 use function function_exists;
+use function implode;
 use function in_array;
+use function pcntl_async_signals;
+use function pcntl_signal;
 use function sleep;
 use function sprintf;
+use function time;
+use function trim;
+use function ucfirst;
+use function usleep;
 
 use const SIGINT;
 use const SIGTERM;

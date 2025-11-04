@@ -157,6 +157,6 @@ final class DevServiceTest extends TestCase
             ],
         ]);
         $this->providerRegistry = new ProviderRegistry([]);
-        $this->io = $this->createMock(SymfonyStyle::class);
+        $this->io = $this->createStub(SymfonyStyle::class);
     }
 }

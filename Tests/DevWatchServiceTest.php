@@ -188,6 +188,6 @@ final class DevWatchServiceTest extends TestCase
             ],
         ]);
         $this->providerRegistry = new ProviderRegistry([]);
-        $this->io = $this->createMock(SymfonyStyle::class);
+        $this->io = $this->createStub(SymfonyStyle::class);
     }
 }

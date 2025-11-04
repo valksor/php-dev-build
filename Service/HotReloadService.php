@@ -25,6 +25,7 @@ use function count;
 use function extension_loaded;
 use function file_put_contents;
 use function is_dir;
+use function is_writable;
 use function json_encode;
 use function ltrim;
 use function max;

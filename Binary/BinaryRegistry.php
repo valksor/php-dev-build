@@ -15,6 +15,7 @@ namespace ValksorDev\Build\Binary;
 use RuntimeException;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
+use function array_keys;
 use function sprintf;
 
 /**

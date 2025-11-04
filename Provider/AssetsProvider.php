@@ -17,6 +17,8 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 use Symfony\Component\Process\Process;
 
+use function trim;
+
 /**
  * Provider for Symfony assets build steps.
  */

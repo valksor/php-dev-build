@@ -21,6 +21,7 @@ use Symfony\Component\Process\Process;
 use Valksor\Component\Sse\Service\AbstractService;
 
 use function array_key_exists;
+use function array_keys;
 use function array_merge;
 use function array_unique;
 use function array_values;

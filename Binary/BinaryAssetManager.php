@@ -20,6 +20,7 @@ use ZipArchive;
 
 use function array_key_exists;
 use function chmod;
+use function escapeshellarg;
 use function exec;
 use function file_get_contents;
 use function file_put_contents;
@@ -35,6 +36,7 @@ use function str_contains;
 use function stream_context_create;
 use function sys_get_temp_dir;
 use function uniqid;
+use function unlink;
 
 use const DATE_ATOM;
 use const JSON_PRETTY_PRINT;

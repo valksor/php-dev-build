@@ -17,6 +17,11 @@ use Symfony\Component\Process\Process;
 use Valksor\Component\Sse\Helper;
 
 use function dirname;
+use function filemtime;
+use function getcwd;
+use function is_file;
+use function time;
+use function touch;
 
 /**
  * Provider for binary management service.

@@ -16,6 +16,13 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Process\Process;
+use ValksorDev\Build\Service\ProcessManager;
+
+use function array_filter;
+use function is_dir;
+use function scandir;
+
+use const SCANDIR_SORT_ASCENDING;
 
 /**
  * Provider for Tailwind CSS service.
@@ -42,7 +49,7 @@ final class TailwindProvider implements ProviderInterface, IoAwareInterface
         $shouldMinify = $isProductionEnvironment || ($options['minify'] ?? false);
 
         if (is_dir($appsDir)) {
-            $apps = array_filter(scandir($appsDir), function ($item) use ($appsDir) {
+            $apps = array_filter(scandir($appsDir, SCANDIR_SORT_ASCENDING), static function ($item) use ($appsDir) {
                 $appPath = $appsDir . '/' . $item;
 
                 return '.' !== $item && '..' !== $item && is_dir($appPath);

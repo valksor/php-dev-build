@@ -17,6 +17,10 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use ValksorDev\Build\Service\ProcessManager;
 
+use function array_filter;
+use function is_dir;
+use function scandir;
+
 /**
  * Provider for Importmap service.
  */

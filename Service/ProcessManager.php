@@ -19,7 +19,10 @@ use Symfony\Component\Process\Process;
 
 use function count;
 use function function_exists;
+use function pcntl_async_signals;
+use function pcntl_signal;
 use function sprintf;
+use function ucfirst;
 use function usleep;
 
 use const SIGINT;

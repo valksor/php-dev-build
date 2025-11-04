@@ -26,6 +26,7 @@ use Valksor\FullStack;
 use function array_key_exists;
 use function array_keys;
 use function basename;
+use function class_exists;
 use function closedir;
 use function copy;
 use function count;
