@@ -41,7 +41,7 @@ final class PathFilterTest extends TestCase
         self::assertContains('.md', $ignoredExtensions);
 
         self::assertStringContainsString(
-            'valksor-dev/src/ValksorDev/Build/Service/PathFilter.php',
+            'src/ValksorDev/Build/Service/PathFilter.php',
             $ref->getFileName(),
         );
 

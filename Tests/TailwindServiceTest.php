@@ -14,6 +14,7 @@ namespace ValksorDev\Build\Tests;
 
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use ValksorDev\Build\Service\TailwindService;
@@ -57,6 +58,7 @@ final class TailwindServiceTest extends TestCase
 
         $tailwindService = new TailwindService($this->parameterBag);
         $tailwindService->setActiveAppId('test-app');
+        $tailwindService->setIo($this->createMock(SymfonyStyle::class));
 
         // Test start method with basic config
         try {
@@ -86,6 +88,7 @@ final class TailwindServiceTest extends TestCase
 
         $tailwindService = new TailwindService($this->parameterBag);
         $tailwindService->setActiveAppId('test-app');
+        $tailwindService->setIo($this->createMock(SymfonyStyle::class));
 
         // Test start method with minify enabled
         try {
@@ -130,6 +133,7 @@ final class TailwindServiceTest extends TestCase
 
         $tailwindService = new TailwindService($this->parameterBag);
         $tailwindService->setActiveAppId('test-app');
+        $tailwindService->setIo($this->createMock(SymfonyStyle::class));
 
         // Test start method with watch mode
         try {
