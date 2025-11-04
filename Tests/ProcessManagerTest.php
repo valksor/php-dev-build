@@ -28,7 +28,7 @@ final class ProcessManagerTest extends TestCase
 
     public function testAddProcess(): void
     {
-        $process = $this->createMock(Process::class);
+        $process = $this->createStub(Process::class);
         $process->method('getPid')->willReturn(12345);
 
         $this->manager->addProcess('test-service', $process);
@@ -39,11 +39,11 @@ final class ProcessManagerTest extends TestCase
 
     public function testAllProcessesRunning(): void
     {
-        $process1 = $this->createMock(Process::class);
+        $process1 = $this->createStub(Process::class);
         $process1->method('getPid')->willReturn(12345);
         $process1->method('isRunning')->willReturn(true);
 
-        $process2 = $this->createMock(Process::class);
+        $process2 = $this->createStub(Process::class);
         $process2->method('getPid')->willReturn(12346);
         $process2->method('isRunning')->willReturn(true);
 
@@ -57,13 +57,13 @@ final class ProcessManagerTest extends TestCase
     {
         self::assertSame(0, $this->manager->count());
 
-        $process1 = $this->createMock(Process::class);
+        $process1 = $this->createStub(Process::class);
         $process1->method('getPid')->willReturn(12345);
 
         $this->manager->addProcess('service-1', $process1);
         self::assertSame(1, $this->manager->count());
 
-        $process2 = $this->createMock(Process::class);
+        $process2 = $this->createStub(Process::class);
         $process2->method('getPid')->willReturn(12346);
 
         $this->manager->addProcess('service-2', $process2);
@@ -72,7 +72,7 @@ final class ProcessManagerTest extends TestCase
 
     public function testDisplayStatusWithoutIo(): void
     {
-        $process = $this->createMock(Process::class);
+        $process = $this->createStub(Process::class);
         $process->method('getPid')->willReturn(12345);
 
         $this->manager->addProcess('test-service', $process);
@@ -101,17 +101,17 @@ final class ProcessManagerTest extends TestCase
 
     public function testGetFailedProcesses(): void
     {
-        $process1 = $this->createMock(Process::class);
+        $process1 = $this->createStub(Process::class);
         $process1->method('getPid')->willReturn(12345);
         $process1->method('isRunning')->willReturn(false);
         $process1->method('isSuccessful')->willReturn(true);
 
-        $process2 = $this->createMock(Process::class);
+        $process2 = $this->createStub(Process::class);
         $process2->method('getPid')->willReturn(12346);
         $process2->method('isRunning')->willReturn(false);
         $process2->method('isSuccessful')->willReturn(false);
 
-        $process3 = $this->createMock(Process::class);
+        $process3 = $this->createStub(Process::class);
         $process3->method('getPid')->willReturn(12347);
         $process3->method('isRunning')->willReturn(true);
         $process3->method('isSuccessful')->willReturn(false);
@@ -129,12 +129,12 @@ final class ProcessManagerTest extends TestCase
 
     public function testGetProcessStatuses(): void
     {
-        $process1 = $this->createMock(Process::class);
+        $process1 = $this->createStub(Process::class);
         $process1->method('getPid')->willReturn(12345);
         $process1->method('isRunning')->willReturn(true);
         $process1->method('getExitCode')->willReturn(null);
 
-        $process2 = $this->createMock(Process::class);
+        $process2 = $this->createStub(Process::class);
         $process2->method('getPid')->willReturn(12346);
         $process2->method('isRunning')->willReturn(false);
         $process2->method('getExitCode')->willReturn(1);
@@ -155,12 +155,12 @@ final class ProcessManagerTest extends TestCase
 
     public function testHasFailedProcesses(): void
     {
-        $process1 = $this->createMock(Process::class);
+        $process1 = $this->createStub(Process::class);
         $process1->method('getPid')->willReturn(12345);
         $process1->method('isRunning')->willReturn(false);
         $process1->method('isSuccessful')->willReturn(true);
 
-        $process2 = $this->createMock(Process::class);
+        $process2 = $this->createStub(Process::class);
         $process2->method('getPid')->willReturn(12346);
         $process2->method('isRunning')->willReturn(false);
         $process2->method('isSuccessful')->willReturn(false);
@@ -173,11 +173,11 @@ final class ProcessManagerTest extends TestCase
 
     public function testNotAllProcessesRunning(): void
     {
-        $process1 = $this->createMock(Process::class);
+        $process1 = $this->createStub(Process::class);
         $process1->method('getPid')->willReturn(12345);
         $process1->method('isRunning')->willReturn(true);
 
-        $process2 = $this->createMock(Process::class);
+        $process2 = $this->createStub(Process::class);
         $process2->method('getPid')->willReturn(12346);
         $process2->method('isRunning')->willReturn(false);
         $process2->method('getExitCode')->willReturn(1);
@@ -190,7 +190,7 @@ final class ProcessManagerTest extends TestCase
 
     public function testRemoveProcess(): void
     {
-        $process = $this->createMock(Process::class);
+        $process = $this->createStub(Process::class);
         $process->method('getPid')->willReturn(12345);
 
         $this->manager->addProcess('test-service', $process);
@@ -211,7 +211,7 @@ final class ProcessManagerTest extends TestCase
     public function testTerminateAll(): void
     {
         // Simplify the test by using a simpler mock approach
-        $process = $this->createMock(Process::class);
+        $process = $this->createStub(Process::class);
         $process->method('getPid')->willReturn(12345);
 
         $this->manager->addProcess('test-service', $process);
@@ -229,7 +229,7 @@ final class ProcessManagerTest extends TestCase
         $io = $this->createStub(SymfonyStyle::class);
 
         $manager = new ProcessManager($io);
-        $process = $this->createMock(Process::class);
+        $process = $this->createStub(Process::class);
         $process->method('getPid')->willReturn(12345);
 
         $manager->addProcess('test-service', $process);

@@ -90,7 +90,7 @@ final class BinaryEnsureCommandTest extends TestCase
     public function testConfigureWithAvailableBinaries(): void
     {
         // Create a real BinaryInterface implementation
-        $binary = $this->createMock(BinaryInterface::class);
+        $binary = $this->createStub(BinaryInterface::class);
         $binary->method('getName')->willReturn('test-binary');
 
         // Test that the argument exists and is required

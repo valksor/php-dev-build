@@ -59,8 +59,8 @@ final class DevCommandTest extends TestCase
 
         // Test that command execution attempts to run
         // In a real scenario, this would start the development service
-        $input = $this->createMock(InputInterface::class);
-        $output = $this->createMock(OutputInterface::class);
+        $input = $this->createStub(InputInterface::class);
+        $output = $this->createStub(OutputInterface::class);
 
         try {
             $result = $command->run($input, $output);

@@ -56,10 +56,10 @@ final class BinaryRegistryTest extends TestCase
 
     public function testMultipleProvidersRegistration(): void
     {
-        $provider1 = $this->createMock(BinaryInterface::class);
+        $provider1 = $this->createStub(BinaryInterface::class);
         $provider1->method('getName')->willReturn('binary-1');
 
-        $provider2 = $this->createMock(BinaryInterface::class);
+        $provider2 = $this->createStub(BinaryInterface::class);
         $provider2->method('getName')->willReturn('binary-2');
 
         $registry = new BinaryRegistry([$provider1, $provider2]);
@@ -71,7 +71,7 @@ final class BinaryRegistryTest extends TestCase
 
     public function testProviderOverride(): void
     {
-        $newProvider = $this->createMock(BinaryInterface::class);
+        $newProvider = $this->createStub(BinaryInterface::class);
         $newProvider->method('getName')->willReturn('test-binary');
 
         $this->registry->register($newProvider);
@@ -83,7 +83,7 @@ final class BinaryRegistryTest extends TestCase
 
     public function testRegisterProvider(): void
     {
-        $newProvider = $this->createMock(BinaryInterface::class);
+        $newProvider = $this->createStub(BinaryInterface::class);
         $newProvider->method('getName')->willReturn('new-binary');
 
         $this->registry->register($newProvider);
@@ -94,7 +94,7 @@ final class BinaryRegistryTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->mockProvider = $this->createMock(BinaryInterface::class);
+        $this->mockProvider = $this->createStub(BinaryInterface::class);
         $this->mockProvider->method('getName')->willReturn('test-binary');
 
         $this->registry = new BinaryRegistry([]);

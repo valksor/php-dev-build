@@ -64,8 +64,8 @@ final class DevWatchCommandTest extends TestCase
         $command = new DevWatchCommand($this->devWatchService);
 
         // Test that command execution attempts to run
-        $input = $this->createMock(InputInterface::class);
-        $output = $this->createMock(OutputInterface::class);
+        $input = $this->createStub(InputInterface::class);
+        $output = $this->createStub(OutputInterface::class);
 
         try {
             $result = $command->run($input, $output);

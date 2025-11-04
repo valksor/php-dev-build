@@ -115,12 +115,12 @@ final class ProviderRegistryTest extends TestCase
 
     public function testMultipleProvidersRegistration(): void
     {
-        $provider1 = $this->createMock(ProviderInterface::class);
+        $provider1 = $this->createStub(ProviderInterface::class);
         $provider1->method('getName')->willReturn('provider-1');
         $provider1->method('getServiceOrder')->willReturn(1);
         $provider1->method('getDependencies')->willReturn([]);
 
-        $provider2 = $this->createMock(ProviderInterface::class);
+        $provider2 = $this->createStub(ProviderInterface::class);
         $provider2->method('getName')->willReturn('provider-2');
         $provider2->method('getServiceOrder')->willReturn(2);
         $provider2->method('getDependencies')->willReturn([]);
@@ -134,12 +134,12 @@ final class ProviderRegistryTest extends TestCase
 
     public function testProviderDependencyResolution(): void
     {
-        $dependencyProvider = $this->createMock(ProviderInterface::class);
+        $dependencyProvider = $this->createStub(ProviderInterface::class);
         $dependencyProvider->method('getName')->willReturn('dependency');
         $dependencyProvider->method('getServiceOrder')->willReturn(1);
         $dependencyProvider->method('getDependencies')->willReturn([]);
 
-        $dependentProvider = $this->createMock(ProviderInterface::class);
+        $dependentProvider = $this->createStub(ProviderInterface::class);
         $dependentProvider->method('getName')->willReturn('dependent');
         $dependentProvider->method('getServiceOrder')->willReturn(2);
         $dependentProvider->method('getDependencies')->willReturn(['dependency']);
@@ -167,7 +167,7 @@ final class ProviderRegistryTest extends TestCase
 
     public function testProviderOverride(): void
     {
-        $newProvider = $this->createMock(ProviderInterface::class);
+        $newProvider = $this->createStub(ProviderInterface::class);
         $newProvider->method('getName')->willReturn('service-1');
         $newProvider->method('getServiceOrder')->willReturn(3);
         $newProvider->method('getDependencies')->willReturn([]);
@@ -181,7 +181,7 @@ final class ProviderRegistryTest extends TestCase
 
     public function testRegisterProvider(): void
     {
-        $newProvider = $this->createMock(ProviderInterface::class);
+        $newProvider = $this->createStub(ProviderInterface::class);
         $newProvider->method('getName')->willReturn('new-service');
         $newProvider->method('getServiceOrder')->willReturn(3);
         $newProvider->method('getDependencies')->willReturn([]);
@@ -220,12 +220,12 @@ final class ProviderRegistryTest extends TestCase
         // Use real ProviderRegistry since it's final
         $this->registry = new ProviderRegistry([]);
 
-        $this->mockProvider1 = $this->createMock(ProviderInterface::class);
+        $this->mockProvider1 = $this->createStub(ProviderInterface::class);
         $this->mockProvider1->method('getName')->willReturn('service-1');
         $this->mockProvider1->method('getServiceOrder')->willReturn(1);
         $this->mockProvider1->method('getDependencies')->willReturn([]);
 
-        $mockProvider2 = $this->createMock(ProviderInterface::class);
+        $mockProvider2 = $this->createStub(ProviderInterface::class);
         $mockProvider2->method('getName')->willReturn('service-2');
         $mockProvider2->method('getServiceOrder')->willReturn(2);
         $mockProvider2->method('getDependencies')->willReturn([]);
