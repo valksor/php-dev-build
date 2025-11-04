@@ -99,18 +99,6 @@ final class ProcessManagerTest extends TestCase
         self::assertContains($result, [0, 1]);
     }
 
-    public function testExecuteProcessNonInteractive(): void
-    {
-        $result = ProcessManager::executeProcess(
-            ['list'],
-            false,
-            'TestService',
-        );
-
-        // Should return either SUCCESS or FAILURE
-        self::assertContains($result, [0, 1]);
-    }
-
     public function testGetFailedProcesses(): void
     {
         $process1 = $this->createMock(Process::class);

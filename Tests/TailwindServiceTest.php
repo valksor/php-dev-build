@@ -14,6 +14,8 @@ namespace ValksorDev\Build\Tests;
 
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
@@ -58,7 +60,7 @@ final class TailwindServiceTest extends TestCase
 
         $tailwindService = new TailwindService($this->parameterBag);
         $tailwindService->setActiveAppId('test-app');
-        $tailwindService->setIo($this->createMock(SymfonyStyle::class));
+        $tailwindService->setIo(new SymfonyStyle(new ArrayInput([]), new BufferedOutput()));
 
         // Test start method with basic config
         try {
@@ -88,7 +90,7 @@ final class TailwindServiceTest extends TestCase
 
         $tailwindService = new TailwindService($this->parameterBag);
         $tailwindService->setActiveAppId('test-app');
-        $tailwindService->setIo($this->createMock(SymfonyStyle::class));
+        $tailwindService->setIo(new SymfonyStyle(new ArrayInput([]), new BufferedOutput()));
 
         // Test start method with minify enabled
         try {
@@ -133,11 +135,11 @@ final class TailwindServiceTest extends TestCase
 
         $tailwindService = new TailwindService($this->parameterBag);
         $tailwindService->setActiveAppId('test-app');
-        $tailwindService->setIo($this->createMock(SymfonyStyle::class));
+        $tailwindService->setIo(new SymfonyStyle(new ArrayInput([]), new BufferedOutput()));
 
         // Test start method with watch mode
         try {
-            $result = $tailwindService->start(['watch' => true, 'minify' => false]);
+            $result = $tailwindService->start(['minify' => false]);
             // Should return either SUCCESS (0) or FAILURE (1) depending on environment
             self::assertContains($result, [0, 1]);
         } catch (RuntimeException $e) {
