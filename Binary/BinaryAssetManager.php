@@ -450,6 +450,9 @@ final class BinaryAssetManager
         return array_key_exists('tag', $data) ? (string) $data['tag'] : null;
     }
 
+    /**
+     * @throws JsonException
+     */
     private function writeVersionFile(
         string $targetDir,
         string $tag,

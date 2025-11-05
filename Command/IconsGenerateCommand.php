@@ -285,15 +285,7 @@ final class IconsGenerateCommand extends AbstractCommand
                     ));
                 }
 
-                $unique = array_values(array_diff($icons, $sharedIcons));
-
-                if ([] === $unique) {
-                    $result[$entry] = $unique; // Include empty array to trigger cleanup
-
-                    continue;
-                }
-
-                $result[$entry] = $unique;
+                $result[$entry] = array_values(array_diff($icons, $sharedIcons));
             }
         } finally {
             closedir($handle);

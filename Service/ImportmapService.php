@@ -16,7 +16,6 @@ use FilesystemIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
@@ -80,27 +79,6 @@ final class ImportmapService extends AbstractService
     }
 
     /**
-     * Check if the importmap service is currently running.
-     *
-     * @return bool True if the service is active and monitoring files
-     */
-    public function isRunning(): bool
-    {
-        return $this->running;
-    }
-
-    /**
-     * Trigger a reload of all JavaScript modules.
-     *
-     * This method is called during watch mode to rebuild all modules
-     * when a configuration change or external reload signal is received.
-     */
-    public function reload(): void
-    {
-        $this->shouldReload = true;
-    }
-
-    /**
      * @param array<string,mixed> $config Configuration: ['watch' => bool, 'minify' => bool, 'esbuild' => ?string]
      */
     public function start(
@@ -136,18 +114,6 @@ final class ImportmapService extends AbstractService
     }
 
     /**
-     * Stop the importmap service gracefully.
-     *
-     * This method is called during shutdown to signal the watch loop
-     * to exit cleanly and stop monitoring JavaScript files.
-     */
-    public function stop(): void
-    {
-        $this->shouldShutdown = true;
-        $this->running = false;
-    }
-
-    /**
      * Get the service name for identification in the build system.
      *
      * @return string The service identifier 'importmap'
@@ -155,20 +121,6 @@ final class ImportmapService extends AbstractService
     public static function getServiceName(): string
     {
         return 'importmap';
-    }
-
-    protected function shouldMinify(
-        InputInterface $input,
-    ): bool {
-        if ($input->hasOption('no-minify') && $input->getOption('no-minify')) {
-            return false;
-        }
-
-        if ($input->hasOption('minify') && $input->getOption('minify')) {
-            return true;
-        }
-
-        return false !== $this->parameterBag->get('valksor.build.minify') && 'dev' !== $this->parameterBag->get('valksor.build.env');
     }
 
     /**

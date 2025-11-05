@@ -106,15 +106,10 @@ final class HotReloadService extends AbstractService
         $this->filter = PathFilter::createDefault();
     }
 
-    public function isRunning(): bool
-    {
-        return $this->running;
-    }
-
     public function reload(): void
     {
         // Hot reload service doesn't support manual reload
-        $this->io?->note('Hot reload service reload requested (no action needed)');
+        $this->io->note('Hot reload service reload requested (no action needed)');
     }
 
     /**
@@ -137,7 +132,7 @@ final class HotReloadService extends AbstractService
 
         // Early return if no watch directories configured - nothing to monitor
         if (empty($watchDirs)) {
-            $this->io?->warning('No watch directories configured. Hot reload disabled.');
+            $this->io->warning('No watch directories configured. Hot reload disabled.');
 
             return Command::SUCCESS;
         }
@@ -159,15 +154,12 @@ final class HotReloadService extends AbstractService
         // Lazy load output files only when needed, not during startup
         $this->outputFiles = [];
 
-        // Initialize watcher with error handling
-        $watcher = null;
-
         try {
             $watcher = new RecursiveInotifyWatcher($this->filter, function (string $path) use ($extendedSuffixes, $debounceDelay, $extendedExtensions): void {
                 $this->handleFilesystemChange($path, $extendedSuffixes, $extendedExtensions, $debounceDelay);
             });
 
-            $this->io?->text('File watcher initialized successfully');
+            $this->io->text('File watcher initialized successfully');
         } catch (RuntimeException $e) {
             if ($this->io) {
                 $this->io->error(sprintf('Failed to initialize file watcher: %s', $e->getMessage()));
@@ -177,7 +169,7 @@ final class HotReloadService extends AbstractService
             // Continue without watcher - will fall back to manual mode
             $watcher = null;
         } catch (Exception $e) {
-            $this->io?->error(sprintf('Unexpected error initializing watcher: %s', $e->getMessage()));
+            $this->io->error(sprintf('Unexpected error initializing watcher: %s', $e->getMessage()));
 
             // Continue without watcher
             $watcher = null;
@@ -186,19 +178,19 @@ final class HotReloadService extends AbstractService
         $watchTargets = $this->collectWatchTargets($this->parameterBag->get('kernel.project_dir'), $watchDirs);
 
         if ([] === $watchTargets) {
-            $this->io?->warning('No watch targets found. Hot reload will remain idle.');
+            $this->io->warning('No watch targets found. Hot reload will remain idle.');
         } else {
             foreach ($watchTargets as $target) {
                 $watcher->addRoot($target);
             }
 
-            $this->io?->note(sprintf('Watching %d directories for changes', count($watchTargets)));
+            $this->io->note(sprintf('Watching %d directories for changes', count($watchTargets)));
         }
 
         $this->running = true;
         $this->lastContentChange = microtime(true);
 
-        $this->io?->success('Hot reload service started');
+        $this->io->success('Hot reload service started');
 
         // Add loop timeout protection to prevent infinite hangs if file system stops responding
         $loopCount = 0;
@@ -210,7 +202,7 @@ final class HotReloadService extends AbstractService
             // Timeout protection - exit if no activity for extended period
             // This prevents the service from running indefinitely when file watching fails
             if ($loopCount > $maxLoopsWithoutActivity && empty($this->pendingChanges)) {
-                $this->io?->warning('Hot reload service timeout - no activity for 10 minutes, exiting gracefully');
+                $this->io->warning('Hot reload service timeout - no activity for 10 minutes, exiting gracefully');
 
                 break;
             }
@@ -248,7 +240,7 @@ final class HotReloadService extends AbstractService
 
                     $this->flushPendingReloads();
                 } catch (Exception $e) {
-                    $this->io?->error(sprintf('Error in file watching loop: %s', $e->getMessage()));
+                    $this->io->error(sprintf('Error in file watching loop: %s', $e->getMessage()));
                     // Continue running but log the error
                 }
             } else {
@@ -410,12 +402,12 @@ final class HotReloadService extends AbstractService
                 throw new RuntimeException('Failed to write signal file');
             }
         } catch (Exception $e) {
-            $this->io?->error(sprintf('Failed to write reload signal: %s', $e->getMessage()));
+            $this->io->error(sprintf('Failed to write reload signal: %s', $e->getMessage()));
 
             return;
         }
 
-        $this->io?->success(sprintf('Reload signal sent for %d changed files', count($files)));
+        $this->io->success(sprintf('Reload signal sent for %d changed files', count($files)));
     }
 
     /**
@@ -459,7 +451,7 @@ final class HotReloadService extends AbstractService
         $fileDelay = $this->determineReloadDelay($path, $extendedExtensions, $extendedSuffixes, $debounceDelay);
 
         // Debug logging for troubleshooting file change handling
-        $this->io?->text(sprintf(
+        $this->io->text(sprintf(
             'DEBUG: File %s | Output: %s | Delay: %.2fs',
             $path,
             $isOutputFile ? 'YES' : 'NO',
@@ -469,7 +461,7 @@ final class HotReloadService extends AbstractService
         // Rate limiting for output files to prevent excessive reloads during compilation
         // Output files (like .css) may change rapidly during build processes
         if ($isOutputFile && ($now - $this->lastContentChange) < $fileDelay) {
-            $this->io?->text(sprintf(
+            $this->io->text(sprintf(
                 'DEBUG: Rate limiting %s (last change: %.2fs ago, limit: %.2fs)',
                 $path,
                 $now - $this->lastContentChange,
@@ -481,7 +473,7 @@ final class HotReloadService extends AbstractService
 
         // Duplicate change detection - prevent the same file from being queued multiple times
         if (isset($this->pendingChanges[$path])) {
-            $this->io?->text(sprintf('DEBUG: Skipping duplicate change for %s', $path));
+            $this->io->text(sprintf('DEBUG: Skipping duplicate change for %s', $path));
 
             return; // Already queued, don't update timing
         }
@@ -504,7 +496,7 @@ final class HotReloadService extends AbstractService
             $this->debounceDeadline = $desiredDeadline;
         }
 
-        $this->io?->text('File changed: ' . $path);
+        $this->io->text('File changed: ' . $path);
     }
 
     /**
@@ -549,25 +541,23 @@ final class HotReloadService extends AbstractService
         $this->ensureDirectory($runDir);
 
         if (!is_writable($runDir)) {
-            $this->io?->error(sprintf('Run directory is not writable: %s', $runDir));
+            $this->io->error(sprintf('Run directory is not writable: %s', $runDir));
 
             return false;
         }
 
         // Validate watch directories exist
-        $watchDirs = $config['watch_dirs'] ?? [];
-
-        foreach ($watchDirs as $dir) {
+        foreach ($config['watch_dirs'] ?? [] as $dir) {
             $fullPath = $projectRoot . '/' . ltrim($dir, '/');
 
             if (!is_dir($fullPath)) {
-                $this->io?->warning(sprintf('Watch directory does not exist: %s', $fullPath));
+                $this->io->warning(sprintf('Watch directory does not exist: %s', $fullPath));
             }
         }
 
         // Check if inotify extension is available
         if (!extension_loaded('inotify')) {
-            $this->io?->warning('PHP inotify extension is not available. File watching may not work optimally.');
+            $this->io->warning('PHP inotify extension is not available. File watching may not work optimally.');
         }
 
         return true;

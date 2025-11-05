@@ -21,6 +21,8 @@ use function array_filter;
 use function is_dir;
 use function scandir;
 
+use const SCANDIR_SORT_ASCENDING;
+
 /**
  * Provider for Importmap service.
  */
@@ -45,7 +47,7 @@ final class ImportmapProvider implements ProviderInterface, IoAwareInterface
         $appsDir = $projectDir . '/' . $this->parameterBag->get('valksor.project.apps_dir');
 
         if (is_dir($appsDir)) {
-            $apps = array_filter(scandir($appsDir), function ($item) use ($appsDir) {
+            $apps = array_filter(scandir($appsDir, SCANDIR_SORT_ASCENDING), static function ($item) use ($appsDir) {
                 $appPath = $appsDir . '/' . $item;
 
                 return '.' !== $item && '..' !== $item && is_dir($appPath);

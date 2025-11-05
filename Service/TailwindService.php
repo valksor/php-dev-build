@@ -14,7 +14,6 @@ namespace ValksorDev\Build\Service;
 
 use RuntimeException;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
@@ -119,8 +118,8 @@ final class TailwindService extends AbstractService
     public function start(
         array $config = [],
     ): int {
-        $watchMode = $config['watch'] ?? false;
-        $minify = $config['minify'] ?? $this->shouldMinify();
+        $watchMode = $config['watch'];
+        $minify = $config['minify'];
 
         // Resolve Tailwind CLI command and configuration
         $commandBase = $this->resolveTailwindCommandBase();
@@ -169,18 +168,6 @@ final class TailwindService extends AbstractService
     }
 
     /**
-     * Stop the Tailwind service gracefully.
-     *
-     * This method is called during shutdown to signal the watch loop
-     * to exit cleanly and stop monitoring file changes.
-     */
-    public function stop(): void
-    {
-        $this->shouldShutdown = true;
-        $this->running = false;
-    }
-
-    /**
      * Get the service name for identification in the build system.
      *
      * @return string The service identifier 'tailwind'
@@ -188,20 +175,6 @@ final class TailwindService extends AbstractService
     public static function getServiceName(): string
     {
         return 'tailwind';
-    }
-
-    protected function shouldMinify(
-        InputInterface $input,
-    ): bool {
-        if ($input->hasOption('no-minify') && $input->getOption('no-minify')) {
-            return false;
-        }
-
-        if ($input->hasOption('minify') && $input->getOption('minify')) {
-            return true;
-        }
-
-        return false !== $this->parameterBag->get('valksor.build.minify') && 'dev' !== $this->parameterBag->get('valksor.build.env');
     }
 
     /**

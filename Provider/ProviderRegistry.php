@@ -232,7 +232,7 @@ final class ProviderRegistry
     ): array {
         // Phase 1: Sort by service order (numerical priority)
         // Lower numbers typically indicate services that should run first
-        uasort($providers, fn (ProviderInterface $a, ProviderInterface $b) => $a->getServiceOrder() - $b->getServiceOrder());
+        uasort($providers, static fn (ProviderInterface $a, ProviderInterface $b) => $a->getServiceOrder() - $b->getServiceOrder());
 
         // Phase 2: Topological sort for dependency resolution
         $sorted = [];

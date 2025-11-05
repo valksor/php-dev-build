@@ -194,7 +194,7 @@ final class ProcessManager
      *
      * @param int $signal The signal number (SIGINT or SIGTERM)
      *
-     * @return never This method terminates the process
+     * @return void This method terminates the process
      */
     #[NoReturn]
     public function handleSignal(
@@ -231,7 +231,7 @@ final class ProcessManager
      */
     public function hasFailedProcesses(): bool
     {
-        foreach ($this->processes as $name => $process) {
+        foreach ($this->processes as $process) {
             if (!$process->isRunning() && !$process->isSuccessful()) {
                 return true;
             }
@@ -345,7 +345,7 @@ final class ProcessManager
                 // Process finished quickly (likely an error or quick operation)
                 // Check if the execution was successful
                 return $process->isSuccessful() ? Command::SUCCESS : Command::FAILURE;
-            } catch (ProcessTimedOutException $e) {
+            } catch (ProcessTimedOutException) {
                 // Timeout exception occurs when the process runs longer than expected
                 // This is normal for watch services - they are designed to run continuously
                 if ($process->isRunning()) {

@@ -26,7 +26,6 @@ use function count;
 use function date;
 use function function_exists;
 use function implode;
-use function in_array;
 use function pcntl_async_signals;
 use function pcntl_signal;
 use function sleep;
@@ -193,7 +192,7 @@ final class DevService
 
             // Only include lightweight providers (hot_reload service)
             // Excludes Tailwind CSS compilation and Importmap processing
-            if (in_array($providerClass, ['hot_reload'], true)) {
+            if ('hot_reload' === $providerClass) {
                 $lightweightProviders[$name] = $provider;
             }
         }

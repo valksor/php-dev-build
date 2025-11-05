@@ -137,14 +137,14 @@ All build services are implemented as **providers** that can be enabled/disabled
 
 #### Available Providers
 
-| Provider | Description | Flags | Dependencies |
-|----------|-------------|-------|--------------|
-| `binaries` | Binary download and management | `init`, `dev`, `prod` | None |
-| `hot_reload` | SSE server and browser reload | `dev` | `binaries` |
-| `tailwind` | Tailwind CSS compilation | `dev`, `prod` | `binaries` |
-| `importmap` | Import map synchronization | `dev`, `prod` | `binaries` |
-| `assets` | Asset building and optimization | `prod` | `binaries`, `tailwind` |
-| `icons` | Icon generation and optimization | `prod` | `binaries` |
+| Provider     | Description                      | Flags                 | Dependencies           |
+|--------------|----------------------------------|-----------------------|------------------------|
+| `binaries`   | Binary download and management   | `init`, `dev`, `prod` | None                   |
+| `hot_reload` | SSE server and browser reload    | `dev`                 | `binaries`             |
+| `tailwind`   | Tailwind CSS compilation         | `dev`, `prod`         | `binaries`             |
+| `importmap`  | Import map synchronization       | `dev`, `prod`         | `binaries`             |
+| `assets`     | Asset building and optimization  | `prod`                | `binaries`, `tailwind` |
+| `icons`      | Icon generation and optimization | `prod`                | `binaries`             |
 
 #### Service Configuration
 
@@ -178,11 +178,11 @@ valksor:
 
 #### Command-Provider Mapping
 
-| Command | Flags Used | Services That Run |
-|---------|------------|------------------|
-| `valksor:dev` | `dev` | `binaries` + `hot_reload` |
-| `valksor:watch` | `dev` | All services with `dev` flag |
-| `valksor-prod:build` | `prod` | `binaries` + services with `prod` flag |
+| Command              | Flags Used | Services That Run                      |
+|----------------------|------------|----------------------------------------|
+| `valksor:dev`        | `dev`      | `binaries` + `hot_reload`              |
+| `valksor:watch`      | `dev`      | All services with `dev` flag           |
+| `valksor-prod:build` | `prod`     | `binaries` + services with `prod` flag |
 
 ### Configuration
 
@@ -618,25 +618,25 @@ services:
 
 ### Commands
 
-| Command                      | Description                                    |
-|------------------------------|------------------------------------------------|
-| `valksor:dev`                | Lightweight development (SSE + hot reload)     |
-| `valksor:watch`              | Full development environment (all services)    |
-| `valksor-prod:build`        | Production asset building                      |
-| `valksor:hot-reload`         | Start hot reload service only                  |
-| `valksor:tailwind`           | Build Tailwind CSS                             |
-| `valksor:importmap`          | Mirror JavaScript assets for importmap usage   |
-| `valksor:binary`             | Ensure tool binaries are downloaded            |
-| `valksor:binaries:install`   | Install all required binaries                  |
-| `valksor:icons`              | Generate Twig SVG icons                        |
+| Command                    | Description                                  |
+|----------------------------|----------------------------------------------|
+| `valksor:dev`              | Lightweight development (SSE + hot reload)   |
+| `valksor:watch`            | Full development environment (all services)  |
+| `valksor-prod:build`       | Production asset building                    |
+| `valksor:hot-reload`       | Start hot reload service only                |
+| `valksor:tailwind`         | Build Tailwind CSS                           |
+| `valksor:importmap`        | Mirror JavaScript assets for importmap usage |
+| `valksor:binary`           | Ensure tool binaries are downloaded          |
+| `valksor:binaries:install` | Install all required binaries                |
+| `valksor:icons`            | Generate Twig SVG icons                      |
 
 ### Command Behavior
 
-| Command | Flags Used | Services Executed | Use Case |
-|---------|------------|------------------|----------|
-| `valksor:dev` | `dev` | `binaries`, `hot_reload` | Quick frontend development |
-| `valksor:watch` | `dev` | All services with `dev` flag | Full development environment |
-| `valksor-prod:build` | `prod` | `binaries` + all `prod` services | Production deployment |
+| Command              | Flags Used | Services Executed                | Use Case                     |
+|----------------------|------------|----------------------------------|------------------------------|
+| `valksor:dev`        | `dev`      | `binaries`, `hot_reload`         | Quick frontend development   |
+| `valksor:watch`      | `dev`      | All services with `dev` flag     | Full development environment |
+| `valksor-prod:build` | `prod`     | `binaries` + all `prod` services | Production deployment        |
 
 ### Configuration Options
 
@@ -733,7 +733,7 @@ When adding support for new build tools:
 
 ## Security
 
-If you discover any security-related issues, please email us at security@valksor.dev instead of using the issue tracker.
+If you discover any security-related issues, please email us at packages@valksor.com instead of using the issue tracker.
 
 ## Support
 
