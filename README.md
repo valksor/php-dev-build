@@ -1,5 +1,8 @@
 # ValksorDev Build Tools
 
+[![BSD-3-Clause](https://img.shields.io/badge/BSD--3--Clause-green?style=flat)](https://github.com/valksor/php-dev-build/blob/master/LICENSE)
+[![Coverage Status](https://coveralls.io/repos/github/valksor/php-dev-build/badge.svg?branch=master)](https://coveralls.io/github/valksor/php-dev-build?branch=master)
+
 A comprehensive development build tool suite for PHP applications that provides hot reloading, asset compilation, import map management, and development workflow automation. Designed to streamline modern PHP development with integrated tooling for Tailwind CSS, ESBuild, DaisyUI, and other frontend build tools.
 
 ## Features
