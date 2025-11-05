@@ -41,7 +41,6 @@
         <report>
             <html outputDirectory=".coverage"/>
             <text outputFile=".coverage/coverage.txt"/>
-            <clover outputFile=".coverage/clover.xml"/>
             <cobertura outputFile=".coverage/cobertura.xml"/>
         </report>
     </coverage>
