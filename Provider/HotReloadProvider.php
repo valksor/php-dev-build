@@ -14,12 +14,18 @@ namespace ValksorDev\Build\Provider;
 
 use Symfony\Component\Console\Command\Command;
 use ValksorDev\Build\Service\ProcessManager;
+use ValksorDev\Build\Util\ConsoleCommandBuilder;
 
 /**
  * Provider for hot reload service (development only with file watching).
  */
 final class HotReloadProvider implements ProviderInterface
 {
+    public function __construct(
+        private readonly ConsoleCommandBuilder $commandBuilder,
+    ) {
+    }
+
     public function build(
         array $options,
     ): int {
@@ -53,7 +59,7 @@ final class HotReloadProvider implements ProviderInterface
     ): int {
         // Hot reload command now gets configuration directly from the service
         // No need to pass command-line options - configuration is handled internally
-        $arguments = ['valksor:hot-reload'];
+        $arguments = $this->commandBuilder->buildArguments('valksor:hot-reload');
         $isInteractive = $options['interactive'] ?? true;
 
         return ProcessManager::executeProcess($arguments, $isInteractive, 'Hot reload service');

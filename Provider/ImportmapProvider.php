@@ -16,6 +16,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use ValksorDev\Build\Service\ProcessManager;
+use ValksorDev\Build\Util\ConsoleCommandBuilder;
 
 use function array_filter;
 use function is_dir;
@@ -32,6 +33,7 @@ final class ImportmapProvider implements ProviderInterface, IoAwareInterface
 
     public function __construct(
         private readonly ParameterBagInterface $parameterBag,
+        private readonly ConsoleCommandBuilder $commandBuilder,
     ) {
     }
 
@@ -54,12 +56,10 @@ final class ImportmapProvider implements ProviderInterface, IoAwareInterface
             });
 
             foreach ($apps as $app) {
-                $arguments = ['valksor:importmap', '--id', $app];
-
-                // Add minification automatically in production or if explicitly requested
-                if ($shouldMinify) {
-                    $arguments[] = '--minify';
-                }
+                $arguments = $this->commandBuilder->buildArguments('valksor:importmap', [
+                    'app' => $app,
+                    'minify' => $shouldMinify,
+                ]);
 
                 $exitCode = ProcessManager::executeProcess($arguments, false, 'Importmap build for app ' . $app);
 
@@ -69,12 +69,9 @@ final class ImportmapProvider implements ProviderInterface, IoAwareInterface
             }
         } else {
             // Fallback to running without app ID if no apps directory
-            $arguments = ['valksor:importmap'];
-
-            // Add minification automatically in production or if explicitly requested
-            if ($shouldMinify) {
-                $arguments[] = '--minify';
-            }
+            $arguments = $this->commandBuilder->buildArguments('valksor:importmap', [
+                'minify' => $shouldMinify,
+            ]);
 
             return ProcessManager::executeProcess($arguments, false, 'Importmap build');
         }
@@ -112,7 +109,9 @@ final class ImportmapProvider implements ProviderInterface, IoAwareInterface
     public function watch(
         array $options,
     ): int {
-        $arguments = ['valksor:importmap', '--watch'];
+        $arguments = $this->commandBuilder->buildArguments('valksor:importmap', [
+            'watch' => true,
+        ]);
         $isInteractive = $options['interactive'] ?? true;
 
         return ProcessManager::executeProcess($arguments, $isInteractive, 'Importmap service');
