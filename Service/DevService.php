@@ -148,6 +148,10 @@ final class DevService
         // Initialize process manager for tracking background services
         $this->processManager = new ProcessManager($this->io);
 
+        // Register this dev service as root parent for restart tracking
+        $this->processManager->setProcessParent('dev', null); // dev is root
+        $this->processManager->setProcessArgs('dev', ['php', 'bin/console', 'valksor:dev']);
+
         // Register signal handlers for graceful shutdown (SIGINT, SIGTERM)
         // This ensures clean process termination when user presses Ctrl+C
         if (function_exists('pcntl_signal')) {
@@ -226,6 +230,10 @@ final class DevService
             return Command::FAILURE;
         }
 
+        // Register SSE as child of dev service
+        $this->processManager->setProcessParent('sse', 'dev');
+        $this->processManager->setProcessArgs('sse', ['php', 'bin/console', 'valksor:sse']);
+
         if ($this->isInteractive && $this->io) {
             $this->io->success('✓ SSE server started and running');
             $this->io->newLine();
@@ -264,6 +272,8 @@ final class DevService
 
                 // Track the process in our manager
                 $this->processManager->addProcess($name, $process);
+                $this->processManager->setProcessParent($name, 'dev'); // Set dev as parent
+                $this->processManager->setProcessArgs($name, ['php', 'bin/console', 'valksor:hot-reload']);
                 $runningServices[] = $name;
 
                 if ($this->isInteractive && $this->io) {
@@ -333,13 +343,25 @@ final class DevService
                             $this->io->text(sprintf('Error output: %s', trim($errorOutput)));
                         }
                     }
-
-                    $this->io->warning('[MONITOR] Some services have failed. Press Ctrl+C to exit or continue monitoring...');
                 }
 
-                // Remove failed processes from tracking
+                // Handle restart for failed processes
                 foreach (array_keys($failedProcesses) as $name) {
+                    $restartResult = $this->processManager->handleProcessFailure($name);
+
+                    if (Command::SUCCESS === $restartResult) {
+                        // Restart was successful, exit and let restarted process take over
+                        $this->io?->success('[RESTART] Parent process restarted successfully, exiting current process');
+
+                        return Command::SUCCESS;
+                    }
+                    // Restart failed or gave up, remove from tracking and continue
                     $this->processManager->removeProcess($name);
+                    $this->io?->warning('[RESTART] Restart failed, removing service from tracking');
+                }
+
+                if ($this->isInteractive && $this->io) {
+                    $this->io->warning('[MONITOR] Some services have failed and could not be restarted. Press Ctrl+C to exit or continue monitoring...');
                 }
             }
 

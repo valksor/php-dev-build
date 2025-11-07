@@ -18,11 +18,13 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Process\Exception\ProcessTimedOutException;
 use Symfony\Component\Process\Process;
 
+use function array_filter;
 use function count;
 use function function_exists;
 use function pcntl_async_signals;
 use function pcntl_signal;
 use function sprintf;
+use function time;
 use function ucfirst;
 use function usleep;
 
@@ -44,6 +46,30 @@ use const SIGTERM;
  */
 final class ProcessManager
 {
+    private const FAILURE_WINDOW_SECONDS = 30;
+
+    /**
+     * Configuration for restart logic.
+     */
+    private const MAX_FAILURES_IN_WINDOW = 5;
+    private const SUCCESS_RESET_SECONDS = 3600; // 1 hour
+
+    /**
+     * Track failure timestamps for restart logic.
+     * Maps process names to arrays of failure timestamps.
+     *
+     * @var array<string,array<int>>
+     */
+    private array $failureHistory = [];
+
+    /**
+     * Store original command arguments for restart functionality.
+     * Maps process names to their command arguments.
+     *
+     * @var array<string,array<string>>
+     */
+    private array $processArgs = [];
+
     /**
      * Mapping of service names to process identifiers.
      * Used for logging and process identification.
@@ -51,6 +77,14 @@ final class ProcessManager
      * @var array<string,string>
      */
     private array $processNames = [];
+
+    /**
+     * Track parent-child relationships between processes.
+     * Maps child process names to parent process names.
+     *
+     * @var array<string,string|null>
+     */
+    private array $processParents = [];
 
     /**
      * Registry of managed background processes.
@@ -110,6 +144,16 @@ final class ProcessManager
     }
 
     /**
+     * Clear failure history for a process after successful run.
+     */
+    public function clearFailureHistory(
+        string $processName,
+    ): void {
+        unset($this->failureHistory[$processName]);
+        $this->io?->text(sprintf('[CLEAN] Cleared failure history for %s', $processName));
+    }
+
+    /**
      * Get count of tracked processes.
      */
     public function count(): int
@@ -166,6 +210,26 @@ final class ProcessManager
     }
 
     /**
+     * Get the command arguments for a process.
+     *
+     * @return array<string>
+     */
+    public function getProcessArgs(
+        string $processName,
+    ): array {
+        return $this->processArgs[$processName] ?? [];
+    }
+
+    /**
+     * Get the parent process for a given process.
+     */
+    public function getProcessParent(
+        string $processName,
+    ): ?string {
+        return $this->processParents[$processName] ?? null;
+    }
+
+    /**
      * Get status of all tracked processes.
      *
      * @return array<string,array{running:bool,exit_code:int|null,pid:int|null}>
@@ -183,6 +247,48 @@ final class ProcessManager
         }
 
         return $statuses;
+    }
+
+    /**
+     * Get the root parent process by traversing up the hierarchy.
+     */
+    public function getRootParent(
+        string $processName,
+    ): ?string {
+        $current = $processName;
+        $visited = [];
+
+        while (null !== $current && !isset($visited[$current])) {
+            $visited[$current] = true;
+            $parent = $this->processParents[$current] ?? null;
+
+            if (null === $parent) {
+                return $current; // This is the root
+            }
+            $current = $parent;
+        }
+
+        return null; // Circular reference detected
+    }
+
+    /**
+     * Handle process failure by restarting the appropriate command.
+     *
+     * @param string $failedProcessName The name of the failed process
+     *
+     * @return int Command exit code
+     */
+    public function handleProcessFailure(
+        string $failedProcessName,
+    ): int {
+        $this->recordFailure($failedProcessName);
+
+        // Determine which process to restart (parent or self)
+        $processToRestart = $this->getRootParent($failedProcessName) ?? $failedProcessName;
+
+        $this->io?->warning(sprintf('[FAILURE] Process %s failed, restarting %s...', $failedProcessName, $processToRestart));
+
+        return $this->restartProcess($processToRestart);
     }
 
     /**
@@ -257,6 +363,16 @@ final class ProcessManager
     }
 
     /**
+     * Record a failure for a process with timestamp.
+     */
+    public function recordFailure(
+        string $processName,
+    ): void {
+        $this->failureHistory[$processName][] = time();
+        $this->io?->warning(sprintf('[FAILURE] Recorded failure for %s (total: %d)', $processName, count($this->failureHistory[$processName])));
+    }
+
+    /**
      * Remove a stopped process from tracking.
      */
     public function removeProcess(
@@ -267,6 +383,107 @@ final class ProcessManager
 
             $this->io?->text(sprintf('[CLEANUP] Removed %s from tracking', $name));
         }
+    }
+
+    /**
+     * Restart a process using its stored arguments.
+     *
+     * @param string $processName The process to restart
+     *
+     * @return int Command exit code
+     */
+    public function restartProcess(
+        string $processName,
+    ): int {
+        $args = $this->getProcessArgs($processName);
+
+        if (empty($args)) {
+            $this->io?->error(sprintf('[RESTART] No arguments stored for %s, cannot restart', $processName));
+
+            return Command::FAILURE;
+        }
+
+        if (!$this->shouldRestartProcess($processName)) {
+            $this->terminateAll();
+
+            exit(Command::FAILURE);
+        }
+
+        $this->io?->warning(sprintf('[RESTART] Restarting process %s...', $processName));
+
+        // Terminate all current processes before restart
+        $this->terminateAll();
+
+        // Start the new process
+        $process = new Process($args);
+        $process->start();
+
+        // Give it time to initialize
+        usleep(500000);
+
+        if ($process->isRunning()) {
+            $this->io?->success(sprintf('[RESTART] Successfully restarted %s', $processName));
+
+            return Command::SUCCESS;
+        }
+        $this->recordFailure($processName);
+        $this->io?->error(sprintf('[RESTART] Failed to restart %s (exit code: %d)', $processName, $process->getExitCode()));
+
+        // If restart failed, try again or give up
+        return $this->restartProcess($processName);
+    }
+
+    /**
+     * Store the original command arguments for a process.
+     *
+     * @param string        $processName The process name
+     * @param array<string> $args        The command arguments
+     */
+    public function setProcessArgs(
+        string $processName,
+        array $args,
+    ): void {
+        $this->processArgs[$processName] = $args;
+        $this->io?->text(sprintf('[ARGS] Stored arguments for %s: %s', $processName, implode(' ', $args)));
+    }
+
+    /**
+     * Set the parent process for a given process.
+     *
+     * @param string      $processName The child process name
+     * @param string|null $parentName  The parent process name, or null if it's a root process
+     */
+    public function setProcessParent(
+        string $processName,
+        ?string $parentName = null,
+    ): void {
+        $this->processParents[$processName] = $parentName;
+        $this->io?->text(sprintf('[PARENT] Set %s as parent of %s', $parentName ?? 'root', $processName));
+    }
+
+    /**
+     * Check if a process should be restarted based on failure history.
+     */
+    public function shouldRestartProcess(
+        string $processName,
+    ): bool {
+        $now = time();
+        $failures = $this->failureHistory[$processName] ?? [];
+
+        // Remove old failures outside the window
+        $recentFailures = array_filter($failures, fn ($timestamp) => $now - $timestamp <= self::FAILURE_WINDOW_SECONDS);
+
+        // Update failure history with only recent failures
+        $this->failureHistory[$processName] = $recentFailures;
+
+        // Check if we have too many recent failures
+        if (count($recentFailures) >= self::MAX_FAILURES_IN_WINDOW) {
+            $this->io?->error(sprintf('[GIVE_UP] Too many failures for %s (%d in %d seconds), giving up', $processName, count($recentFailures), self::FAILURE_WINDOW_SECONDS));
+
+            return false;
+        }
+
+        return true;
     }
 
     /**

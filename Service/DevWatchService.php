@@ -145,6 +145,10 @@ final class DevWatchService
         // Handles process lifecycle, health monitoring, and graceful shutdown
         $this->processManager = new ProcessManager($this->io);
 
+        // Register this watch service as root parent for restart tracking
+        $this->processManager->setProcessParent('watch', null); // watch is root
+        $this->processManager->setProcessArgs('watch', ['php', 'bin/console', 'valksor:watch']);
+
         // Get services configuration from ParameterBag
         // Contains service definitions, flags, and options for all build services
         $servicesConfig = $this->parameterBag->get('valksor.build.services');
@@ -185,6 +189,10 @@ final class DevWatchService
             return Command::FAILURE;
         }
 
+        // Register SSE as child of watch service
+        $this->processManager->setProcessParent('sse', 'watch');
+        $this->processManager->setProcessArgs('sse', ['php', 'bin/console', 'valksor:sse']);
+
         if ($this->isInteractive && $this->io) {
             $this->io->success('✓ SSE server started and running');
             $this->io->newLine();
@@ -223,6 +231,17 @@ final class DevWatchService
 
                 // Track the process in our manager
                 $this->processManager->addProcess($name, $process);
+                $this->processManager->setProcessParent($name, 'watch'); // Set watch as parent
+
+                // Set appropriate command arguments based on service name
+                $commandArgs = match ($name) {
+                    'hot_reload' => ['php', 'bin/console', 'valksor:hot-reload'],
+                    'tailwind' => ['php', 'bin/console', 'valksor:tailwind', '--watch'],
+                    'importmap' => ['php', 'bin/console', 'valksor:importmap', '--watch'],
+                    default => ['php', 'bin/console', "valksor:{$name}"],
+                };
+                $this->processManager->setProcessArgs($name, $commandArgs);
+
                 $runningServices[] = $name;
 
                 if ($this->isInteractive && $this->io) {
@@ -300,13 +319,25 @@ final class DevWatchService
                             $this->io->text(sprintf('Error output: %s', trim($errorOutput)));
                         }
                     }
-
-                    $this->io->warning('[MONITOR] Some services have failed. Press Ctrl+C to exit or continue monitoring...');
                 }
 
-                // Remove failed processes from tracking
+                // Handle restart for failed processes
                 foreach (array_keys($failedProcesses) as $name) {
+                    $restartResult = $this->processManager->handleProcessFailure($name);
+
+                    if (Command::SUCCESS === $restartResult) {
+                        // Restart was successful, exit and let restarted process take over
+                        $this->io?->success('[RESTART] Parent process restarted successfully, exiting current process');
+
+                        return Command::SUCCESS;
+                    }
+                    // Restart failed or gave up, remove from tracking and continue
                     $this->processManager->removeProcess($name);
+                    $this->io?->warning('[RESTART] Restart failed, removing service from tracking');
+                }
+
+                if ($this->isInteractive && $this->io) {
+                    $this->io->warning('[MONITOR] Some services have failed and could not be restarted. Press Ctrl+C to exit or continue monitoring...');
                 }
             }
 
