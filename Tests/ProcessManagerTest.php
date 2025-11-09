@@ -88,7 +88,7 @@ final class ProcessManagerTest extends TestCase
     {
         // Capture output to prevent test from being "risky"
         ob_start();
-        $result = ProcessManager::executeProcess(
+        $result = $this->manager->executeProcess(
             ['list'],
             true,
             'TestService',

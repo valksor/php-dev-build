@@ -92,7 +92,7 @@ final class DevService
     public function __construct(
         private readonly ParameterBagInterface $parameterBag,
         private readonly ProviderRegistry $providerRegistry,
-        private readonly ConsoleCommandBuilder $commandBuilder,
+        private readonly ?ConsoleCommandBuilder $commandBuilder = null,
     ) {
     }
 
@@ -448,7 +448,12 @@ final class DevService
      */
     private function runSseCommand(): int
     {
-        $process = $this->commandBuilder->build('valksor:sse');
+        // Use ConsoleCommandBuilder if available, otherwise fall back to manual construction
+        if ($this->commandBuilder) {
+            $process = $this->commandBuilder->build('valksor:sse');
+        } else {
+            $process = new Process(['php', 'bin/console', 'valksor:sse']);
+        }
 
         // Start SSE server in background (non-blocking)
         $process->start();

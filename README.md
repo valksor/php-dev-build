@@ -9,9 +9,9 @@ A comprehensive development build tool suite for PHP applications that provides 
 
 - **Service Registry Architecture**: Clean, DRY system with extensible flag-based service selection
 - **Three-Command Development Workflow**:
-  - `valksor:dev` - Lightweight development (SSE + hot reload)
-  - `valksor:watch` - Full development environment (all services in parallel)
-  - `valksor-prod:build` - Production asset building
+    - `valksor:dev` - Lightweight development (SSE + hot reload)
+    - `valksor:watch` - Full development environment (all services in parallel)
+    - `valksor-prod:build` - Production asset building
 - **Provider System**: Extensible architecture with service ordering and dependency resolution
 - **Hot Reloading**: Automatic browser reload on file changes using inotify
 - **Asset Management**: Integrated support for ESBuild, Tailwind CSS, and DaisyUI
@@ -25,12 +25,23 @@ A comprehensive development build tool suite for PHP applications that provides 
 ## Requirements
 
 - **PHP 8.4 or higher**
-- **inotify extension** (for file watching)
+- **inotify extension** (for file watching - Linux only)
 - **PCNTL extension** (for process management)
 - **POSIX extension**
 - **Symfony Framework** (7.2.0 or higher)
 - **Valksor Bundle** (valksor/php-bundle)
 - **Valksor SSE Component** (valksor/php-sse)
+
+### Platform Requirements
+
+⚠️ **Linux Only Required**
+
+The ValkDev Build Tools require **Linux** due to their dependency on the **inotify** extension for efficient file system monitoring.
+
+- **inotify** is a Linux kernel subsystem available only on Linux platforms
+- File watching is essential for the hot reload, Tailwind compilation, and development workflow features
+- These build tools are not compatible with Windows or macOS
+- All core functionality (hot reload, asset compilation, import map management) depends on real-time file monitoring
 
 ## Installation
 
@@ -121,6 +132,49 @@ php bin/console valksor:binary
 # Install binaries
 php bin/console valksor:binaries:install
 ```
+
+### Project Structure Support
+
+The build system automatically detects and supports both single-app and multi-app Symfony projects:
+
+#### Single-App Projects (Default)
+
+For standard Symfony applications, the build system works out of the box with default configuration:
+
+```yaml
+# config/packages/valksor.yaml
+valksor:
+    build:
+        # Single-app projects use default (null) values
+        project:
+            apps_dir: null          # No separate apps directory
+            infrastructure_dir: null # No separate infrastructure directory
+```
+
+**How it works:**
+- Tailwind and Importmap providers automatically discover files in standard Symfony directories:
+    - `src/assets/styles/`, `assets/styles/`, `assets/css/`
+    - `src/assets/js/`, `assets/js/`
+- No additional configuration needed - works with default Symfony project structure
+
+#### Advanced: Multi-App Projects
+
+For complex projects with multiple applications:
+
+```yaml
+# config/packages/valksor.yaml
+valksor:
+    build:
+        project:
+            apps_dir: 'apps'           # Directory containing multiple apps
+            infrastructure_dir: 'infrastructure' # Shared infrastructure code
+```
+
+**How it changes discovery:**
+- Tailwind: Searches for `*.tailwind.css` files in each app directory
+- Importmap: Generates separate import maps for each app
+- Icons: Processes icons per application
+- Services: Can run across multiple apps simultaneously
 
 ### Service Registry Architecture
 
@@ -705,6 +759,54 @@ valksor:
             debug: true
 ```
 
+
+## Platform Limitations
+
+### Linux-Only Architecture
+
+The ValkDev Build Tools are specifically designed for **Linux development environments** and do not support Windows or macOS.
+
+#### Why Linux Only?
+
+- **inotify Dependency**: Core functionality depends on the inotify Linux kernel subsystem
+- **Real-time File Monitoring**: Hot reload, asset compilation, and import map sync all require instant file change notifications
+- **Process Management**: Uses Linux-specific process control and signal handling
+- **Performance Optimized**: Built around Linux file system semantics and process architecture
+
+#### Inotify Requirements
+
+- **Linux kernel 2.6.13+** (minimum version with inotify support)
+- **inotify PHP extension** installed and enabled
+- **Sufficient inotify limits** (adjustable via `/proc/sys/fs/inotify/max_user_watches`)
+- **File system permissions** for monitored directories
+
+#### System Limits
+
+For optimal performance, ensure adequate system limits:
+
+```bash
+# Check current inotify watch limit
+cat /proc/sys/fs/inotify/max_user_watches
+
+# Increase limit if needed (requires root)
+echo 'fs.inotify.max_user_watches=524288' | sudo tee -a /etc/sysctl.conf
+sudo sysctl -p
+```
+
+#### Alternatives for Other Platforms
+
+If you're developing on Windows or macOS, consider these alternatives:
+
+- **WSL 2 (Windows)**: Windows Subsystem for Linux 2 provides full Linux compatibility
+- **Docker**: Run the build tools in a Linux container with volume mounts
+- **Virtual Machines**: Use a Linux VM for development
+- **Cloud IDEs**: Browser-based IDEs running on Linux servers
+
+#### Performance Considerations
+
+- **File Handle Limits**: Monitor and adjust inotify limits for large projects
+- **Memory Usage**: File watchers consume memory proportional to watched files
+- **I/O Performance**: SSD storage recommended for optimal file watching performance
 
 ## Contributing
 

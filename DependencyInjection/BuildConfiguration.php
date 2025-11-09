@@ -13,6 +13,8 @@
 namespace ValksorDev\Build\DependencyInjection;
 
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Valksor\Bundle\DependencyInjection\AbstractDependencyConfiguration;
 use Valksor\Bundle\ValksorBundle;
 
@@ -29,6 +31,7 @@ class BuildConfiguration extends AbstractDependencyConfiguration
             ->children()
                 ->arrayNode($component)
                     ->{$enableIfStandalone(sprintf('%s/%s', ValksorBundle::VALKSOR, $component), self::class)}()
+                    ->addDefaultsIfNotSet()
                     ->children()
                         // Service registry with extensible flag system
                         ->arrayNode('services')
@@ -138,7 +141,7 @@ class BuildConfiguration extends AbstractDependencyConfiguration
                                                 ],
                                             ],
                                         ])
-                                        ->defaultValue([])
+                                        ->defaultValue(self::getDefaults())
                                     ->end()
                                 ->end()
                             ->end()
@@ -146,5 +149,71 @@ class BuildConfiguration extends AbstractDependencyConfiguration
                     ->end()
                 ->end()
             ->end();
+    }
+
+    public function registerPreConfiguration(
+        ContainerConfigurator $container,
+        ContainerBuilder $builder,
+        string $component,
+    ): void {
+        if ($builder->hasExtension('framework')) {
+            $builder->prependExtensionConfig('framework', [
+                'asset_mapper' => [
+                    'excluded_patterns' => [
+                        '**/*.tailwind.css',
+                    ],
+                ],
+            ]);
+        }
+    }
+
+    public static function getDefaults(): array
+    {
+        return [
+            'binaries' => [
+                'enabled' => true,
+                'provider' => 'binaries',
+                'flags' => ['init' => true, 'dev' => false, 'prod' => true],
+                'options' => [
+                    'required' => ['tailwindcss', 'esbuild', ],
+                    'cache_duration' => 3600,
+                ],
+            ],
+            'icons' => [
+                'enabled' => true,
+                'provider' => 'icons',
+                'flags' => ['init' => true, 'dev' => false, 'prod' => true],
+                'options' => [],
+            ],
+            'assets' => [
+                'enabled' => true,
+                'provider' => 'assets',
+                'flags' => ['init' => false, 'dev' => false, 'prod' => true],
+                'options' => [],
+            ],
+            'tailwind' => [
+                'enabled' => true,
+                'provider' => 'tailwind',
+                'flags' => ['init' => false, 'dev' => true, 'prod' => true],
+                'options' => ['minify' => false, ],
+            ],
+            'importmap' => [
+                'enabled' => true,
+                'provider' => 'importmap',
+                'flags' => ['init' => false, 'dev' => true, 'prod' => true],
+                'options' => ['watch' => true, 'minify' => false],
+            ],
+            'hot_reload' => [
+                'enabled' => true,
+                'provider' => 'hot_reload',
+                'flags' => ['init' => false, 'dev' => true, 'prod' => false],
+                'options' => [
+                    'debounce_delay' => 0.3,
+                    'watch_dirs' => ['/src', '/templates'],
+                    'file_transformations' => ['*.tailwind.css' => ['output_pattern' => '{path}/{name}.css', 'debounce_delay' => 0.5, 'track_output' => true]],
+                    'extended_suffixes' => ['.tailwind.css' => 0.5, '.min.css' => 0.3],
+                ],
+            ],
+        ];
     }
 }

@@ -20,6 +20,7 @@ use ValksorDev\Build\Util\ConsoleCommandBuilder;
 
 use function array_filter;
 use function is_dir;
+use function rtrim;
 use function scandir;
 
 use const SCANDIR_SORT_ASCENDING;
@@ -49,7 +50,7 @@ final class ImportmapProvider implements ProviderInterface, IoAwareInterface
         $projectDir = $this->parameterBag->get('kernel.project_dir');
         $appsDir = $projectDir . '/' . $this->parameterBag->get('valksor.project.apps_dir');
 
-        if (is_dir($appsDir)) {
+        if (is_dir($appsDir) && rtrim($projectDir, '/') !== rtrim($appsDir, '/')) {
             $apps = array_filter(scandir($appsDir, SCANDIR_SORT_ASCENDING), static function ($item) use ($appsDir) {
                 $appPath = $appsDir . '/' . $item;
 
