@@ -34,6 +34,7 @@ final class ImportmapProvider implements ProviderInterface, IoAwareInterface
     public function __construct(
         private readonly ParameterBagInterface $parameterBag,
         private readonly ConsoleCommandBuilder $commandBuilder,
+        private readonly ProcessManager $processManager,
     ) {
     }
 
@@ -61,7 +62,7 @@ final class ImportmapProvider implements ProviderInterface, IoAwareInterface
                     'minify' => $shouldMinify,
                 ]);
 
-                $exitCode = ProcessManager::executeProcess($arguments, false, 'Importmap build for app ' . $app);
+                $exitCode = $this->processManager->executeProcess($arguments, false, 'Importmap build for app ' . $app);
 
                 if (Command::SUCCESS !== $exitCode) {
                     return Command::FAILURE;
@@ -73,7 +74,7 @@ final class ImportmapProvider implements ProviderInterface, IoAwareInterface
                 'minify' => $shouldMinify,
             ]);
 
-            return ProcessManager::executeProcess($arguments, false, 'Importmap build');
+            return $this->processManager->executeProcess($arguments, false, 'Importmap build');
         }
 
         return Command::SUCCESS;
@@ -114,6 +115,6 @@ final class ImportmapProvider implements ProviderInterface, IoAwareInterface
         ]);
         $isInteractive = $options['interactive'] ?? true;
 
-        return ProcessManager::executeProcess($arguments, $isInteractive, 'Importmap service');
+        return $this->processManager->executeProcess($arguments, $isInteractive, 'Importmap service');
     }
 }

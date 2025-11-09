@@ -20,6 +20,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Process\Process;
 use ValksorDev\Build\Provider\IoAwareInterface;
 use ValksorDev\Build\Provider\ProviderRegistry;
+use ValksorDev\Build\Util\ConsoleCommandBuilder;
 
 use function array_keys;
 use function count;
@@ -91,6 +92,7 @@ final class DevService
     public function __construct(
         private readonly ParameterBagInterface $parameterBag,
         private readonly ProviderRegistry $providerRegistry,
+        private readonly ConsoleCommandBuilder $commandBuilder,
     ) {
     }
 
@@ -446,7 +448,7 @@ final class DevService
      */
     private function runSseCommand(): int
     {
-        $process = new Process(['php', 'bin/console', 'valksor:sse']);
+        $process = $this->commandBuilder->build('valksor:sse');
 
         // Start SSE server in background (non-blocking)
         $process->start();

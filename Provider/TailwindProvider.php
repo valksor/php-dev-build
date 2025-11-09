@@ -15,7 +15,6 @@ namespace ValksorDev\Build\Provider;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
-use Symfony\Component\Process\Process;
 use ValksorDev\Build\Service\ProcessManager;
 use ValksorDev\Build\Util\ConsoleCommandBuilder;
 
@@ -35,6 +34,7 @@ final class TailwindProvider implements ProviderInterface, IoAwareInterface
     public function __construct(
         private readonly ParameterBagInterface $parameterBag,
         private readonly ConsoleCommandBuilder $commandBuilder,
+        private readonly ProcessManager $processManager,
     ) {
     }
 
@@ -119,6 +119,6 @@ final class TailwindProvider implements ProviderInterface, IoAwareInterface
         ]);
         $isInteractive = $options['interactive'] ?? true;
 
-        return ProcessManager::executeProcess($arguments, $isInteractive, 'Tailwind service');
+        return $this->processManager->executeProcess($arguments, $isInteractive, 'Tailwind service');
     }
 }

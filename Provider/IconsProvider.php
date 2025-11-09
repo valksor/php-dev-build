@@ -13,7 +13,7 @@
 namespace ValksorDev\Build\Provider;
 
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Process\Process;
+use ValksorDev\Build\Util\ConsoleCommandBuilder;
 
 /**
  * Provider for icon generation service.
@@ -21,6 +21,11 @@ use Symfony\Component\Process\Process;
  */
 final class IconsProvider implements ProviderInterface
 {
+    public function __construct(
+        private readonly ConsoleCommandBuilder $commandBuilder,
+    ) {
+    }
+
     public function build(
         array $options,
     ): int {
@@ -47,7 +52,7 @@ final class IconsProvider implements ProviderInterface
         array $options,
     ): void {
         // Generate icon templates
-        $process = new Process(['php', 'bin/console', 'valksor:icons']);
+        $process = $this->commandBuilder->build('valksor:icons');
         $process->run();
     }
 

@@ -13,8 +13,8 @@
 namespace ValksorDev\Build\Provider;
 
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Process\Process;
 use Valksor\Component\Sse\Helper;
+use ValksorDev\Build\Util\ConsoleCommandBuilder;
 
 use function dirname;
 use function filemtime;
@@ -31,6 +31,11 @@ final class BinariesProvider implements ProviderInterface
 {
     use Helper;
 
+    public function __construct(
+        private readonly ConsoleCommandBuilder $commandBuilder,
+    ) {
+    }
+
     public function build(
         array $options,
     ): int {
@@ -45,7 +50,7 @@ final class BinariesProvider implements ProviderInterface
         }
 
         // Ensure binaries are available
-        $process = new Process(['php', 'bin/console', 'valksor:binaries:install']);
+        $process = $this->commandBuilder->build('valksor:binaries:install');
         $process->run();
 
         if (!$process->isSuccessful()) {
@@ -90,7 +95,7 @@ final class BinariesProvider implements ProviderInterface
         }
 
         // Download/ensure binaries are available
-        $process = new Process(['php', 'bin/console', 'valksor:binaries:install']);
+        $process = $this->commandBuilder->build('valksor:binaries:install');
         $process->run();
 
         // Update cache timestamp after successful check

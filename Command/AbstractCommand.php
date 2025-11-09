@@ -23,6 +23,7 @@ use Valksor\Bundle\Command\AbstractCommand as BundleAbstractCommand;
 use Valksor\Component\Sse\Helper;
 use ValksorDev\Build\Provider\IoAwareInterface;
 use ValksorDev\Build\Provider\ProviderRegistry;
+use ValksorDev\Build\Util\ConsoleCommandBuilder;
 
 use function method_exists;
 use function usleep;
@@ -75,6 +76,7 @@ abstract class AbstractCommand extends BundleAbstractCommand
     public function __construct(
         ParameterBagInterface $parameterBag,
         protected readonly ProviderRegistry $providerRegistry,
+        protected readonly ?ConsoleCommandBuilder $commandBuilder = null,
     ) {
         parent::__construct($parameterBag);
     }
@@ -209,7 +211,12 @@ abstract class AbstractCommand extends BundleAbstractCommand
      */
     protected function runSseCommand(): int
     {
-        $process = new Process(['php', 'bin/console', 'valksor:sse']);
+        // Use ConsoleCommandBuilder if available, otherwise fall back to manual construction
+        if ($this->commandBuilder) {
+            $process = $this->commandBuilder->build('valksor:sse');
+        } else {
+            $process = new Process(['php', 'bin/console', 'valksor:sse']);
+        }
 
         // Start SSE server in background (non-blocking)
         $process->start();

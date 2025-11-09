@@ -15,7 +15,7 @@ namespace ValksorDev\Build\Provider;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
-use Symfony\Component\Process\Process;
+use ValksorDev\Build\Util\ConsoleCommandBuilder;
 
 use function trim;
 
@@ -27,11 +27,16 @@ final class AssetsProvider implements ProviderInterface, IoAwareInterface
 {
     private ?SymfonyStyle $io = null;
 
+    public function __construct(
+        private readonly ConsoleCommandBuilder $commandBuilder,
+    ) {
+    }
+
     public function build(
         array $options,
     ): int {
         // Step 1: Install bundle web assets (relative links)
-        $process1 = new Process(['php', 'bin/console', 'assets:install', '--relative', '--no-interaction']);
+        $process1 = $this->commandBuilder->build('assets:install', ['--relative', '--no-interaction']);
         $process1->run();
 
         if (!$process1->isSuccessful()) {
@@ -41,7 +46,7 @@ final class AssetsProvider implements ProviderInterface, IoAwareInterface
         }
 
         // Step 2: Download/import JavaScript dependencies
-        $process2 = new Process(['php', 'bin/console', 'importmap:install', '--no-interaction']);
+        $process2 = $this->commandBuilder->build('importmap:install', ['--no-interaction']);
         $process2->run();
 
         if (!$process2->isSuccessful()) {
@@ -51,7 +56,7 @@ final class AssetsProvider implements ProviderInterface, IoAwareInterface
         }
 
         // Step 3: Compile all mapped assets to final output directory
-        $process3 = new Process(['php', 'bin/console', 'asset-map:compile', '--no-interaction']);
+        $process3 = $this->commandBuilder->build('asset-map:compile', ['--no-interaction']);
         $process3->run();
 
         if (!$process3->isSuccessful()) {

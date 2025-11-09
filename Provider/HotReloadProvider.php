@@ -23,6 +23,7 @@ final class HotReloadProvider implements ProviderInterface
 {
     public function __construct(
         private readonly ConsoleCommandBuilder $commandBuilder,
+        private readonly ProcessManager $processManager,
     ) {
     }
 
@@ -62,6 +63,6 @@ final class HotReloadProvider implements ProviderInterface
         $arguments = $this->commandBuilder->buildArguments('valksor:hot-reload');
         $isInteractive = $options['interactive'] ?? true;
 
-        return ProcessManager::executeProcess($arguments, $isInteractive, 'Hot reload service');
+        return $this->processManager->executeProcess($arguments, $isInteractive, 'Hot reload service');
     }
 }

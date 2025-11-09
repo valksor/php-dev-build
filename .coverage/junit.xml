@@ -1,176 +1,385 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <testsuites>
-  <testsuite name="/var/www/html/valksor-dev/src/ValksorDev/Build/phpunit.xml" tests="136" assertions="196" errors="0" failures="0" skipped="1" time="0.001000">
-    <testsuite name="Valksor Bundle" tests="136" assertions="196" errors="0" failures="0" skipped="1" time="0.001000">
-      <testsuite name="ValksorDev\Build\Tests\AbstractCommandTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/AbstractCommandTest.php" tests="5" assertions="6" errors="0" failures="0" skipped="0" time="0.001000">
-        <testcase name="testCommandInheritance" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/AbstractCommandTest.php" line="31" class="ValksorDev\Build\Tests\AbstractCommandTest" classname="ValksorDev.Build.Tests.AbstractCommandTest" assertions="2" time="0.001000"/>
-        <testcase name="testGetProviderRegistry" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/AbstractCommandTest.php" line="45" class="ValksorDev\Build\Tests\AbstractCommandTest" classname="ValksorDev.Build.Tests.AbstractCommandTest" assertions="1" time="0.001000"/>
-        <testcase name="testWithDifferentProviderRegistry" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/AbstractCommandTest.php" line="57" class="ValksorDev\Build\Tests\AbstractCommandTest" classname="ValksorDev.Build.Tests.AbstractCommandTest" assertions="1" time="0.001000"/>
-        <testcase name="testWithEmptyParameterBag" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/AbstractCommandTest.php" line="71" class="ValksorDev\Build\Tests\AbstractCommandTest" classname="ValksorDev.Build.Tests.AbstractCommandTest" assertions="1" time="0.001000"/>
-        <testcase name="testWithProductionEnvironment" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/AbstractCommandTest.php" line="83" class="ValksorDev\Build\Tests\AbstractCommandTest" classname="ValksorDev.Build.Tests.AbstractCommandTest" assertions="1" time="0.001000"/>
+  <testsuite name="/var/www/html/valksor-dev/src/ValksorDev/Build/phpunit.xml" tests="136" assertions="163" errors="35" failures="0" skipped="1" time="0.710139">
+    <testsuite name="Valksor Bundle" tests="136" assertions="163" errors="35" failures="0" skipped="1" time="0.710139">
+      <testsuite name="ValksorDev\Build\Tests\AbstractCommandTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/AbstractCommandTest.php" tests="5" assertions="6" errors="0" failures="0" skipped="0" time="0.022029">
+        <testcase name="testCommandInheritance" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/AbstractCommandTest.php" line="31" class="ValksorDev\Build\Tests\AbstractCommandTest" classname="ValksorDev.Build.Tests.AbstractCommandTest" assertions="2" time="0.020645"/>
+        <testcase name="testGetProviderRegistry" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/AbstractCommandTest.php" line="45" class="ValksorDev\Build\Tests\AbstractCommandTest" classname="ValksorDev.Build.Tests.AbstractCommandTest" assertions="1" time="0.000404"/>
+        <testcase name="testWithDifferentProviderRegistry" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/AbstractCommandTest.php" line="57" class="ValksorDev\Build\Tests\AbstractCommandTest" classname="ValksorDev.Build.Tests.AbstractCommandTest" assertions="1" time="0.000325"/>
+        <testcase name="testWithEmptyParameterBag" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/AbstractCommandTest.php" line="71" class="ValksorDev\Build\Tests\AbstractCommandTest" classname="ValksorDev.Build.Tests.AbstractCommandTest" assertions="1" time="0.000341"/>
+        <testcase name="testWithProductionEnvironment" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/AbstractCommandTest.php" line="83" class="ValksorDev\Build\Tests\AbstractCommandTest" classname="ValksorDev.Build.Tests.AbstractCommandTest" assertions="1" time="0.000313"/>
       </testsuite>
-      <testsuite name="ValksorDev\Build\Tests\BinaryAssetManagerTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryAssetManagerTest.php" tests="11" assertions="21" errors="0" failures="0" skipped="0" time="0.001000">
-        <testcase name="testAssetsPresent" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryAssetManagerTest.php" line="35" class="ValksorDev\Build\Tests\BinaryAssetManagerTest" classname="ValksorDev.Build.Tests.BinaryAssetManagerTest" assertions="3" time="0.001000"/>
-        <testcase name="testConstructorWithValidConfig" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryAssetManagerTest.php" line="65" class="ValksorDev\Build\Tests\BinaryAssetManagerTest" classname="ValksorDev.Build.Tests.BinaryAssetManagerTest" assertions="0" time="0.001000"/>
-        <testcase name="testEnsureDirectory" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryAssetManagerTest.php" line="84" class="ValksorDev\Build\Tests\BinaryAssetManagerTest" classname="ValksorDev.Build.Tests.BinaryAssetManagerTest" assertions="3" time="0.001000"/>
-        <testcase name="testEnsureLatestWithExistingCurrentVersion" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryAssetManagerTest.php" line="112" class="ValksorDev\Build\Tests\BinaryAssetManagerTest" classname="ValksorDev.Build.Tests.BinaryAssetManagerTest" assertions="1" time="0.001000"/>
-        <testcase name="testEnsureLatestWithGithubZipSource" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryAssetManagerTest.php" line="143" class="ValksorDev\Build\Tests\BinaryAssetManagerTest" classname="ValksorDev.Build.Tests.BinaryAssetManagerTest" assertions="1" time="0.001000"/>
-        <testcase name="testEnsureLatestWithNoExistingAssets" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryAssetManagerTest.php" line="163" class="ValksorDev\Build\Tests\BinaryAssetManagerTest" classname="ValksorDev.Build.Tests.BinaryAssetManagerTest" assertions="1" time="0.001000"/>
-        <testcase name="testEnsureLatestWithNpmSource" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryAssetManagerTest.php" line="186" class="ValksorDev\Build\Tests\BinaryAssetManagerTest" classname="ValksorDev.Build.Tests.BinaryAssetManagerTest" assertions="1" time="0.001000"/>
-        <testcase name="testGetLatestReleaseWithInvalidGithubResponse" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryAssetManagerTest.php" line="206" class="ValksorDev\Build\Tests\BinaryAssetManagerTest" classname="ValksorDev.Build.Tests.BinaryAssetManagerTest" assertions="1" time="0.001000"/>
-        <testcase name="testLogFunctionality" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryAssetManagerTest.php" line="228" class="ValksorDev\Build\Tests\BinaryAssetManagerTest" classname="ValksorDev.Build.Tests.BinaryAssetManagerTest" assertions="2" time="0.001000"/>
-        <testcase name="testVersionFileOperations" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryAssetManagerTest.php" line="259" class="ValksorDev\Build\Tests\BinaryAssetManagerTest" classname="ValksorDev.Build.Tests.BinaryAssetManagerTest" assertions="4" time="0.001000"/>
-        <testcase name="testWriteVersionFile" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryAssetManagerTest.php" line="302" class="ValksorDev\Build\Tests\BinaryAssetManagerTest" classname="ValksorDev.Build.Tests.BinaryAssetManagerTest" assertions="4" time="0.001000"/>
+      <testsuite name="ValksorDev\Build\Tests\BinaryAssetManagerTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryAssetManagerTest.php" tests="11" assertions="21" errors="0" failures="0" skipped="0" time="0.558176">
+        <testcase name="testAssetsPresent" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryAssetManagerTest.php" line="35" class="ValksorDev\Build\Tests\BinaryAssetManagerTest" classname="ValksorDev.Build.Tests.BinaryAssetManagerTest" assertions="3" time="0.001986"/>
+        <testcase name="testConstructorWithValidConfig" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryAssetManagerTest.php" line="65" class="ValksorDev\Build\Tests\BinaryAssetManagerTest" classname="ValksorDev.Build.Tests.BinaryAssetManagerTest" assertions="0" time="0.000394"/>
+        <testcase name="testEnsureDirectory" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryAssetManagerTest.php" line="84" class="ValksorDev\Build\Tests\BinaryAssetManagerTest" classname="ValksorDev.Build.Tests.BinaryAssetManagerTest" assertions="3" time="0.001041"/>
+        <testcase name="testEnsureLatestWithExistingCurrentVersion" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryAssetManagerTest.php" line="112" class="ValksorDev\Build\Tests\BinaryAssetManagerTest" classname="ValksorDev.Build.Tests.BinaryAssetManagerTest" assertions="1" time="0.114833"/>
+        <testcase name="testEnsureLatestWithGithubZipSource" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryAssetManagerTest.php" line="143" class="ValksorDev\Build\Tests\BinaryAssetManagerTest" classname="ValksorDev.Build.Tests.BinaryAssetManagerTest" assertions="1" time="0.111270"/>
+        <testcase name="testEnsureLatestWithNoExistingAssets" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryAssetManagerTest.php" line="163" class="ValksorDev\Build\Tests\BinaryAssetManagerTest" classname="ValksorDev.Build.Tests.BinaryAssetManagerTest" assertions="1" time="0.109189"/>
+        <testcase name="testEnsureLatestWithNpmSource" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryAssetManagerTest.php" line="186" class="ValksorDev\Build\Tests\BinaryAssetManagerTest" classname="ValksorDev.Build.Tests.BinaryAssetManagerTest" assertions="1" time="0.096809"/>
+        <testcase name="testGetLatestReleaseWithInvalidGithubResponse" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryAssetManagerTest.php" line="206" class="ValksorDev\Build\Tests\BinaryAssetManagerTest" classname="ValksorDev.Build.Tests.BinaryAssetManagerTest" assertions="1" time="0.119357"/>
+        <testcase name="testLogFunctionality" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryAssetManagerTest.php" line="228" class="ValksorDev\Build\Tests\BinaryAssetManagerTest" classname="ValksorDev.Build.Tests.BinaryAssetManagerTest" assertions="2" time="0.001245"/>
+        <testcase name="testVersionFileOperations" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryAssetManagerTest.php" line="259" class="ValksorDev\Build\Tests\BinaryAssetManagerTest" classname="ValksorDev.Build.Tests.BinaryAssetManagerTest" assertions="4" time="0.001466"/>
+        <testcase name="testWriteVersionFile" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryAssetManagerTest.php" line="302" class="ValksorDev\Build\Tests\BinaryAssetManagerTest" classname="ValksorDev.Build.Tests.BinaryAssetManagerTest" assertions="4" time="0.000586"/>
       </testsuite>
-      <testsuite name="ValksorDev\Build\Tests\BinaryEnsureCommandTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryEnsureCommandTest.php" tests="6" assertions="9" errors="0" failures="0" skipped="0" time="0.001000">
-        <testcase name="testCommandConfiguration" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryEnsureCommandTest.php" line="37" class="ValksorDev\Build\Tests\BinaryEnsureCommandTest" classname="ValksorDev.Build.Tests.BinaryEnsureCommandTest" assertions="2" time="0.001000"/>
-        <testcase name="testCommandExecutionRequiresValidTool" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryEnsureCommandTest.php" line="46" class="ValksorDev\Build\Tests\BinaryEnsureCommandTest" classname="ValksorDev.Build.Tests.BinaryEnsureCommandTest" assertions="1" time="0.001000"/>
-        <testcase name="testCommandExecutionWithValidTool" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryEnsureCommandTest.php" line="61" class="ValksorDev\Build\Tests\BinaryEnsureCommandTest" classname="ValksorDev.Build.Tests.BinaryEnsureCommandTest" assertions="1" time="0.001000"/>
-        <testcase name="testCommandHasRequiredToolArgument" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryEnsureCommandTest.php" line="74" class="ValksorDev\Build\Tests\BinaryEnsureCommandTest" classname="ValksorDev.Build.Tests.BinaryEnsureCommandTest" assertions="2" time="0.001000"/>
-        <testcase name="testCommandInApplication" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryEnsureCommandTest.php" line="81" class="ValksorDev\Build\Tests\BinaryEnsureCommandTest" classname="ValksorDev.Build.Tests.BinaryEnsureCommandTest" assertions="1" time="0.001000"/>
-        <testcase name="testConfigureWithAvailableBinaries" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryEnsureCommandTest.php" line="90" class="ValksorDev\Build\Tests\BinaryEnsureCommandTest" classname="ValksorDev.Build.Tests.BinaryEnsureCommandTest" assertions="2" time="0.001000"/>
+      <testsuite name="ValksorDev\Build\Tests\BinaryEnsureCommandTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryEnsureCommandTest.php" tests="6" assertions="9" errors="0" failures="0" skipped="0" time="0.029169">
+        <testcase name="testCommandConfiguration" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryEnsureCommandTest.php" line="37" class="ValksorDev\Build\Tests\BinaryEnsureCommandTest" classname="ValksorDev.Build.Tests.BinaryEnsureCommandTest" assertions="2" time="0.002768"/>
+        <testcase name="testCommandExecutionRequiresValidTool" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryEnsureCommandTest.php" line="46" class="ValksorDev\Build\Tests\BinaryEnsureCommandTest" classname="ValksorDev.Build.Tests.BinaryEnsureCommandTest" assertions="1" time="0.016832"/>
+        <testcase name="testCommandExecutionWithValidTool" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryEnsureCommandTest.php" line="61" class="ValksorDev\Build\Tests\BinaryEnsureCommandTest" classname="ValksorDev.Build.Tests.BinaryEnsureCommandTest" assertions="1" time="0.000736"/>
+        <testcase name="testCommandHasRequiredToolArgument" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryEnsureCommandTest.php" line="74" class="ValksorDev\Build\Tests\BinaryEnsureCommandTest" classname="ValksorDev.Build.Tests.BinaryEnsureCommandTest" assertions="2" time="0.000369"/>
+        <testcase name="testCommandInApplication" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryEnsureCommandTest.php" line="81" class="ValksorDev\Build\Tests\BinaryEnsureCommandTest" classname="ValksorDev.Build.Tests.BinaryEnsureCommandTest" assertions="1" time="0.006399"/>
+        <testcase name="testConfigureWithAvailableBinaries" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryEnsureCommandTest.php" line="90" class="ValksorDev\Build\Tests\BinaryEnsureCommandTest" classname="ValksorDev.Build.Tests.BinaryEnsureCommandTest" assertions="2" time="0.002065"/>
       </testsuite>
-      <testsuite name="ValksorDev\Build\Tests\BinaryRegistryTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryRegistryTest.php" tests="7" assertions="15" errors="0" failures="0" skipped="0" time="0.001000">
-        <testcase name="testGetAvailableNames" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryRegistryTest.php" line="30" class="ValksorDev\Build\Tests\BinaryRegistryTest" classname="ValksorDev.Build.Tests.BinaryRegistryTest" assertions="2" time="0.001000"/>
-        <testcase name="testGetExistingProvider" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryRegistryTest.php" line="37" class="ValksorDev\Build\Tests\BinaryRegistryTest" classname="ValksorDev.Build.Tests.BinaryRegistryTest" assertions="1" time="0.001000"/>
-        <testcase name="testGetNonExistentProviderThrowsException" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryRegistryTest.php" line="43" class="ValksorDev\Build\Tests\BinaryRegistryTest" classname="ValksorDev.Build.Tests.BinaryRegistryTest" assertions="2" time="0.001000"/>
-        <testcase name="testHasProvider" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryRegistryTest.php" line="51" class="ValksorDev\Build\Tests\BinaryRegistryTest" classname="ValksorDev.Build.Tests.BinaryRegistryTest" assertions="2" time="0.001000"/>
-        <testcase name="testMultipleProvidersRegistration" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryRegistryTest.php" line="57" class="ValksorDev\Build\Tests\BinaryRegistryTest" classname="ValksorDev.Build.Tests.BinaryRegistryTest" assertions="3" time="0.001000"/>
-        <testcase name="testProviderOverride" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryRegistryTest.php" line="72" class="ValksorDev\Build\Tests\BinaryRegistryTest" classname="ValksorDev.Build.Tests.BinaryRegistryTest" assertions="3" time="0.001000"/>
-        <testcase name="testRegisterProvider" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryRegistryTest.php" line="84" class="ValksorDev\Build\Tests\BinaryRegistryTest" classname="ValksorDev.Build.Tests.BinaryRegistryTest" assertions="2" time="0.001000"/>
+      <testsuite name="ValksorDev\Build\Tests\BinaryRegistryTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryRegistryTest.php" tests="7" assertions="15" errors="0" failures="0" skipped="0" time="0.002469">
+        <testcase name="testGetAvailableNames" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryRegistryTest.php" line="30" class="ValksorDev\Build\Tests\BinaryRegistryTest" classname="ValksorDev.Build.Tests.BinaryRegistryTest" assertions="2" time="0.000335"/>
+        <testcase name="testGetExistingProvider" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryRegistryTest.php" line="37" class="ValksorDev\Build\Tests\BinaryRegistryTest" classname="ValksorDev.Build.Tests.BinaryRegistryTest" assertions="1" time="0.000298"/>
+        <testcase name="testGetNonExistentProviderThrowsException" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryRegistryTest.php" line="43" class="ValksorDev\Build\Tests\BinaryRegistryTest" classname="ValksorDev.Build.Tests.BinaryRegistryTest" assertions="2" time="0.000295"/>
+        <testcase name="testHasProvider" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryRegistryTest.php" line="51" class="ValksorDev\Build\Tests\BinaryRegistryTest" classname="ValksorDev.Build.Tests.BinaryRegistryTest" assertions="2" time="0.000304"/>
+        <testcase name="testMultipleProvidersRegistration" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryRegistryTest.php" line="57" class="ValksorDev\Build\Tests\BinaryRegistryTest" classname="ValksorDev.Build.Tests.BinaryRegistryTest" assertions="3" time="0.000475"/>
+        <testcase name="testProviderOverride" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryRegistryTest.php" line="72" class="ValksorDev\Build\Tests\BinaryRegistryTest" classname="ValksorDev.Build.Tests.BinaryRegistryTest" assertions="3" time="0.000431"/>
+        <testcase name="testRegisterProvider" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/BinaryRegistryTest.php" line="84" class="ValksorDev\Build\Tests\BinaryRegistryTest" classname="ValksorDev.Build.Tests.BinaryRegistryTest" assertions="2" time="0.000331"/>
       </testsuite>
-      <testsuite name="ValksorDev\Build\Tests\DevCommandTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php" tests="8" assertions="6" errors="0" failures="0" skipped="0" time="0.001000">
-        <testcase name="testCommandConfiguration" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php" line="37" class="ValksorDev\Build\Tests\DevCommandTest" classname="ValksorDev.Build.Tests.DevCommandTest" assertions="2" time="0.001000"/>
-        <testcase name="testCommandDescription" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php" line="46" class="ValksorDev\Build\Tests\DevCommandTest" classname="ValksorDev.Build.Tests.DevCommandTest" assertions="1" time="0.001000"/>
-        <testcase name="testCommandExecution" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php" line="56" class="ValksorDev\Build\Tests\DevCommandTest" classname="ValksorDev.Build.Tests.DevCommandTest" assertions="1" time="0.001000"/>
-        <testcase name="testCommandName" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php" line="75" class="ValksorDev\Build\Tests\DevCommandTest" classname="ValksorDev.Build.Tests.DevCommandTest" assertions="1" time="0.001000"/>
-        <testcase name="testGetProviderRegistry" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php" line="85" class="ValksorDev\Build\Tests\DevCommandTest" classname="ValksorDev.Build.Tests.DevCommandTest" assertions="1" time="0.001000"/>
-        <testcase name="testWithDifferentDevService" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php" line="95" class="ValksorDev\Build\Tests\DevCommandTest" classname="ValksorDev.Build.Tests.DevCommandTest" assertions="0" time="0.001000"/>
-        <testcase name="testWithEmptyServices" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php" line="108" class="ValksorDev\Build\Tests\DevCommandTest" classname="ValksorDev.Build.Tests.DevCommandTest" assertions="0" time="0.001000"/>
-        <testcase name="testWithProductionEnvironment" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php" line="121" class="ValksorDev\Build\Tests\DevCommandTest" classname="ValksorDev.Build.Tests.DevCommandTest" assertions="0" time="0.001000"/>
+      <testsuite name="ValksorDev\Build\Tests\DevCommandTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php" tests="8" assertions="0" errors="8" failures="0" skipped="0" time="0.000000">
+        <testcase name="testCommandConfiguration" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php" line="37" class="ValksorDev\Build\Tests\DevCommandTest" classname="ValksorDev.Build.Tests.DevCommandTest" assertions="0" time="0.000000">
+          <error type="ArgumentCountError">ValksorDev\Build\Tests\DevCommandTest::testCommandConfiguration
+ArgumentCountError: Too few arguments to function ValksorDev\Build\Service\DevService::__construct(), 2 passed in /var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php on line 156 and exactly 3 expected
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Service/DevService.php:95
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php:156</error>
+        </testcase>
+        <testcase name="testCommandDescription" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php" line="46" class="ValksorDev\Build\Tests\DevCommandTest" classname="ValksorDev.Build.Tests.DevCommandTest" assertions="0" time="0.000000">
+          <error type="ArgumentCountError">ValksorDev\Build\Tests\DevCommandTest::testCommandDescription
+ArgumentCountError: Too few arguments to function ValksorDev\Build\Service\DevService::__construct(), 2 passed in /var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php on line 156 and exactly 3 expected
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Service/DevService.php:95
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php:156</error>
+        </testcase>
+        <testcase name="testCommandExecution" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php" line="56" class="ValksorDev\Build\Tests\DevCommandTest" classname="ValksorDev.Build.Tests.DevCommandTest" assertions="0" time="0.000000">
+          <error type="ArgumentCountError">ValksorDev\Build\Tests\DevCommandTest::testCommandExecution
+ArgumentCountError: Too few arguments to function ValksorDev\Build\Service\DevService::__construct(), 2 passed in /var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php on line 156 and exactly 3 expected
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Service/DevService.php:95
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php:156</error>
+        </testcase>
+        <testcase name="testCommandName" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php" line="75" class="ValksorDev\Build\Tests\DevCommandTest" classname="ValksorDev.Build.Tests.DevCommandTest" assertions="0" time="0.000000">
+          <error type="ArgumentCountError">ValksorDev\Build\Tests\DevCommandTest::testCommandName
+ArgumentCountError: Too few arguments to function ValksorDev\Build\Service\DevService::__construct(), 2 passed in /var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php on line 156 and exactly 3 expected
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Service/DevService.php:95
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php:156</error>
+        </testcase>
+        <testcase name="testGetProviderRegistry" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php" line="85" class="ValksorDev\Build\Tests\DevCommandTest" classname="ValksorDev.Build.Tests.DevCommandTest" assertions="0" time="0.000000">
+          <error type="ArgumentCountError">ValksorDev\Build\Tests\DevCommandTest::testGetProviderRegistry
+ArgumentCountError: Too few arguments to function ValksorDev\Build\Service\DevService::__construct(), 2 passed in /var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php on line 156 and exactly 3 expected
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Service/DevService.php:95
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php:156</error>
+        </testcase>
+        <testcase name="testWithDifferentDevService" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php" line="95" class="ValksorDev\Build\Tests\DevCommandTest" classname="ValksorDev.Build.Tests.DevCommandTest" assertions="0" time="0.000000">
+          <error type="ArgumentCountError">ValksorDev\Build\Tests\DevCommandTest::testWithDifferentDevService
+ArgumentCountError: Too few arguments to function ValksorDev\Build\Service\DevService::__construct(), 2 passed in /var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php on line 156 and exactly 3 expected
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Service/DevService.php:95
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php:156</error>
+        </testcase>
+        <testcase name="testWithEmptyServices" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php" line="108" class="ValksorDev\Build\Tests\DevCommandTest" classname="ValksorDev.Build.Tests.DevCommandTest" assertions="0" time="0.000000">
+          <error type="ArgumentCountError">ValksorDev\Build\Tests\DevCommandTest::testWithEmptyServices
+ArgumentCountError: Too few arguments to function ValksorDev\Build\Service\DevService::__construct(), 2 passed in /var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php on line 156 and exactly 3 expected
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Service/DevService.php:95
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php:156</error>
+        </testcase>
+        <testcase name="testWithProductionEnvironment" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php" line="121" class="ValksorDev\Build\Tests\DevCommandTest" classname="ValksorDev.Build.Tests.DevCommandTest" assertions="0" time="0.000000">
+          <error type="ArgumentCountError">ValksorDev\Build\Tests\DevCommandTest::testWithProductionEnvironment
+ArgumentCountError: Too few arguments to function ValksorDev\Build\Service\DevService::__construct(), 2 passed in /var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php on line 156 and exactly 3 expected
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Service/DevService.php:95
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevCommandTest.php:156</error>
+        </testcase>
       </testsuite>
-      <testsuite name="ValksorDev\Build\Tests\DevServiceTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php" tests="9" assertions="9" errors="0" failures="0" skipped="0" time="0.001000">
-        <testcase name="testGetParameterBag" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php" line="34" class="ValksorDev\Build\Tests\DevServiceTest" classname="ValksorDev.Build.Tests.DevServiceTest" assertions="1" time="0.001000"/>
-        <testcase name="testGetProviderRegistry" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php" line="41" class="ValksorDev\Build\Tests\DevServiceTest" classname="ValksorDev.Build.Tests.DevServiceTest" assertions="1" time="0.001000"/>
-        <testcase name="testGetServiceName" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php" line="48" class="ValksorDev\Build\Tests\DevServiceTest" classname="ValksorDev.Build.Tests.DevServiceTest" assertions="1" time="0.001000"/>
-        <testcase name="testSetIo" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php" line="53" class="ValksorDev\Build\Tests\DevServiceTest" classname="ValksorDev.Build.Tests.DevServiceTest" assertions="1" time="0.001000"/>
-        <testcase name="testStart" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php" line="63" class="ValksorDev\Build\Tests\DevServiceTest" classname="ValksorDev.Build.Tests.DevServiceTest" assertions="1" time="0.001000"/>
-        <testcase name="testStartWithoutIo" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php" line="79" class="ValksorDev\Build\Tests\DevServiceTest" classname="ValksorDev.Build.Tests.DevServiceTest" assertions="1" time="0.001000"/>
-        <testcase name="testStop" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php" line="92" class="ValksorDev\Build\Tests\DevServiceTest" classname="ValksorDev.Build.Tests.DevServiceTest" assertions="1" time="0.001000"/>
-        <testcase name="testWithDifferentEnvironment" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php" line="102" class="ValksorDev\Build\Tests\DevServiceTest" classname="ValksorDev.Build.Tests.DevServiceTest" assertions="1" time="0.001000"/>
-        <testcase name="testWithEmptyServices" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php" line="120" class="ValksorDev\Build\Tests\DevServiceTest" classname="ValksorDev.Build.Tests.DevServiceTest" assertions="1" time="0.001000"/>
+      <testsuite name="ValksorDev\Build\Tests\DevServiceTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php" tests="9" assertions="1" errors="8" failures="0" skipped="0" time="0.006896">
+        <testcase name="testGetParameterBag" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php" line="34" class="ValksorDev\Build\Tests\DevServiceTest" classname="ValksorDev.Build.Tests.DevServiceTest" assertions="0" time="0.002995">
+          <error type="ArgumentCountError">ValksorDev\Build\Tests\DevServiceTest::testGetParameterBag
+ArgumentCountError: Too few arguments to function ValksorDev\Build\Service\DevService::__construct(), 2 passed in /var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php on line 36 and exactly 3 expected
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Service/DevService.php:95
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php:36</error>
+        </testcase>
+        <testcase name="testGetProviderRegistry" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php" line="41" class="ValksorDev\Build\Tests\DevServiceTest" classname="ValksorDev.Build.Tests.DevServiceTest" assertions="0" time="0.000516">
+          <error type="ArgumentCountError">ValksorDev\Build\Tests\DevServiceTest::testGetProviderRegistry
+ArgumentCountError: Too few arguments to function ValksorDev\Build\Service\DevService::__construct(), 2 passed in /var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php on line 43 and exactly 3 expected
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Service/DevService.php:95
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php:43</error>
+        </testcase>
+        <testcase name="testGetServiceName" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php" line="48" class="ValksorDev\Build\Tests\DevServiceTest" classname="ValksorDev.Build.Tests.DevServiceTest" assertions="1" time="0.000357"/>
+        <testcase name="testSetIo" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php" line="53" class="ValksorDev\Build\Tests\DevServiceTest" classname="ValksorDev.Build.Tests.DevServiceTest" assertions="0" time="0.000516">
+          <error type="ArgumentCountError">ValksorDev\Build\Tests\DevServiceTest::testSetIo
+ArgumentCountError: Too few arguments to function ValksorDev\Build\Service\DevService::__construct(), 2 passed in /var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php on line 55 and exactly 3 expected
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Service/DevService.php:95
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php:55</error>
+        </testcase>
+        <testcase name="testStart" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php" line="63" class="ValksorDev\Build\Tests\DevServiceTest" classname="ValksorDev.Build.Tests.DevServiceTest" assertions="0" time="0.000495">
+          <error type="ArgumentCountError">ValksorDev\Build\Tests\DevServiceTest::testStart
+ArgumentCountError: Too few arguments to function ValksorDev\Build\Service\DevService::__construct(), 2 passed in /var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php on line 65 and exactly 3 expected
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Service/DevService.php:95
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php:65</error>
+        </testcase>
+        <testcase name="testStartWithoutIo" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php" line="79" class="ValksorDev\Build\Tests\DevServiceTest" classname="ValksorDev.Build.Tests.DevServiceTest" assertions="0" time="0.000502">
+          <error type="ArgumentCountError">ValksorDev\Build\Tests\DevServiceTest::testStartWithoutIo
+ArgumentCountError: Too few arguments to function ValksorDev\Build\Service\DevService::__construct(), 2 passed in /var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php on line 81 and exactly 3 expected
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Service/DevService.php:95
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php:81</error>
+        </testcase>
+        <testcase name="testStop" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php" line="92" class="ValksorDev\Build\Tests\DevServiceTest" classname="ValksorDev.Build.Tests.DevServiceTest" assertions="0" time="0.000504">
+          <error type="ArgumentCountError">ValksorDev\Build\Tests\DevServiceTest::testStop
+ArgumentCountError: Too few arguments to function ValksorDev\Build\Service\DevService::__construct(), 2 passed in /var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php on line 94 and exactly 3 expected
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Service/DevService.php:95
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php:94</error>
+        </testcase>
+        <testcase name="testWithDifferentEnvironment" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php" line="102" class="ValksorDev\Build\Tests\DevServiceTest" classname="ValksorDev.Build.Tests.DevServiceTest" assertions="0" time="0.000521">
+          <error type="ArgumentCountError">ValksorDev\Build\Tests\DevServiceTest::testWithDifferentEnvironment
+ArgumentCountError: Too few arguments to function ValksorDev\Build\Service\DevService::__construct(), 2 passed in /var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php on line 115 and exactly 3 expected
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Service/DevService.php:95
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php:115</error>
+        </testcase>
+        <testcase name="testWithEmptyServices" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php" line="120" class="ValksorDev\Build\Tests\DevServiceTest" classname="ValksorDev.Build.Tests.DevServiceTest" assertions="0" time="0.000489">
+          <error type="ArgumentCountError">ValksorDev\Build\Tests\DevServiceTest::testWithEmptyServices
+ArgumentCountError: Too few arguments to function ValksorDev\Build\Service\DevService::__construct(), 2 passed in /var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php on line 128 and exactly 3 expected
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Service/DevService.php:95
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevServiceTest.php:128</error>
+        </testcase>
       </testsuite>
-      <testsuite name="ValksorDev\Build\Tests\DevWatchCommandTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php" tests="9" assertions="9" errors="0" failures="0" skipped="0" time="0.001000">
-        <testcase name="testCommandConfiguration" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php" line="39" class="ValksorDev\Build\Tests\DevWatchCommandTest" classname="ValksorDev.Build.Tests.DevWatchCommandTest" assertions="3" time="0.001000"/>
-        <testcase name="testCommandDescription" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php" line="52" class="ValksorDev\Build\Tests\DevWatchCommandTest" classname="ValksorDev.Build.Tests.DevWatchCommandTest" assertions="1" time="0.001000"/>
-        <testcase name="testCommandExecution" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php" line="62" class="ValksorDev\Build\Tests\DevWatchCommandTest" classname="ValksorDev.Build.Tests.DevWatchCommandTest" assertions="1" time="0.001000"/>
-        <testcase name="testCommandName" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php" line="80" class="ValksorDev\Build\Tests\DevWatchCommandTest" classname="ValksorDev.Build.Tests.DevWatchCommandTest" assertions="1" time="0.001000"/>
-        <testcase name="testGetProviderRegistry" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php" line="90" class="ValksorDev\Build\Tests\DevWatchCommandTest" classname="ValksorDev.Build.Tests.DevWatchCommandTest" assertions="1" time="0.001000"/>
-        <testcase name="testServiceIntegration" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php" line="100" class="ValksorDev\Build\Tests\DevWatchCommandTest" classname="ValksorDev.Build.Tests.DevWatchCommandTest" assertions="2" time="0.001000"/>
-        <testcase name="testWithDifferentDevWatchService" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php" line="109" class="ValksorDev\Build\Tests\DevWatchCommandTest" classname="ValksorDev.Build.Tests.DevWatchCommandTest" assertions="0" time="0.001000"/>
-        <testcase name="testWithEmptyServices" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php" line="122" class="ValksorDev\Build\Tests\DevWatchCommandTest" classname="ValksorDev.Build.Tests.DevWatchCommandTest" assertions="0" time="0.001000"/>
-        <testcase name="testWithProductionEnvironment" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php" line="135" class="ValksorDev\Build\Tests\DevWatchCommandTest" classname="ValksorDev.Build.Tests.DevWatchCommandTest" assertions="0" time="0.001000"/>
+      <testsuite name="ValksorDev\Build\Tests\DevWatchCommandTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php" tests="9" assertions="0" errors="9" failures="0" skipped="0" time="0.000000">
+        <testcase name="testCommandConfiguration" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php" line="39" class="ValksorDev\Build\Tests\DevWatchCommandTest" classname="ValksorDev.Build.Tests.DevWatchCommandTest" assertions="0" time="0.000000">
+          <error type="ArgumentCountError">ValksorDev\Build\Tests\DevWatchCommandTest::testCommandConfiguration
+ArgumentCountError: Too few arguments to function ValksorDev\Build\Service\DevWatchService::__construct(), 2 passed in /var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php on line 178 and exactly 3 expected
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Service/DevWatchService.php:100
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php:178</error>
+        </testcase>
+        <testcase name="testCommandDescription" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php" line="52" class="ValksorDev\Build\Tests\DevWatchCommandTest" classname="ValksorDev.Build.Tests.DevWatchCommandTest" assertions="0" time="0.000000">
+          <error type="ArgumentCountError">ValksorDev\Build\Tests\DevWatchCommandTest::testCommandDescription
+ArgumentCountError: Too few arguments to function ValksorDev\Build\Service\DevWatchService::__construct(), 2 passed in /var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php on line 178 and exactly 3 expected
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Service/DevWatchService.php:100
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php:178</error>
+        </testcase>
+        <testcase name="testCommandExecution" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php" line="62" class="ValksorDev\Build\Tests\DevWatchCommandTest" classname="ValksorDev.Build.Tests.DevWatchCommandTest" assertions="0" time="0.000000">
+          <error type="ArgumentCountError">ValksorDev\Build\Tests\DevWatchCommandTest::testCommandExecution
+ArgumentCountError: Too few arguments to function ValksorDev\Build\Service\DevWatchService::__construct(), 2 passed in /var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php on line 178 and exactly 3 expected
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Service/DevWatchService.php:100
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php:178</error>
+        </testcase>
+        <testcase name="testCommandName" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php" line="80" class="ValksorDev\Build\Tests\DevWatchCommandTest" classname="ValksorDev.Build.Tests.DevWatchCommandTest" assertions="0" time="0.000000">
+          <error type="ArgumentCountError">ValksorDev\Build\Tests\DevWatchCommandTest::testCommandName
+ArgumentCountError: Too few arguments to function ValksorDev\Build\Service\DevWatchService::__construct(), 2 passed in /var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php on line 178 and exactly 3 expected
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Service/DevWatchService.php:100
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php:178</error>
+        </testcase>
+        <testcase name="testGetProviderRegistry" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php" line="90" class="ValksorDev\Build\Tests\DevWatchCommandTest" classname="ValksorDev.Build.Tests.DevWatchCommandTest" assertions="0" time="0.000000">
+          <error type="ArgumentCountError">ValksorDev\Build\Tests\DevWatchCommandTest::testGetProviderRegistry
+ArgumentCountError: Too few arguments to function ValksorDev\Build\Service\DevWatchService::__construct(), 2 passed in /var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php on line 178 and exactly 3 expected
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Service/DevWatchService.php:100
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php:178</error>
+        </testcase>
+        <testcase name="testServiceIntegration" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php" line="100" class="ValksorDev\Build\Tests\DevWatchCommandTest" classname="ValksorDev.Build.Tests.DevWatchCommandTest" assertions="0" time="0.000000">
+          <error type="ArgumentCountError">ValksorDev\Build\Tests\DevWatchCommandTest::testServiceIntegration
+ArgumentCountError: Too few arguments to function ValksorDev\Build\Service\DevWatchService::__construct(), 2 passed in /var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php on line 178 and exactly 3 expected
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Service/DevWatchService.php:100
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php:178</error>
+        </testcase>
+        <testcase name="testWithDifferentDevWatchService" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php" line="109" class="ValksorDev\Build\Tests\DevWatchCommandTest" classname="ValksorDev.Build.Tests.DevWatchCommandTest" assertions="0" time="0.000000">
+          <error type="ArgumentCountError">ValksorDev\Build\Tests\DevWatchCommandTest::testWithDifferentDevWatchService
+ArgumentCountError: Too few arguments to function ValksorDev\Build\Service\DevWatchService::__construct(), 2 passed in /var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php on line 178 and exactly 3 expected
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Service/DevWatchService.php:100
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php:178</error>
+        </testcase>
+        <testcase name="testWithEmptyServices" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php" line="122" class="ValksorDev\Build\Tests\DevWatchCommandTest" classname="ValksorDev.Build.Tests.DevWatchCommandTest" assertions="0" time="0.000000">
+          <error type="ArgumentCountError">ValksorDev\Build\Tests\DevWatchCommandTest::testWithEmptyServices
+ArgumentCountError: Too few arguments to function ValksorDev\Build\Service\DevWatchService::__construct(), 2 passed in /var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php on line 178 and exactly 3 expected
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Service/DevWatchService.php:100
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php:178</error>
+        </testcase>
+        <testcase name="testWithProductionEnvironment" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php" line="135" class="ValksorDev\Build\Tests\DevWatchCommandTest" classname="ValksorDev.Build.Tests.DevWatchCommandTest" assertions="0" time="0.000000">
+          <error type="ArgumentCountError">ValksorDev\Build\Tests\DevWatchCommandTest::testWithProductionEnvironment
+ArgumentCountError: Too few arguments to function ValksorDev\Build\Service\DevWatchService::__construct(), 2 passed in /var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php on line 178 and exactly 3 expected
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Service/DevWatchService.php:100
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchCommandTest.php:178</error>
+        </testcase>
       </testsuite>
-      <testsuite name="ValksorDev\Build\Tests\DevWatchServiceTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php" tests="9" assertions="9" errors="0" failures="0" skipped="0" time="0.001000">
-        <testcase name="testGetParameterBag" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php" line="34" class="ValksorDev\Build\Tests\DevWatchServiceTest" classname="ValksorDev.Build.Tests.DevWatchServiceTest" assertions="1" time="0.001000"/>
-        <testcase name="testGetProviderRegistry" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php" line="41" class="ValksorDev\Build\Tests\DevWatchServiceTest" classname="ValksorDev.Build.Tests.DevWatchServiceTest" assertions="1" time="0.001000"/>
-        <testcase name="testSetIo" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php" line="48" class="ValksorDev\Build\Tests\DevWatchServiceTest" classname="ValksorDev.Build.Tests.DevWatchServiceTest" assertions="1" time="0.001000"/>
-        <testcase name="testStart" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php" line="58" class="ValksorDev\Build\Tests\DevWatchServiceTest" classname="ValksorDev.Build.Tests.DevWatchServiceTest" assertions="1" time="0.001000"/>
-        <testcase name="testStartWithoutIo" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php" line="73" class="ValksorDev\Build\Tests\DevWatchServiceTest" classname="ValksorDev.Build.Tests.DevWatchServiceTest" assertions="1" time="0.001000"/>
-        <testcase name="testStop" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php" line="86" class="ValksorDev\Build\Tests\DevWatchServiceTest" classname="ValksorDev.Build.Tests.DevWatchServiceTest" assertions="1" time="0.001000"/>
-        <testcase name="testWithDifferentEnvironment" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php" line="96" class="ValksorDev\Build\Tests\DevWatchServiceTest" classname="ValksorDev.Build.Tests.DevWatchServiceTest" assertions="1" time="0.001000"/>
-        <testcase name="testWithDisabledServices" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php" line="114" class="ValksorDev\Build\Tests\DevWatchServiceTest" classname="ValksorDev.Build.Tests.DevWatchServiceTest" assertions="1" time="0.001000"/>
-        <testcase name="testWithEmptyServices" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php" line="147" class="ValksorDev\Build\Tests\DevWatchServiceTest" classname="ValksorDev.Build.Tests.DevWatchServiceTest" assertions="1" time="0.001000"/>
+      <testsuite name="ValksorDev\Build\Tests\DevWatchServiceTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php" tests="9" assertions="0" errors="9" failures="0" skipped="0" time="0.004683">
+        <testcase name="testGetParameterBag" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php" line="34" class="ValksorDev\Build\Tests\DevWatchServiceTest" classname="ValksorDev.Build.Tests.DevWatchServiceTest" assertions="0" time="0.000532">
+          <error type="ArgumentCountError">ValksorDev\Build\Tests\DevWatchServiceTest::testGetParameterBag
+ArgumentCountError: Too few arguments to function ValksorDev\Build\Service\DevWatchService::__construct(), 2 passed in /var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php on line 36 and exactly 3 expected
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Service/DevWatchService.php:100
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php:36</error>
+        </testcase>
+        <testcase name="testGetProviderRegistry" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php" line="41" class="ValksorDev\Build\Tests\DevWatchServiceTest" classname="ValksorDev.Build.Tests.DevWatchServiceTest" assertions="0" time="0.000530">
+          <error type="ArgumentCountError">ValksorDev\Build\Tests\DevWatchServiceTest::testGetProviderRegistry
+ArgumentCountError: Too few arguments to function ValksorDev\Build\Service\DevWatchService::__construct(), 2 passed in /var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php on line 43 and exactly 3 expected
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Service/DevWatchService.php:100
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php:43</error>
+        </testcase>
+        <testcase name="testSetIo" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php" line="48" class="ValksorDev\Build\Tests\DevWatchServiceTest" classname="ValksorDev.Build.Tests.DevWatchServiceTest" assertions="0" time="0.000502">
+          <error type="ArgumentCountError">ValksorDev\Build\Tests\DevWatchServiceTest::testSetIo
+ArgumentCountError: Too few arguments to function ValksorDev\Build\Service\DevWatchService::__construct(), 2 passed in /var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php on line 50 and exactly 3 expected
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Service/DevWatchService.php:100
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php:50</error>
+        </testcase>
+        <testcase name="testStart" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php" line="58" class="ValksorDev\Build\Tests\DevWatchServiceTest" classname="ValksorDev.Build.Tests.DevWatchServiceTest" assertions="0" time="0.000521">
+          <error type="ArgumentCountError">ValksorDev\Build\Tests\DevWatchServiceTest::testStart
+ArgumentCountError: Too few arguments to function ValksorDev\Build\Service\DevWatchService::__construct(), 2 passed in /var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php on line 60 and exactly 3 expected
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Service/DevWatchService.php:100
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php:60</error>
+        </testcase>
+        <testcase name="testStartWithoutIo" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php" line="73" class="ValksorDev\Build\Tests\DevWatchServiceTest" classname="ValksorDev.Build.Tests.DevWatchServiceTest" assertions="0" time="0.000501">
+          <error type="ArgumentCountError">ValksorDev\Build\Tests\DevWatchServiceTest::testStartWithoutIo
+ArgumentCountError: Too few arguments to function ValksorDev\Build\Service\DevWatchService::__construct(), 2 passed in /var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php on line 75 and exactly 3 expected
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Service/DevWatchService.php:100
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php:75</error>
+        </testcase>
+        <testcase name="testStop" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php" line="86" class="ValksorDev\Build\Tests\DevWatchServiceTest" classname="ValksorDev.Build.Tests.DevWatchServiceTest" assertions="0" time="0.000527">
+          <error type="ArgumentCountError">ValksorDev\Build\Tests\DevWatchServiceTest::testStop
+ArgumentCountError: Too few arguments to function ValksorDev\Build\Service\DevWatchService::__construct(), 2 passed in /var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php on line 88 and exactly 3 expected
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Service/DevWatchService.php:100
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php:88</error>
+        </testcase>
+        <testcase name="testWithDifferentEnvironment" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php" line="96" class="ValksorDev\Build\Tests\DevWatchServiceTest" classname="ValksorDev.Build.Tests.DevWatchServiceTest" assertions="0" time="0.000495">
+          <error type="ArgumentCountError">ValksorDev\Build\Tests\DevWatchServiceTest::testWithDifferentEnvironment
+ArgumentCountError: Too few arguments to function ValksorDev\Build\Service\DevWatchService::__construct(), 2 passed in /var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php on line 109 and exactly 3 expected
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Service/DevWatchService.php:100
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php:109</error>
+        </testcase>
+        <testcase name="testWithDisabledServices" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php" line="114" class="ValksorDev\Build\Tests\DevWatchServiceTest" classname="ValksorDev.Build.Tests.DevWatchServiceTest" assertions="0" time="0.000541">
+          <error type="ArgumentCountError">ValksorDev\Build\Tests\DevWatchServiceTest::testWithDisabledServices
+ArgumentCountError: Too few arguments to function ValksorDev\Build\Service\DevWatchService::__construct(), 2 passed in /var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php on line 135 and exactly 3 expected
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Service/DevWatchService.php:100
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php:135</error>
+        </testcase>
+        <testcase name="testWithEmptyServices" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php" line="147" class="ValksorDev\Build\Tests\DevWatchServiceTest" classname="ValksorDev.Build.Tests.DevWatchServiceTest" assertions="0" time="0.000533">
+          <error type="ArgumentCountError">ValksorDev\Build\Tests\DevWatchServiceTest::testWithEmptyServices
+ArgumentCountError: Too few arguments to function ValksorDev\Build\Service\DevWatchService::__construct(), 2 passed in /var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php on line 155 and exactly 3 expected
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Service/DevWatchService.php:100
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/DevWatchServiceTest.php:155</error>
+        </testcase>
       </testsuite>
-      <testsuite name="ValksorDev\Build\Tests\HotReloadCommandTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadCommandTest.php" tests="5" assertions="5" errors="0" failures="0" skipped="0" time="0.001000">
-        <testcase name="testCommandConfigure" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadCommandTest.php" line="35" class="ValksorDev\Build\Tests\HotReloadCommandTest" classname="ValksorDev.Build.Tests.HotReloadCommandTest" assertions="1" time="0.001000"/>
-        <testcase name="testCommandExecution" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadCommandTest.php" line="45" class="ValksorDev\Build\Tests\HotReloadCommandTest" classname="ValksorDev.Build.Tests.HotReloadCommandTest" assertions="1" time="0.001000"/>
-        <testcase name="testCommandExecutionWithNonInteractiveOption" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadCommandTest.php" line="62" class="ValksorDev\Build\Tests\HotReloadCommandTest" classname="ValksorDev.Build.Tests.HotReloadCommandTest" assertions="1" time="0.001000"/>
-        <testcase name="testCommandExecutionWithoutWatchOption" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadCommandTest.php" line="79" class="ValksorDev\Build\Tests\HotReloadCommandTest" classname="ValksorDev.Build.Tests.HotReloadCommandTest" assertions="1" time="0.001000"/>
-        <testcase name="testCommandInApplication" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadCommandTest.php" line="93" class="ValksorDev\Build\Tests\HotReloadCommandTest" classname="ValksorDev.Build.Tests.HotReloadCommandTest" assertions="1" time="0.001000"/>
+      <testsuite name="ValksorDev\Build\Tests\HotReloadCommandTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadCommandTest.php" tests="5" assertions="5" errors="0" failures="0" skipped="0" time="0.007097">
+        <testcase name="testCommandConfigure" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadCommandTest.php" line="35" class="ValksorDev\Build\Tests\HotReloadCommandTest" classname="ValksorDev.Build.Tests.HotReloadCommandTest" assertions="1" time="0.003639"/>
+        <testcase name="testCommandExecution" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadCommandTest.php" line="45" class="ValksorDev\Build\Tests\HotReloadCommandTest" classname="ValksorDev.Build.Tests.HotReloadCommandTest" assertions="1" time="0.001182"/>
+        <testcase name="testCommandExecutionWithNonInteractiveOption" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadCommandTest.php" line="62" class="ValksorDev\Build\Tests\HotReloadCommandTest" classname="ValksorDev.Build.Tests.HotReloadCommandTest" assertions="1" time="0.000517"/>
+        <testcase name="testCommandExecutionWithoutWatchOption" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadCommandTest.php" line="79" class="ValksorDev\Build\Tests\HotReloadCommandTest" classname="ValksorDev.Build.Tests.HotReloadCommandTest" assertions="1" time="0.000677"/>
+        <testcase name="testCommandInApplication" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadCommandTest.php" line="93" class="ValksorDev\Build\Tests\HotReloadCommandTest" classname="ValksorDev.Build.Tests.HotReloadCommandTest" assertions="1" time="0.001083"/>
       </testsuite>
-      <testsuite name="ValksorDev\Build\Tests\HotReloadServiceTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadServiceTest.php" tests="9" assertions="8" errors="0" failures="0" skipped="0" time="0.001000">
-        <testcase name="testGetServiceName" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadServiceTest.php" line="33" class="ValksorDev\Build\Tests\HotReloadServiceTest" classname="ValksorDev.Build.Tests.HotReloadServiceTest" assertions="1" time="0.001000"/>
-        <testcase name="testIsRunning" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadServiceTest.php" line="38" class="ValksorDev\Build\Tests\HotReloadServiceTest" classname="ValksorDev.Build.Tests.HotReloadServiceTest" assertions="1" time="0.001000"/>
-        <testcase name="testReload" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadServiceTest.php" line="46" class="ValksorDev\Build\Tests\HotReloadServiceTest" classname="ValksorDev.Build.Tests.HotReloadServiceTest" assertions="1" time="0.001000"/>
-        <testcase name="testStart" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadServiceTest.php" line="61" class="ValksorDev\Build\Tests\HotReloadServiceTest" classname="ValksorDev.Build.Tests.HotReloadServiceTest" assertions="1" time="0.001000"/>
-        <testcase name="testStartWithMinimalConfig" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadServiceTest.php" line="75" class="ValksorDev\Build\Tests\HotReloadServiceTest" classname="ValksorDev.Build.Tests.HotReloadServiceTest" assertions="1" time="0.001000"/>
-        <testcase name="testStartWithNoWatchDirectories" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadServiceTest.php" line="102" class="ValksorDev\Build\Tests\HotReloadServiceTest" classname="ValksorDev.Build.Tests.HotReloadServiceTest" assertions="1" time="0.001000"/>
-        <testcase name="testStop" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadServiceTest.php" line="131" class="ValksorDev\Build\Tests\HotReloadServiceTest" classname="ValksorDev.Build.Tests.HotReloadServiceTest" assertions="1" time="0.001000"/>
-        <testcase name="testWithDifferentExtensions" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadServiceTest.php" line="141" class="ValksorDev\Build\Tests\HotReloadServiceTest" classname="ValksorDev.Build.Tests.HotReloadServiceTest" assertions="1" time="0.001000"/>
-        <testcase name="testWithProductionEnvironment" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadServiceTest.php" line="169" class="ValksorDev\Build\Tests\HotReloadServiceTest" classname="ValksorDev.Build.Tests.HotReloadServiceTest" assertions="0" time="0.001000"/>
+      <testsuite name="ValksorDev\Build\Tests\HotReloadServiceTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadServiceTest.php" tests="9" assertions="8" errors="0" failures="0" skipped="0" time="0.005488">
+        <testcase name="testGetServiceName" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadServiceTest.php" line="33" class="ValksorDev\Build\Tests\HotReloadServiceTest" classname="ValksorDev.Build.Tests.HotReloadServiceTest" assertions="1" time="0.000443"/>
+        <testcase name="testIsRunning" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadServiceTest.php" line="38" class="ValksorDev\Build\Tests\HotReloadServiceTest" classname="ValksorDev.Build.Tests.HotReloadServiceTest" assertions="1" time="0.000399"/>
+        <testcase name="testReload" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadServiceTest.php" line="46" class="ValksorDev\Build\Tests\HotReloadServiceTest" classname="ValksorDev.Build.Tests.HotReloadServiceTest" assertions="1" time="0.000415"/>
+        <testcase name="testStart" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadServiceTest.php" line="61" class="ValksorDev\Build\Tests\HotReloadServiceTest" classname="ValksorDev.Build.Tests.HotReloadServiceTest" assertions="1" time="0.002286"/>
+        <testcase name="testStartWithMinimalConfig" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadServiceTest.php" line="75" class="ValksorDev\Build\Tests\HotReloadServiceTest" classname="ValksorDev.Build.Tests.HotReloadServiceTest" assertions="1" time="0.000407"/>
+        <testcase name="testStartWithNoWatchDirectories" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadServiceTest.php" line="102" class="ValksorDev\Build\Tests\HotReloadServiceTest" classname="ValksorDev.Build.Tests.HotReloadServiceTest" assertions="1" time="0.000386"/>
+        <testcase name="testStop" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadServiceTest.php" line="131" class="ValksorDev\Build\Tests\HotReloadServiceTest" classname="ValksorDev.Build.Tests.HotReloadServiceTest" assertions="1" time="0.000373"/>
+        <testcase name="testWithDifferentExtensions" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadServiceTest.php" line="141" class="ValksorDev\Build\Tests\HotReloadServiceTest" classname="ValksorDev.Build.Tests.HotReloadServiceTest" assertions="1" time="0.000387"/>
+        <testcase name="testWithProductionEnvironment" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/HotReloadServiceTest.php" line="169" class="ValksorDev\Build\Tests\HotReloadServiceTest" classname="ValksorDev.Build.Tests.HotReloadServiceTest" assertions="0" time="0.000393"/>
       </testsuite>
-      <testsuite name="ValksorDev\Build\Tests\PathFilterTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/PathFilterTest.php" tests="2" assertions="16" errors="0" failures="0" skipped="0" time="0.001000">
-        <testcase name="testDirectoryFiltering" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/PathFilterTest.php" line="21" class="ValksorDev\Build\Tests\PathFilterTest" classname="ValksorDev.Build.Tests.PathFilterTest" assertions="3" time="0.001000"/>
-        <testcase name="testPathFilteringRules" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/PathFilterTest.php" line="30" class="ValksorDev\Build\Tests\PathFilterTest" classname="ValksorDev.Build.Tests.PathFilterTest" assertions="13" time="0.001000"/>
+      <testsuite name="ValksorDev\Build\Tests\PathFilterTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/PathFilterTest.php" tests="2" assertions="16" errors="0" failures="0" skipped="0" time="0.000482">
+        <testcase name="testDirectoryFiltering" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/PathFilterTest.php" line="21" class="ValksorDev\Build\Tests\PathFilterTest" classname="ValksorDev.Build.Tests.PathFilterTest" assertions="3" time="0.000212"/>
+        <testcase name="testPathFilteringRules" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/PathFilterTest.php" line="30" class="ValksorDev\Build\Tests\PathFilterTest" classname="ValksorDev.Build.Tests.PathFilterTest" assertions="13" time="0.000270"/>
       </testsuite>
-      <testsuite name="ValksorDev\Build\Tests\ProcessManagerTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProcessManagerTest.php" tests="13" assertions="24" errors="0" failures="0" skipped="0" time="0.001000">
-        <testcase name="testAddProcess" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProcessManagerTest.php" line="29" class="ValksorDev\Build\Tests\ProcessManagerTest" classname="ValksorDev.Build.Tests.ProcessManagerTest" assertions="2" time="0.001000"/>
-        <testcase name="testAllProcessesRunning" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProcessManagerTest.php" line="40" class="ValksorDev\Build\Tests\ProcessManagerTest" classname="ValksorDev.Build.Tests.ProcessManagerTest" assertions="1" time="0.001000"/>
-        <testcase name="testCount" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProcessManagerTest.php" line="56" class="ValksorDev\Build\Tests\ProcessManagerTest" classname="ValksorDev.Build.Tests.ProcessManagerTest" assertions="3" time="0.001000"/>
-        <testcase name="testDisplayStatusWithoutIo" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProcessManagerTest.php" line="73" class="ValksorDev\Build\Tests\ProcessManagerTest" classname="ValksorDev.Build.Tests.ProcessManagerTest" assertions="1" time="0.001000"/>
-        <testcase name="testExecuteProcessInteractive" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProcessManagerTest.php" line="87" class="ValksorDev\Build\Tests\ProcessManagerTest" classname="ValksorDev.Build.Tests.ProcessManagerTest" assertions="1" time="0.001000"/>
-        <testcase name="testGetFailedProcesses" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProcessManagerTest.php" line="102" class="ValksorDev\Build\Tests\ProcessManagerTest" classname="ValksorDev.Build.Tests.ProcessManagerTest" assertions="3" time="0.001000"/>
-        <testcase name="testGetProcessStatuses" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProcessManagerTest.php" line="130" class="ValksorDev\Build\Tests\ProcessManagerTest" classname="ValksorDev.Build.Tests.ProcessManagerTest" assertions="6" time="0.001000"/>
-        <testcase name="testHasFailedProcesses" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProcessManagerTest.php" line="156" class="ValksorDev\Build\Tests\ProcessManagerTest" classname="ValksorDev.Build.Tests.ProcessManagerTest" assertions="1" time="0.001000"/>
-        <testcase name="testNotAllProcessesRunning" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProcessManagerTest.php" line="174" class="ValksorDev\Build\Tests\ProcessManagerTest" classname="ValksorDev.Build.Tests.ProcessManagerTest" assertions="1" time="0.001000"/>
-        <testcase name="testRemoveProcess" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProcessManagerTest.php" line="191" class="ValksorDev\Build\Tests\ProcessManagerTest" classname="ValksorDev.Build.Tests.ProcessManagerTest" assertions="2" time="0.001000"/>
-        <testcase name="testShutdownStatus" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProcessManagerTest.php" line="203" class="ValksorDev\Build\Tests\ProcessManagerTest" classname="ValksorDev.Build.Tests.ProcessManagerTest" assertions="1" time="0.001000"/>
-        <testcase name="testTerminateAll" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProcessManagerTest.php" line="211" class="ValksorDev\Build\Tests\ProcessManagerTest" classname="ValksorDev.Build.Tests.ProcessManagerTest" assertions="1" time="0.001000"/>
-        <testcase name="testWithSymfonyStyle" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProcessManagerTest.php" line="227" class="ValksorDev\Build\Tests\ProcessManagerTest" classname="ValksorDev.Build.Tests.ProcessManagerTest" assertions="1" time="0.001000"/>
+      <testsuite name="ValksorDev\Build\Tests\ProcessManagerTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProcessManagerTest.php" tests="13" assertions="23" errors="1" failures="0" skipped="0" time="0.014221">
+        <testcase name="testAddProcess" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProcessManagerTest.php" line="29" class="ValksorDev\Build\Tests\ProcessManagerTest" classname="ValksorDev.Build.Tests.ProcessManagerTest" assertions="2" time="0.005882"/>
+        <testcase name="testAllProcessesRunning" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProcessManagerTest.php" line="40" class="ValksorDev\Build\Tests\ProcessManagerTest" classname="ValksorDev.Build.Tests.ProcessManagerTest" assertions="1" time="0.000832"/>
+        <testcase name="testCount" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProcessManagerTest.php" line="56" class="ValksorDev\Build\Tests\ProcessManagerTest" classname="ValksorDev.Build.Tests.ProcessManagerTest" assertions="3" time="0.000559"/>
+        <testcase name="testDisplayStatusWithoutIo" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProcessManagerTest.php" line="73" class="ValksorDev\Build\Tests\ProcessManagerTest" classname="ValksorDev.Build.Tests.ProcessManagerTest" assertions="1" time="0.000497"/>
+        <testcase name="testExecuteProcessInteractive" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProcessManagerTest.php" line="87" class="ValksorDev\Build\Tests\ProcessManagerTest" classname="ValksorDev.Build.Tests.ProcessManagerTest" assertions="0" time="0.000462">
+          <error type="Error">ValksorDev\Build\Tests\ProcessManagerTest::testExecuteProcessInteractive
+Error: Non-static method ValksorDev\Build\Service\ProcessManager::executeProcess() cannot be called statically
+
+/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProcessManagerTest.php:91</error>
+        </testcase>
+        <testcase name="testGetFailedProcesses" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProcessManagerTest.php" line="102" class="ValksorDev\Build\Tests\ProcessManagerTest" classname="ValksorDev.Build.Tests.ProcessManagerTest" assertions="3" time="0.001387"/>
+        <testcase name="testGetProcessStatuses" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProcessManagerTest.php" line="130" class="ValksorDev\Build\Tests\ProcessManagerTest" classname="ValksorDev.Build.Tests.ProcessManagerTest" assertions="6" time="0.001055"/>
+        <testcase name="testHasFailedProcesses" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProcessManagerTest.php" line="156" class="ValksorDev\Build\Tests\ProcessManagerTest" classname="ValksorDev.Build.Tests.ProcessManagerTest" assertions="1" time="0.001019"/>
+        <testcase name="testNotAllProcessesRunning" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProcessManagerTest.php" line="174" class="ValksorDev\Build\Tests\ProcessManagerTest" classname="ValksorDev.Build.Tests.ProcessManagerTest" assertions="1" time="0.000863"/>
+        <testcase name="testRemoveProcess" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProcessManagerTest.php" line="191" class="ValksorDev\Build\Tests\ProcessManagerTest" classname="ValksorDev.Build.Tests.ProcessManagerTest" assertions="2" time="0.000435"/>
+        <testcase name="testShutdownStatus" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProcessManagerTest.php" line="203" class="ValksorDev\Build\Tests\ProcessManagerTest" classname="ValksorDev.Build.Tests.ProcessManagerTest" assertions="1" time="0.000272"/>
+        <testcase name="testTerminateAll" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProcessManagerTest.php" line="211" class="ValksorDev\Build\Tests\ProcessManagerTest" classname="ValksorDev.Build.Tests.ProcessManagerTest" assertions="1" time="0.000480"/>
+        <testcase name="testWithSymfonyStyle" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProcessManagerTest.php" line="227" class="ValksorDev\Build\Tests\ProcessManagerTest" classname="ValksorDev.Build.Tests.ProcessManagerTest" assertions="1" time="0.000477"/>
       </testsuite>
-      <testsuite name="ValksorDev\Build\Tests\ProviderRegistryTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProviderRegistryTest.php" tests="12" assertions="30" errors="0" failures="0" skipped="0" time="0.001000">
-        <testcase name="testGetAvailableNames" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProviderRegistryTest.php" line="30" class="ValksorDev\Build\Tests\ProviderRegistryTest" classname="ValksorDev.Build.Tests.ProviderRegistryTest" assertions="3" time="0.001000"/>
-        <testcase name="testGetExistingProvider" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProviderRegistryTest.php" line="38" class="ValksorDev\Build\Tests\ProviderRegistryTest" classname="ValksorDev.Build.Tests.ProviderRegistryTest" assertions="1" time="0.001000"/>
-        <testcase name="testGetNonExistentProviderThrowsException" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProviderRegistryTest.php" line="44" class="ValksorDev\Build\Tests\ProviderRegistryTest" classname="ValksorDev.Build.Tests.ProviderRegistryTest" assertions="2" time="0.001000"/>
-        <testcase name="testGetProvidersByFlag" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProviderRegistryTest.php" line="52" class="ValksorDev\Build\Tests\ProviderRegistryTest" classname="ValksorDev.Build.Tests.ProviderRegistryTest" assertions="6" time="0.001000"/>
-        <testcase name="testGetProvidersByFlagSkipsMissingProviders" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProviderRegistryTest.php" line="80" class="ValksorDev\Build\Tests\ProviderRegistryTest" classname="ValksorDev.Build.Tests.ProviderRegistryTest" assertions="1" time="0.001000"/>
-        <testcase name="testGetProvidersByFlagWithCustomProvider" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProviderRegistryTest.php" line="94" class="ValksorDev\Build\Tests\ProviderRegistryTest" classname="ValksorDev.Build.Tests.ProviderRegistryTest" assertions="2" time="0.001000"/>
-        <testcase name="testHasProvider" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProviderRegistryTest.php" line="109" class="ValksorDev\Build\Tests\ProviderRegistryTest" classname="ValksorDev.Build.Tests.ProviderRegistryTest" assertions="3" time="0.001000"/>
-        <testcase name="testMultipleProvidersRegistration" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProviderRegistryTest.php" line="116" class="ValksorDev\Build\Tests\ProviderRegistryTest" classname="ValksorDev.Build.Tests.ProviderRegistryTest" assertions="3" time="0.001000"/>
-        <testcase name="testProviderDependencyResolution" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProviderRegistryTest.php" line="135" class="ValksorDev\Build\Tests\ProviderRegistryTest" classname="ValksorDev.Build.Tests.ProviderRegistryTest" assertions="1" time="0.001000"/>
-        <testcase name="testProviderOverride" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProviderRegistryTest.php" line="168" class="ValksorDev\Build\Tests\ProviderRegistryTest" classname="ValksorDev.Build.Tests.ProviderRegistryTest" assertions="3" time="0.001000"/>
-        <testcase name="testRegisterProvider" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProviderRegistryTest.php" line="182" class="ValksorDev\Build\Tests\ProviderRegistryTest" classname="ValksorDev.Build.Tests.ProviderRegistryTest" assertions="2" time="0.001000"/>
-        <testcase name="testValidateProviders" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProviderRegistryTest.php" line="195" class="ValksorDev\Build\Tests\ProviderRegistryTest" classname="ValksorDev.Build.Tests.ProviderRegistryTest" assertions="3" time="0.001000"/>
+      <testsuite name="ValksorDev\Build\Tests\ProviderRegistryTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProviderRegistryTest.php" tests="12" assertions="30" errors="0" failures="0" skipped="0" time="0.007167">
+        <testcase name="testGetAvailableNames" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProviderRegistryTest.php" line="30" class="ValksorDev\Build\Tests\ProviderRegistryTest" classname="ValksorDev.Build.Tests.ProviderRegistryTest" assertions="3" time="0.001571"/>
+        <testcase name="testGetExistingProvider" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProviderRegistryTest.php" line="38" class="ValksorDev\Build\Tests\ProviderRegistryTest" classname="ValksorDev.Build.Tests.ProviderRegistryTest" assertions="1" time="0.000480"/>
+        <testcase name="testGetNonExistentProviderThrowsException" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProviderRegistryTest.php" line="44" class="ValksorDev\Build\Tests\ProviderRegistryTest" classname="ValksorDev.Build.Tests.ProviderRegistryTest" assertions="2" time="0.000452"/>
+        <testcase name="testGetProvidersByFlag" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProviderRegistryTest.php" line="52" class="ValksorDev\Build\Tests\ProviderRegistryTest" classname="ValksorDev.Build.Tests.ProviderRegistryTest" assertions="6" time="0.000496"/>
+        <testcase name="testGetProvidersByFlagSkipsMissingProviders" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProviderRegistryTest.php" line="80" class="ValksorDev\Build\Tests\ProviderRegistryTest" classname="ValksorDev.Build.Tests.ProviderRegistryTest" assertions="1" time="0.000438"/>
+        <testcase name="testGetProvidersByFlagWithCustomProvider" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProviderRegistryTest.php" line="94" class="ValksorDev\Build\Tests\ProviderRegistryTest" classname="ValksorDev.Build.Tests.ProviderRegistryTest" assertions="2" time="0.000451"/>
+        <testcase name="testHasProvider" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProviderRegistryTest.php" line="109" class="ValksorDev\Build\Tests\ProviderRegistryTest" classname="ValksorDev.Build.Tests.ProviderRegistryTest" assertions="3" time="0.000447"/>
+        <testcase name="testMultipleProvidersRegistration" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProviderRegistryTest.php" line="116" class="ValksorDev\Build\Tests\ProviderRegistryTest" classname="ValksorDev.Build.Tests.ProviderRegistryTest" assertions="3" time="0.000637"/>
+        <testcase name="testProviderDependencyResolution" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProviderRegistryTest.php" line="135" class="ValksorDev\Build\Tests\ProviderRegistryTest" classname="ValksorDev.Build.Tests.ProviderRegistryTest" assertions="1" time="0.000656"/>
+        <testcase name="testProviderOverride" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProviderRegistryTest.php" line="168" class="ValksorDev\Build\Tests\ProviderRegistryTest" classname="ValksorDev.Build.Tests.ProviderRegistryTest" assertions="3" time="0.000567"/>
+        <testcase name="testRegisterProvider" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProviderRegistryTest.php" line="182" class="ValksorDev\Build\Tests\ProviderRegistryTest" classname="ValksorDev.Build.Tests.ProviderRegistryTest" assertions="2" time="0.000520"/>
+        <testcase name="testValidateProviders" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/ProviderRegistryTest.php" line="195" class="ValksorDev\Build\Tests\ProviderRegistryTest" classname="ValksorDev.Build.Tests.ProviderRegistryTest" assertions="3" time="0.000451"/>
       </testsuite>
-      <testsuite name="ValksorDev\Build\Tests\RecursiveInotifyWatcherTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/RecursiveInotifyWatcherTest.php" tests="12" assertions="10" errors="0" failures="0" skipped="1" time="0.001000">
-        <testcase name="testAddDuplicateRoot" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/RecursiveInotifyWatcherTest.php" line="33" class="ValksorDev\Build\Tests\RecursiveInotifyWatcherTest" classname="ValksorDev.Build.Tests.RecursiveInotifyWatcherTest" assertions="1" time="0.001000"/>
-        <testcase name="testAddMultipleRoots" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/RecursiveInotifyWatcherTest.php" line="48" class="ValksorDev\Build\Tests\RecursiveInotifyWatcherTest" classname="ValksorDev.Build.Tests.RecursiveInotifyWatcherTest" assertions="1" time="0.001000"/>
-        <testcase name="testAddNonExistentRoot" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/RecursiveInotifyWatcherTest.php" line="69" class="ValksorDev\Build\Tests\RecursiveInotifyWatcherTest" classname="ValksorDev.Build.Tests.RecursiveInotifyWatcherTest" assertions="1" time="0.001000"/>
-        <testcase name="testAddRoot" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/RecursiveInotifyWatcherTest.php" line="84" class="ValksorDev\Build\Tests\RecursiveInotifyWatcherTest" classname="ValksorDev.Build.Tests.RecursiveInotifyWatcherTest" assertions="1" time="0.001000"/>
-        <testcase name="testCallbackInvocation" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/RecursiveInotifyWatcherTest.php" line="98" class="ValksorDev\Build\Tests\RecursiveInotifyWatcherTest" classname="ValksorDev.Build.Tests.RecursiveInotifyWatcherTest" assertions="1" time="0.001000"/>
-        <testcase name="testComplexDirectoryStructure" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/RecursiveInotifyWatcherTest.php" line="122" class="ValksorDev\Build\Tests\RecursiveInotifyWatcherTest" classname="ValksorDev.Build.Tests.RecursiveInotifyWatcherTest" assertions="1" time="0.001000"/>
-        <testcase name="testConstructorWithInotifyAvailable" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/RecursiveInotifyWatcherTest.php" line="146" class="ValksorDev\Build\Tests\RecursiveInotifyWatcherTest" classname="ValksorDev.Build.Tests.RecursiveInotifyWatcherTest" assertions="0" time="0.001000"/>
-        <testcase name="testConstructorWithoutInotify" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/RecursiveInotifyWatcherTest.php" line="157" class="ValksorDev\Build\Tests\RecursiveInotifyWatcherTest" classname="ValksorDev.Build.Tests.RecursiveInotifyWatcherTest" assertions="0" time="0.001000">
+      <testsuite name="ValksorDev\Build\Tests\RecursiveInotifyWatcherTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/RecursiveInotifyWatcherTest.php" tests="12" assertions="10" errors="0" failures="0" skipped="1" time="0.040203">
+        <testcase name="testAddDuplicateRoot" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/RecursiveInotifyWatcherTest.php" line="33" class="ValksorDev\Build\Tests\RecursiveInotifyWatcherTest" classname="ValksorDev.Build.Tests.RecursiveInotifyWatcherTest" assertions="1" time="0.005490"/>
+        <testcase name="testAddMultipleRoots" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/RecursiveInotifyWatcherTest.php" line="48" class="ValksorDev\Build\Tests\RecursiveInotifyWatcherTest" classname="ValksorDev.Build.Tests.RecursiveInotifyWatcherTest" assertions="1" time="0.004317"/>
+        <testcase name="testAddNonExistentRoot" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/RecursiveInotifyWatcherTest.php" line="69" class="ValksorDev\Build\Tests\RecursiveInotifyWatcherTest" classname="ValksorDev.Build.Tests.RecursiveInotifyWatcherTest" assertions="1" time="0.000366"/>
+        <testcase name="testAddRoot" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/RecursiveInotifyWatcherTest.php" line="84" class="ValksorDev\Build\Tests\RecursiveInotifyWatcherTest" classname="ValksorDev.Build.Tests.RecursiveInotifyWatcherTest" assertions="1" time="0.004549"/>
+        <testcase name="testCallbackInvocation" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/RecursiveInotifyWatcherTest.php" line="98" class="ValksorDev\Build\Tests\RecursiveInotifyWatcherTest" classname="ValksorDev.Build.Tests.RecursiveInotifyWatcherTest" assertions="1" time="0.004848"/>
+        <testcase name="testComplexDirectoryStructure" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/RecursiveInotifyWatcherTest.php" line="122" class="ValksorDev\Build\Tests\RecursiveInotifyWatcherTest" classname="ValksorDev.Build.Tests.RecursiveInotifyWatcherTest" assertions="1" time="0.004042"/>
+        <testcase name="testConstructorWithInotifyAvailable" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/RecursiveInotifyWatcherTest.php" line="146" class="ValksorDev\Build\Tests\RecursiveInotifyWatcherTest" classname="ValksorDev.Build.Tests.RecursiveInotifyWatcherTest" assertions="0" time="0.000320"/>
+        <testcase name="testConstructorWithoutInotify" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/RecursiveInotifyWatcherTest.php" line="157" class="ValksorDev\Build\Tests\RecursiveInotifyWatcherTest" classname="ValksorDev.Build.Tests.RecursiveInotifyWatcherTest" assertions="0" time="0.000298">
           <skipped/>
         </testcase>
-        <testcase name="testGetStream" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/RecursiveInotifyWatcherTest.php" line="172" class="ValksorDev\Build\Tests\RecursiveInotifyWatcherTest" classname="ValksorDev.Build.Tests.RecursiveInotifyWatcherTest" assertions="1" time="0.001000"/>
-        <testcase name="testPoll" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/RecursiveInotifyWatcherTest.php" line="186" class="ValksorDev\Build\Tests\RecursiveInotifyWatcherTest" classname="ValksorDev.Build.Tests.RecursiveInotifyWatcherTest" assertions="1" time="0.001000"/>
-        <testcase name="testStopAndCleanup" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/RecursiveInotifyWatcherTest.php" line="201" class="ValksorDev\Build\Tests\RecursiveInotifyWatcherTest" classname="ValksorDev.Build.Tests.RecursiveInotifyWatcherTest" assertions="1" time="0.001000"/>
-        <testcase name="testWithCustomPathFilter" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/RecursiveInotifyWatcherTest.php" line="216" class="ValksorDev\Build\Tests\RecursiveInotifyWatcherTest" classname="ValksorDev.Build.Tests.RecursiveInotifyWatcherTest" assertions="1" time="0.001000"/>
+        <testcase name="testGetStream" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/RecursiveInotifyWatcherTest.php" line="172" class="ValksorDev\Build\Tests\RecursiveInotifyWatcherTest" classname="ValksorDev.Build.Tests.RecursiveInotifyWatcherTest" assertions="1" time="0.003718"/>
+        <testcase name="testPoll" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/RecursiveInotifyWatcherTest.php" line="186" class="ValksorDev\Build\Tests\RecursiveInotifyWatcherTest" classname="ValksorDev.Build.Tests.RecursiveInotifyWatcherTest" assertions="1" time="0.004425"/>
+        <testcase name="testStopAndCleanup" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/RecursiveInotifyWatcherTest.php" line="201" class="ValksorDev\Build\Tests\RecursiveInotifyWatcherTest" classname="ValksorDev.Build.Tests.RecursiveInotifyWatcherTest" assertions="1" time="0.003664"/>
+        <testcase name="testWithCustomPathFilter" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/RecursiveInotifyWatcherTest.php" line="216" class="ValksorDev\Build\Tests\RecursiveInotifyWatcherTest" classname="ValksorDev.Build.Tests.RecursiveInotifyWatcherTest" assertions="1" time="0.004168"/>
       </testsuite>
-      <testsuite name="ValksorDev\Build\Tests\TailwindBuildCommandTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindBuildCommandTest.php" tests="10" assertions="11" errors="0" failures="0" skipped="0" time="0.001000">
-        <testcase name="testCommandConfiguration" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindBuildCommandTest.php" line="39" class="ValksorDev\Build\Tests\TailwindBuildCommandTest" classname="ValksorDev.Build.Tests.TailwindBuildCommandTest" assertions="3" time="0.001000"/>
-        <testcase name="testCommandDescription" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindBuildCommandTest.php" line="52" class="ValksorDev\Build\Tests\TailwindBuildCommandTest" classname="ValksorDev.Build.Tests.TailwindBuildCommandTest" assertions="1" time="0.001000"/>
-        <testcase name="testCommandExecution" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindBuildCommandTest.php" line="62" class="ValksorDev\Build\Tests\TailwindBuildCommandTest" classname="ValksorDev.Build.Tests.TailwindBuildCommandTest" assertions="1" time="0.001000"/>
-        <testcase name="testCommandName" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindBuildCommandTest.php" line="80" class="ValksorDev\Build\Tests\TailwindBuildCommandTest" classname="ValksorDev.Build.Tests.TailwindBuildCommandTest" assertions="1" time="0.001000"/>
-        <testcase name="testGetProviderRegistry" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindBuildCommandTest.php" line="90" class="ValksorDev\Build\Tests\TailwindBuildCommandTest" classname="ValksorDev.Build.Tests.TailwindBuildCommandTest" assertions="1" time="0.001000"/>
-        <testcase name="testGetTailwindService" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindBuildCommandTest.php" line="103" class="ValksorDev\Build\Tests\TailwindBuildCommandTest" classname="ValksorDev.Build.Tests.TailwindBuildCommandTest" assertions="1" time="0.001000"/>
-        <testcase name="testServiceIntegration" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindBuildCommandTest.php" line="113" class="ValksorDev\Build\Tests\TailwindBuildCommandTest" classname="ValksorDev.Build.Tests.TailwindBuildCommandTest" assertions="2" time="0.001000"/>
-        <testcase name="testWithDifferentProviderRegistry" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindBuildCommandTest.php" line="125" class="ValksorDev\Build\Tests\TailwindBuildCommandTest" classname="ValksorDev.Build.Tests.TailwindBuildCommandTest" assertions="1" time="0.001000"/>
-        <testcase name="testWithEmptyParameterBag" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindBuildCommandTest.php" line="135" class="ValksorDev\Build\Tests\TailwindBuildCommandTest" classname="ValksorDev.Build.Tests.TailwindBuildCommandTest" assertions="0" time="0.001000"/>
-        <testcase name="testWithProductionEnvironment" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindBuildCommandTest.php" line="146" class="ValksorDev\Build\Tests\TailwindBuildCommandTest" classname="ValksorDev.Build.Tests.TailwindBuildCommandTest" assertions="0" time="0.001000"/>
+      <testsuite name="ValksorDev\Build\Tests\TailwindBuildCommandTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindBuildCommandTest.php" tests="10" assertions="11" errors="0" failures="0" skipped="0" time="0.007995">
+        <testcase name="testCommandConfiguration" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindBuildCommandTest.php" line="39" class="ValksorDev\Build\Tests\TailwindBuildCommandTest" classname="ValksorDev.Build.Tests.TailwindBuildCommandTest" assertions="3" time="0.002321"/>
+        <testcase name="testCommandDescription" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindBuildCommandTest.php" line="52" class="ValksorDev\Build\Tests\TailwindBuildCommandTest" classname="ValksorDev.Build.Tests.TailwindBuildCommandTest" assertions="1" time="0.000454"/>
+        <testcase name="testCommandExecution" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindBuildCommandTest.php" line="62" class="ValksorDev\Build\Tests\TailwindBuildCommandTest" classname="ValksorDev.Build.Tests.TailwindBuildCommandTest" assertions="1" time="0.002383"/>
+        <testcase name="testCommandName" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindBuildCommandTest.php" line="80" class="ValksorDev\Build\Tests\TailwindBuildCommandTest" classname="ValksorDev.Build.Tests.TailwindBuildCommandTest" assertions="1" time="0.000420"/>
+        <testcase name="testGetProviderRegistry" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindBuildCommandTest.php" line="90" class="ValksorDev\Build\Tests\TailwindBuildCommandTest" classname="ValksorDev.Build.Tests.TailwindBuildCommandTest" assertions="1" time="0.000415"/>
+        <testcase name="testGetTailwindService" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindBuildCommandTest.php" line="103" class="ValksorDev\Build\Tests\TailwindBuildCommandTest" classname="ValksorDev.Build.Tests.TailwindBuildCommandTest" assertions="1" time="0.000421"/>
+        <testcase name="testServiceIntegration" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindBuildCommandTest.php" line="113" class="ValksorDev\Build\Tests\TailwindBuildCommandTest" classname="ValksorDev.Build.Tests.TailwindBuildCommandTest" assertions="2" time="0.000397"/>
+        <testcase name="testWithDifferentProviderRegistry" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindBuildCommandTest.php" line="125" class="ValksorDev\Build\Tests\TailwindBuildCommandTest" classname="ValksorDev.Build.Tests.TailwindBuildCommandTest" assertions="1" time="0.000404"/>
+        <testcase name="testWithEmptyParameterBag" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindBuildCommandTest.php" line="135" class="ValksorDev\Build\Tests\TailwindBuildCommandTest" classname="ValksorDev.Build.Tests.TailwindBuildCommandTest" assertions="0" time="0.000395"/>
+        <testcase name="testWithProductionEnvironment" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindBuildCommandTest.php" line="146" class="ValksorDev\Build\Tests\TailwindBuildCommandTest" classname="ValksorDev.Build.Tests.TailwindBuildCommandTest" assertions="0" time="0.000385"/>
       </testsuite>
-      <testsuite name="ValksorDev\Build\Tests\TailwindServiceTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindServiceTest.php" tests="9" assertions="8" errors="0" failures="0" skipped="0" time="0.001000">
-        <testcase name="testGetServiceName" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindServiceTest.php" line="34" class="ValksorDev\Build\Tests\TailwindServiceTest" classname="ValksorDev.Build.Tests.TailwindServiceTest" assertions="1" time="0.001000"/>
-        <testcase name="testSetActiveAppId" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindServiceTest.php" line="39" class="ValksorDev\Build\Tests\TailwindServiceTest" classname="ValksorDev.Build.Tests.TailwindServiceTest" assertions="1" time="0.001000"/>
-        <testcase name="testStart" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindServiceTest.php" line="46" class="ValksorDev\Build\Tests\TailwindServiceTest" classname="ValksorDev.Build.Tests.TailwindServiceTest" assertions="1" time="0.001000"/>
-        <testcase name="testStartWithMinify" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindServiceTest.php" line="76" class="ValksorDev\Build\Tests\TailwindServiceTest" classname="ValksorDev.Build.Tests.TailwindServiceTest" assertions="1" time="0.001000"/>
-        <testcase name="testStartWithNoSources" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindServiceTest.php" line="106" class="ValksorDev\Build\Tests\TailwindServiceTest" classname="ValksorDev.Build.Tests.TailwindServiceTest" assertions="1" time="0.001000"/>
-        <testcase name="testStartWithWatchMode" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindServiceTest.php" line="121" class="ValksorDev\Build\Tests\TailwindServiceTest" classname="ValksorDev.Build.Tests.TailwindServiceTest" assertions="1" time="0.001000"/>
-        <testcase name="testStop" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindServiceTest.php" line="151" class="ValksorDev\Build\Tests\TailwindServiceTest" classname="ValksorDev.Build.Tests.TailwindServiceTest" assertions="1" time="0.001000"/>
-        <testcase name="testWithDifferentAppId" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindServiceTest.php" line="160" class="ValksorDev\Build\Tests\TailwindServiceTest" classname="ValksorDev.Build.Tests.TailwindServiceTest" assertions="1" time="0.001000"/>
-        <testcase name="testWithProductionEnvironment" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindServiceTest.php" line="172" class="ValksorDev\Build\Tests\TailwindServiceTest" classname="ValksorDev.Build.Tests.TailwindServiceTest" assertions="0" time="0.001000"/>
+      <testsuite name="ValksorDev\Build\Tests\TailwindServiceTest" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindServiceTest.php" tests="9" assertions="8" errors="0" failures="0" skipped="0" time="0.004067">
+        <testcase name="testGetServiceName" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindServiceTest.php" line="34" class="ValksorDev\Build\Tests\TailwindServiceTest" classname="ValksorDev.Build.Tests.TailwindServiceTest" assertions="1" time="0.000397"/>
+        <testcase name="testSetActiveAppId" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindServiceTest.php" line="39" class="ValksorDev\Build\Tests\TailwindServiceTest" classname="ValksorDev.Build.Tests.TailwindServiceTest" assertions="1" time="0.000466"/>
+        <testcase name="testStart" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindServiceTest.php" line="46" class="ValksorDev\Build\Tests\TailwindServiceTest" classname="ValksorDev.Build.Tests.TailwindServiceTest" assertions="1" time="0.000576"/>
+        <testcase name="testStartWithMinify" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindServiceTest.php" line="76" class="ValksorDev\Build\Tests\TailwindServiceTest" classname="ValksorDev.Build.Tests.TailwindServiceTest" assertions="1" time="0.000548"/>
+        <testcase name="testStartWithNoSources" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindServiceTest.php" line="106" class="ValksorDev\Build\Tests\TailwindServiceTest" classname="ValksorDev.Build.Tests.TailwindServiceTest" assertions="1" time="0.000415"/>
+        <testcase name="testStartWithWatchMode" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindServiceTest.php" line="121" class="ValksorDev\Build\Tests\TailwindServiceTest" classname="ValksorDev.Build.Tests.TailwindServiceTest" assertions="1" time="0.000590"/>
+        <testcase name="testStop" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindServiceTest.php" line="151" class="ValksorDev\Build\Tests\TailwindServiceTest" classname="ValksorDev.Build.Tests.TailwindServiceTest" assertions="1" time="0.000362"/>
+        <testcase name="testWithDifferentAppId" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindServiceTest.php" line="160" class="ValksorDev\Build\Tests\TailwindServiceTest" classname="ValksorDev.Build.Tests.TailwindServiceTest" assertions="1" time="0.000361"/>
+        <testcase name="testWithProductionEnvironment" file="/var/www/html/valksor-dev/src/ValksorDev/Build/Tests/TailwindServiceTest.php" line="172" class="ValksorDev\Build\Tests\TailwindServiceTest" classname="ValksorDev.Build.Tests.TailwindServiceTest" assertions="0" time="0.000351"/>
       </testsuite>
     </testsuite>
   </testsuite>

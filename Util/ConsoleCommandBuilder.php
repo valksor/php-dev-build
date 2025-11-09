@@ -14,6 +14,8 @@ namespace ValksorDev\Build\Util;
 
 use Symfony\Component\Process\Process;
 
+use function is_string;
+
 /**
  * Utility class for building console commands with standardized options.
  *
@@ -22,14 +24,20 @@ use Symfony\Component\Process\Process;
  */
 final class ConsoleCommandBuilder
 {
+    public const CONSOLE_COMMAND = 'bin/console';
+    public const PHP_CONSOLE = 'php';
+
     /**
-     * Build a console command process with standardized options.
+     * Build a console command process with options or arguments.
      *
-     * @param string $command   The console command (e.g., 'valksor:tailwind')
-     * @param array  $options   Command options:
-     *                          - 'app' (string): Application ID for multi-app setup
-     *                          - 'minify' (bool): Whether to add minification flag
-     *                          - 'watch' (bool): Whether to add watch flag
+     * @param string $command The console command (e.g., 'valksor:tailwind' or 'assets:install')
+     * @param array  $options Command options:
+     *                        For valksor commands:
+     *                        - 'app' (string): Application ID for multi-app setup
+     *                        - 'minify' (bool): Whether to add minification flag
+     *                        - 'watch' (bool): Whether to add watch flag
+     *                        For generic commands:
+     *                        - Array of command-line arguments (e.g., ['--relative', '--no-interaction'])
      *
      * @return Process The configured process ready to run
      */
@@ -37,21 +45,30 @@ final class ConsoleCommandBuilder
         string $command,
         array $options = [],
     ): Process {
-        $arguments = ['php', 'bin/console', $command];
+        $arguments = [self::PHP_CONSOLE, self::CONSOLE_COMMAND, $command];
 
-        // Add app ID if specified
+        // Handle valksor-specific options
         if (isset($options['app'])) {
             $arguments[] = '--id=' . $options['app'];
         }
 
-        // Add minification flag
         if ($options['minify'] ?? false) {
             $arguments[] = '--minify';
         }
 
-        // Add watch flag
         if ($options['watch'] ?? false) {
             $arguments[] = '--watch';
+        }
+
+        // Handle generic command arguments (non-valksor commands)
+        // Check if this is a valksor command or generic command by looking for known options
+        if (!str_starts_with($command, 'valksor:') && !str_starts_with($command, 'valksor-prod:')) {
+            // Add all options as command-line arguments for generic commands
+            foreach ($options as $option) {
+                if (is_string($option)) {
+                    $arguments[] = $option;
+                }
+            }
         }
 
         return new Process($arguments);

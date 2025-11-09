@@ -17,8 +17,10 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Process\Exception\ProcessTimedOutException;
 use Symfony\Component\Process\Process;
+use ValksorDev\Build\Util\ConsoleCommandBuilder;
 
 use function array_filter;
+use function array_slice;
 use function count;
 use function function_exists;
 use function pcntl_async_signals;
@@ -102,6 +104,7 @@ final class ProcessManager
 
     public function __construct(
         private readonly ?SymfonyStyle $io = null,
+        private readonly ?ConsoleCommandBuilder $commandBuilder = null,
     ) {
         // Register signal handlers for graceful shutdown
         if (function_exists('pcntl_signal')) {
@@ -189,6 +192,73 @@ final class ProcessManager
         }
 
         $this->io->newLine();
+    }
+
+    /**
+     * Execute a single process with support for interactive and non-interactive modes.
+     *
+     * This method handles different execution scenarios:
+     * - Interactive mode: Starts process and allows it to run continuously (for watch services)
+     * - Non-interactive mode: Runs process to completion and returns exit code
+     * - Timeout handling: Manages processes that are expected to run indefinitely
+     *
+     * @param array  $arguments     Command arguments to pass to the console
+     * @param bool   $isInteractive Whether to run in interactive (background) mode
+     * @param string $serviceName   Name of the service for logging and user feedback
+     *
+     * @return int Command exit code (Command::SUCCESS or Command::FAILURE)
+     */
+    public function executeProcess(
+        array $arguments,
+        bool $isInteractive,
+        string $serviceName = 'Service',
+    ): int {
+        // The first argument is the command name (e.g., 'valksor:tailwind')
+        $commandName = $arguments[0];
+        $commandArgs = array_slice($arguments, 1);
+
+        $process = $this->commandBuilder?->build($commandName, [])
+            ?? new Process(['php', 'bin/console', ...$arguments]);
+
+        if ($isInteractive) {
+            // Interactive mode - start process and let it run in background
+            // Used for watch services that should continue running
+            try {
+                $process->start();
+
+                // Give the process time to initialize and start monitoring
+                usleep(500000); // 500ms for startup
+
+                if ($process->isRunning()) {
+                    // Process started successfully and is running in background
+                    // This is the expected behavior for watch services
+                    echo sprintf("[RUNNING] %s started and monitoring files for changes\n", $serviceName);
+
+                    return Command::SUCCESS;
+                }
+
+                // Process finished quickly (likely an error or quick operation)
+                // Check if the execution was successful
+                return $process->isSuccessful() ? Command::SUCCESS : Command::FAILURE;
+            } catch (ProcessTimedOutException) {
+                // Timeout exception occurs when the process runs longer than expected
+                // This is normal for watch services - they are designed to run continuously
+                if ($process->isRunning()) {
+                    // Process is still running despite timeout - let it continue
+                    return Command::SUCCESS;
+                }
+
+                // Process stopped during or after the timeout
+                // Check if it completed successfully before stopping
+                return $process->isSuccessful() ? Command::SUCCESS : Command::FAILURE;
+            }
+        } else {
+            // Non-interactive mode - run process to completion without output
+            // Used for one-time operations like build commands
+            $process->run();
+
+            return $process->isSuccessful() ? Command::SUCCESS : Command::FAILURE;
+        }
     }
 
     /**
@@ -519,67 +589,5 @@ final class ProcessManager
         }
 
         $this->io?->success('[SHUTDOWN] All processes terminated');
-    }
-
-    /**
-     * Execute a single process with support for interactive and non-interactive modes.
-     *
-     * This static method handles different execution scenarios:
-     * - Interactive mode: Starts process and allows it to run continuously (for watch services)
-     * - Non-interactive mode: Runs process to completion and returns exit code
-     * - Timeout handling: Manages processes that are expected to run indefinitely
-     *
-     * @param array  $arguments     Command arguments to pass to the console
-     * @param bool   $isInteractive Whether to run in interactive (background) mode
-     * @param string $serviceName   Name of the service for logging and user feedback
-     *
-     * @return int Command exit code (Command::SUCCESS or Command::FAILURE)
-     */
-    public static function executeProcess(
-        array $arguments,
-        bool $isInteractive,
-        string $serviceName = 'Service',
-    ): int {
-        $process = new Process(['php', 'bin/console', ...$arguments]);
-
-        if ($isInteractive) {
-            // Interactive mode - start process and let it run in background
-            // Used for watch services that should continue running
-            try {
-                $process->start();
-
-                // Give the process time to initialize and start monitoring
-                usleep(500000); // 500ms for startup
-
-                if ($process->isRunning()) {
-                    // Process started successfully and is running in background
-                    // This is the expected behavior for watch services
-                    echo sprintf("[RUNNING] %s started and monitoring files for changes\n", $serviceName);
-
-                    return Command::SUCCESS;
-                }
-
-                // Process finished quickly (likely an error or quick operation)
-                // Check if the execution was successful
-                return $process->isSuccessful() ? Command::SUCCESS : Command::FAILURE;
-            } catch (ProcessTimedOutException) {
-                // Timeout exception occurs when the process runs longer than expected
-                // This is normal for watch services - they are designed to run continuously
-                if ($process->isRunning()) {
-                    // Process is still running despite timeout - let it continue
-                    return Command::SUCCESS;
-                }
-
-                // Process stopped during or after the timeout
-                // Check if it completed successfully before stopping
-                return $process->isSuccessful() ? Command::SUCCESS : Command::FAILURE;
-            }
-        } else {
-            // Non-interactive mode - run process to completion without output
-            // Used for one-time operations like build commands
-            $process->run();
-
-            return $process->isSuccessful() ? Command::SUCCESS : Command::FAILURE;
-        }
     }
 }
