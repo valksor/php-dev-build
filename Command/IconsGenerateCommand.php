@@ -108,7 +108,6 @@ final class IconsGenerateCommand extends AbstractCommand
             $generated += $this->generateForTarget(
                 $targetId,
                 $iconNames,
-                $sharedIcons,
                 $localIconsDir,
                 $sharedIconsDir,
                 $lucideDir,
@@ -394,7 +393,6 @@ final class IconsGenerateCommand extends AbstractCommand
     private function generateForTarget(
         string $target,
         array $icons,
-        array $sharedIcons,
         string $localIconsDir,
         string $sharedIconsDir,
         ?string $lucideIconDir,
@@ -402,10 +400,6 @@ final class IconsGenerateCommand extends AbstractCommand
         $icons = array_map('strval', $icons);
 
         $sharedIdentifier = $this->sharedIdentifier;
-
-        if ($target === $sharedIdentifier) {
-            $icons = array_map('strval', array_diff($icons, $sharedIcons));
-        }
 
         $icons = array_values($icons);
         $count = count($icons);
