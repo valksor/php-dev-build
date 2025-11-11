@@ -479,10 +479,19 @@ final class ProcessManager
             exit(Command::FAILURE);
         }
 
+        // Add exponential backoff delay based on failure count
+        $failureCount = count($this->failureHistory[$processName] ?? []);
+        $backoffDelay = min(5 * 2 ** ($failureCount - 1), 30); // Max 30 seconds
+
+        if ($failureCount > 0) {
+            $this->io?->text(sprintf('[RESTART] Waiting %d seconds before restart (failure #%d)', $backoffDelay, $failureCount));
+            usleep($backoffDelay * 1000000); // Convert to microseconds
+        }
+
         $this->io?->warning(sprintf('[RESTART] Restarting process %s...', $processName));
 
-        // Terminate all current processes before restart
-        $this->terminateAll();
+        // Only terminate the failed process, not all processes
+        $this->terminateProcess($processName);
 
         // Start the new process
         $process = new Process($args);
@@ -589,5 +598,41 @@ final class ProcessManager
         }
 
         $this->io?->success('[SHUTDOWN] All processes terminated');
+    }
+
+    /**
+     * Terminate a specific process gracefully.
+     *
+     * @param string $processName The name of the process to terminate
+     */
+    public function terminateProcess(
+        string $processName,
+    ): void {
+        if (!isset($this->processes[$processName])) {
+            $this->io?->warning(sprintf('[STOPPING] Process %s not found in registry', $processName));
+
+            return;
+        }
+
+        $process = $this->processes[$processName];
+
+        if (!$process->isRunning()) {
+            $this->io?->text(sprintf('[STOPPING] Process %s is not running', $processName));
+
+            return;
+        }
+
+        $this->io?->text(sprintf('[STOPPING] Terminating %s process (PID: %d)', $processName, $process->getPid()));
+
+        // Phase 1: Graceful termination using SIGTERM (signal 15)
+        $process->stop(2); // Send SIGTERM with 2-second timeout for graceful shutdown
+
+        // Phase 2: Force kill if still running using SIGKILL (signal 9)
+        if ($process->isRunning()) {
+            $this->io?->warning(sprintf('[FORCE-KILL] Forcefully killing %s process', $processName));
+            $process->signal(9); // SIGKILL - cannot be caught or ignored
+        } else {
+            $this->io?->success(sprintf('[STOPPING] Successfully terminated %s process', $processName));
+        }
     }
 }

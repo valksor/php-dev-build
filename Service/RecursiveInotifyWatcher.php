@@ -18,10 +18,12 @@ use function array_key_exists;
 use function array_keys;
 use function basename;
 use function closedir;
+use function count;
 use function function_exists;
 use function inotify_add_watch;
 use function inotify_init;
 use function inotify_read;
+use function inotify_rm_watch;
 use function is_dir;
 use function is_resource;
 use function opendir;
@@ -60,6 +62,13 @@ use const IN_MOVED_TO;
 final class RecursiveInotifyWatcher
 {
     /**
+     * Maximum number of watch descriptors to prevent OS limit exhaustion.
+     * Most Linux systems have a default limit of 8192-65536 per user.
+     * We use a conservative limit to ensure system stability.
+     */
+    private const int MAX_WATCH_DESCRIPTORS = 4096;
+
+    /**
      * Inotify watch mask defining which file system events to monitor.
      *
      * Events watched:
@@ -76,11 +85,12 @@ final class RecursiveInotifyWatcher
      * only when files are closed after writing (IN_CLOSE_WRITE).
      */
     private const int WATCH_MASK =
-        IN_ATTRIB           // File attribute changes
+        IN_ATTRIB          // File attribute changes
         | IN_CLOSE_WRITE   // File written and closed
         | IN_CREATE        // File/directory created
         | IN_DELETE        // File/directory deleted
         | IN_DELETE_SELF   // Watched item deleted
+        | IN_MOVE          // Watched item moved
         | IN_MOVE_SELF     // Watched item moved
         | IN_MOVED_FROM    // File moved from watched directory
         | IN_MOVED_TO;     // File moved to watched directory
@@ -161,6 +171,25 @@ final class RecursiveInotifyWatcher
         $this->callback = $onChange;
     }
 
+    /**
+     * Destructor to ensure proper cleanup of inotify resources.
+     *
+     * This prevents resource leaks when the watcher is destroyed,
+     * which is critical for long-running processes.
+     */
+    public function __destruct()
+    {
+        if (is_resource($this->inotify)) {
+            // Clean up all watches before closing the inotify instance
+            foreach ($this->watchDescriptorToPath as $descriptor => $path) {
+                @inotify_rm_watch($this->inotify, $descriptor);
+            }
+
+            // Close the inotify instance to free file descriptors
+            @fclose($this->inotify);
+        }
+    }
+
     public function addRoot(
         string $path,
     ): void {
@@ -205,6 +234,13 @@ final class RecursiveInotifyWatcher
     private function addWatch(
         string $path,
     ): void {
+        // Check if we've reached the maximum number of watch descriptors
+        if (count($this->watchDescriptorToPath) >= self::MAX_WATCH_DESCRIPTORS) {
+            // Note: Since this is a low-level service without direct IO access, we use
+            // a simple approach to prevent OS limit exhaustion without logging
+            return;
+        }
+
         $descriptor = inotify_add_watch($this->inotify, $path, self::WATCH_MASK);
 
         if (false === $descriptor) {
@@ -322,6 +358,11 @@ final class RecursiveInotifyWatcher
         int $descriptor,
         string $path,
     ): void {
+        // Clean up kernel resources by removing the inotify watch
+        // This prevents file descriptor leaks that cause restart loops
+        @inotify_rm_watch($this->inotify, $descriptor);
+
+        // Clean up internal mappings
         unset($this->watchDescriptorToPath[$descriptor], $this->pathToWatchDescriptor[$path]);
     }
 
