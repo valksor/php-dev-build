@@ -54,7 +54,21 @@ final class ProcessManager
      * Configuration for restart logic.
      */
     private const MAX_FAILURES_IN_WINDOW = 5;
+
+    /**
+     * Maximum number of lines to keep in output buffers per service.
+     * Prevents memory exhaustion from long-running services.
+     */
+    private const int MAX_OUTPUT_LINES = 100;
     private const SUCCESS_RESET_SECONDS = 3600; // 1 hour
+
+    /**
+     * Error output buffers for capturing service stderr output.
+     * Maps service names to arrays of recent error lines with timestamps.
+     *
+     * @var array<string,array<string>>
+     */
+    private array $errorBuffers = [];
 
     /**
      * Track failure timestamps for restart logic.
@@ -63,6 +77,14 @@ final class ProcessManager
      * @var array<string,array<int>>
      */
     private array $failureHistory = [];
+
+    /**
+     * Output buffers for capturing service stdout output.
+     * Maps service names to arrays of recent output lines with timestamps.
+     *
+     * @var array<string,array<string>>
+     */
+    private array $outputBuffers = [];
 
     /**
      * Store original command arguments for restart functionality.
@@ -127,6 +149,10 @@ final class ProcessManager
         $this->processes[$name] = $process;
         $this->processNames[$name] = $name;
 
+        // Initialize output buffers for this service
+        $this->outputBuffers[$name] = [];
+        $this->errorBuffers[$name] = [];
+
         $this->io?->text(sprintf('[TRACKING] Now monitoring %s process (PID: %d)', $name, $process->getPid()));
     }
 
@@ -157,6 +183,20 @@ final class ProcessManager
     }
 
     /**
+     * Clear output buffers for a service.
+     *
+     * @param string $serviceName The service name
+     */
+    public function clearOutputBuffer(
+        string $serviceName,
+    ): void {
+        $this->outputBuffers[$serviceName] = [];
+        $this->errorBuffers[$serviceName] = [];
+
+        $this->io?->text(sprintf('[CLEANUP] Cleared output buffer for %s', $serviceName));
+    }
+
+    /**
      * Get count of tracked processes.
      */
     public function count(): int
@@ -172,6 +212,9 @@ final class ProcessManager
         if (!$this->io) {
             return;
         }
+
+        // First, capture any new output from running processes
+        $this->captureProcessOutput();
 
         $statuses = $this->getProcessStatuses();
 
@@ -189,6 +232,9 @@ final class ProcessManager
                 $statusText,
                 $pidInfo,
             ));
+
+            // Display recent output for this service
+            $this->displayServiceOutput($name);
         }
 
         $this->io->newLine();
@@ -224,6 +270,7 @@ final class ProcessManager
             // Interactive mode - start process and let it run in background
             // Used for watch services that should continue running
             try {
+                // Enable output capture for interactive processes
                 $process->start();
 
                 // Give the process time to initialize and start monitoring
@@ -317,6 +364,27 @@ final class ProcessManager
         }
 
         return $statuses;
+    }
+
+    /**
+     * Get recent output for a service.
+     *
+     * @param string $serviceName The service name
+     * @param int    $limit       Maximum number of lines to return
+     *
+     * @return array<string>
+     */
+    public function getRecentOutput(
+        string $serviceName,
+        int $limit = 10,
+    ): array {
+        $output = $this->outputBuffers[$serviceName] ?? [];
+        $errors = $this->errorBuffers[$serviceName] ?? [];
+
+        // Combine and get most recent lines
+        $allOutput = array_merge($errors, $output);
+
+        return array_slice($allOutput, -$limit);
     }
 
     /**
@@ -449,7 +517,12 @@ final class ProcessManager
         string $name,
     ): void {
         if (isset($this->processes[$name])) {
-            unset($this->processes[$name], $this->processNames[$name]);
+            unset(
+                $this->processes[$name],
+                $this->processNames[$name],
+                $this->outputBuffers[$name],
+                $this->errorBuffers[$name],
+            );
 
             $this->io?->text(sprintf('[CLEANUP] Removed %s from tracking', $name));
         }
@@ -633,6 +706,91 @@ final class ProcessManager
             $process->signal(9); // SIGKILL - cannot be caught or ignored
         } else {
             $this->io?->success(sprintf('[STOPPING] Successfully terminated %s process', $processName));
+        }
+    }
+
+    /**
+     * Add output line to the appropriate buffer with rotation.
+     *
+     * @param string $serviceName The service name
+     * @param string $output      The output line(s)
+     * @param bool   $isError     Whether this is error output
+     */
+    private function addOutputToBuffer(
+        string $serviceName,
+        string $output,
+        bool $isError,
+    ): void {
+        if ($isError) {
+            $buffer = &$this->errorBuffers[$serviceName];
+        } else {
+            $buffer = &$this->outputBuffers[$serviceName];
+        }
+
+        // Split output into lines and add with timestamps
+        $lines = explode("\n", trim($output));
+        $timestamp = date('H:i:s');
+
+        foreach ($lines as $line) {
+            if ('' === $line) {
+                continue;
+            }
+
+            $buffer[] = sprintf('[%s] %s', $timestamp, $line);
+
+            // Rotate buffer if it exceeds maximum size
+            if (count($buffer) > self::MAX_OUTPUT_LINES) {
+                array_shift($buffer); // Remove oldest line
+            }
+        }
+    }
+
+    /**
+     * Capture and buffer output from all running processes.
+     * This method reads any new output from processes and stores it in buffers.
+     */
+    private function captureProcessOutput(): void
+    {
+        foreach ($this->processes as $name => $process) {
+            if (!$process->isRunning()) {
+                continue;
+            }
+
+            // Capture stdout output
+            $output = $process->getIncrementalOutput();
+
+            if ('' !== $output) {
+                $this->addOutputToBuffer($name, $output, false);
+            }
+
+            // Capture stderr output
+            $errorOutput = $process->getIncrementalErrorOutput();
+
+            if ('' !== $errorOutput) {
+                $this->addOutputToBuffer($name, $errorOutput, true);
+            }
+        }
+    }
+
+    /**
+     * Display recent output for a specific service.
+     *
+     * @param string $serviceName The service name
+     */
+    private function displayServiceOutput(
+        string $serviceName,
+    ): void {
+        $output = $this->outputBuffers[$serviceName] ?? [];
+        $errors = $this->errorBuffers[$serviceName] ?? [];
+
+        // Display error output first (more important)
+        foreach ($errors as $errorLine) {
+            $this->io?->text(sprintf('  <error>[%s] %s</error>', strtoupper($serviceName), $errorLine));
+        }
+
+        // Display regular output
+        foreach ($output as $outputLine) {
+            $this->io?->text(sprintf('  [%s] %s', strtoupper($serviceName), $outputLine));
         }
     }
 }

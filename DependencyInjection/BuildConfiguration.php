@@ -82,6 +82,10 @@ class BuildConfiguration extends AbstractDependencyConfiguration
                                                 'track_output' => true,
                                             ],
                                         ],
+                                        'exclude' => [
+                                            'tests', 'Tests', 'coverage', '.coverage', 'docs', 'build', 'dist',
+                                            '**/*.log', '**/.DS_Store', '**/node_modules/**',
+                                        ],
                                     ],
                                 ],
                             ])

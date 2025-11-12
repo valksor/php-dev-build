@@ -12,18 +12,19 @@
 
 namespace ValksorDev\Build\Service;
 
+use function array_any;
 use function array_map;
-use function count;
 use function fnmatch;
 use function in_array;
 use function pathinfo;
-use function strlen;
 use function strtolower;
 
 use const FNM_NOESCAPE;
 use const FNM_PATHNAME;
 use const PATHINFO_BASENAME;
 use const PATHINFO_EXTENSION;
+
+use Webmozart\Glob\Glob;
 
 /**
  * Path filtering utility for file system monitoring and build processes.
@@ -97,23 +98,16 @@ final class PathFilter
      * them to lowercase for case-insensitive matching. This ensures consistent
      * behavior across different operating systems and file systems.
      *
-     * @param array  $directories List of directory names to ignore
-     * @param array  $globs       List of glob patterns for complex path matching
-     * @param array  $filenames   List of specific filenames to ignore
-     * @param array  $extensions  List of file extensions to ignore
-     * @param string $projectDir  Project root directory for path normalization
+     * @param array $directories List of directory names to ignore
+     * @param array $globs       List of glob patterns for complex path matching
+     * @param array $filenames   List of specific filenames to ignore
+     * @param array $extensions  List of file extensions to ignore
      */
     public function __construct(
         array $directories,
         array $globs,
         array $filenames,
         array $extensions,
-        /**
-         * Project root directory for path normalization.
-         *
-         * @var string
-         */
-        private string $projectDir,
     ) {
         $this->ignoredDirectories = array_map('strtolower', $directories);
         $this->ignoredGlobs = $globs;
@@ -178,78 +172,56 @@ final class PathFilter
             return false;
         }
 
-        // Convert absolute paths to be relative to project root for pattern matching
-        $relativePath = $path;
-
-        // If we have a project directory, try to make the path relative to it
-        if (!empty($this->projectDir)) {
-            // Direct match - remove project directory prefix
-            if (str_starts_with($path, $this->projectDir)) {
-                $relativePath = substr($path, strlen($this->projectDir) + 1);
-            }
-            // If path doesn't start with project dir, use it as-is (already relative)
-        }
+        // DEBUG: Log the path being checked
+        error_log("[PATHFILTER DEBUG] Checking path: {$path}");
 
         // Check filename against ignored filenames list
         // This catches specific files like .gitignore, .gitkeep that shouldn't trigger builds
-        $basename = strtolower(pathinfo($relativePath, PATHINFO_BASENAME));
+        $basename = strtolower(pathinfo($path, PATHINFO_BASENAME));
 
         if ('' !== $basename && in_array($basename, $this->ignoredFilenames, true)) {
+            error_log("[PATHFILTER DEBUG] Ignoring by filename: {$basename}");
             return true;
         }
 
         // Check file extension against ignored extensions list
         // This efficiently filters out entire file categories like documentation
-        $extension = strtolower(pathinfo($relativePath, PATHINFO_EXTENSION));
+        $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
 
         if ('' !== $extension && in_array('.' . $extension, $this->ignoredExtensions, true)) {
+            error_log("[PATHFILTER DEBUG] Ignoring by extension: .{$extension}");
             return true;
+
         }
 
         // Check against glob patterns for complex path matching
         // This handles advanced scenarios like "any file in any node_modules directory"
-        $ignored = false;
-
-        foreach ($this->ignoredGlobs as $glob) {
-            if (self::matchGlobPattern($glob, $relativePath)) {
-                $ignored = true;
-
-                break;
+        $ignored = array_any($this->ignoredGlobs, static fn ($glob) {
+            $matches = self::matchGlobPattern($glob, $path);
+            if ($matches) {
+                error_log("[PATHFILTER DEBUG] Ignoring by glob pattern: {$glob} matches {$path}");
             }
+            return $matches;
+        });
+
+        if (!$ignored) {
+            error_log("[PATHFILTER DEBUG] PATH ALLOWED: {$path}");
         }
 
         return $ignored;
-    }
-
-    public static function createDefault(
-        string $projectDir,
-    ): self {
-        return new self(
-            ['node_modules', 'vendor', 'public', 'var', '.git', '.idea', '.webpack-cache'],
-            ['**/node_modules/**', '**/vendor/**', '**/public/**', '**/var/**', '**/.git/**', '**/.idea/**', '**/.webpack-cache/**', '**/*.md', '**/.gitignore', '**/.gitkeep'],
-            ['.gitignore', '.gitkeep'],
-            ['.md'],
-            $projectDir,
-        );
     }
 
     /**
      * Pattern matching with proper ** wildcard support.
      * Uses simple string matching for common patterns and fnmatch for others.
      */
-    private static function matchGlobPattern(
-        string $pattern,
-        string $path,
-    ): bool {
+    private static function matchGlobPattern(string $pattern, string $path): bool
+    {
         // Handle common ** patterns with simple string matching for reliability
         if (str_contains($pattern, '**')) {
-            // Pattern: **/dirname/** → check if path contains /dirname/ or ends with /dirname
+            // Pattern: **/dirname/** → check if path contains /dirname/
             if (preg_match('#^\*\*/([^/]+)/\*\*$#', $pattern, $matches)) {
-                $dirname = $matches[1];
-
-                return str_contains($path, '/' . $dirname . '/')
-                       || str_ends_with($path, '/' . $dirname)
-                       || $path === $dirname;
+                return str_contains($path, '/' . $matches[1] . '/');
             }
 
             // Pattern: **/*.ext → check if path ends with .ext
@@ -263,7 +235,7 @@ final class PathFilter
             }
 
             // Pattern: ** → matches everything (shouldn't be used for exclusions)
-            if ('**' === $pattern) {
+            if ($pattern === '**') {
                 return true;
             }
 
@@ -276,14 +248,26 @@ final class PathFilter
     }
 
     /**
+     * Simple recursive pattern matching for complex ** patterns.
+     */
+    private static function matchRecursivePatternSimple(string $pattern, string $path): bool
+    {
+        // Normalize paths
+        $pattern = trim($pattern, '/');
+        $path = trim($path, '/');
+
+        // Split into parts
+        $patternParts = explode('/', $pattern);
+        $pathParts = explode('/', $path);
+
+        return self::matchPatternParts($patternParts, $pathParts);
+    }
+
+    /**
      * Recursively match pattern parts against path parts.
      */
-    private static function matchPatternParts(
-        array $patternParts,
-        array $pathParts,
-        int $pIdx = 0,
-        int $pathIdx = 0,
-    ): bool {
+    private static function matchPatternParts(array $patternParts, array $pathParts, int $pIdx = 0, int $pathIdx = 0): bool
+    {
         // Base case: both exhausted
         if ($pIdx >= count($patternParts) && $pathIdx >= count($pathParts)) {
             return true;
@@ -297,18 +281,16 @@ final class PathFilter
         $patternPart = $patternParts[$pIdx];
 
         // Handle ** wildcard
-        if ('**' === $patternPart) {
+        if ($patternPart === '**') {
             // Try matching zero parts
             if (self::matchPatternParts($patternParts, $pathParts, $pIdx + 1, $pathIdx)) {
                 return true;
             }
-
             // Try matching one or more parts
-            if ($pathIdx < count($pathParts)
-                && self::matchPatternParts($patternParts, $pathParts, $pIdx, $pathIdx + 1)) {
+            if ($pathIdx < count($pathParts) &&
+                self::matchPatternParts($patternParts, $pathParts, $pIdx, $pathIdx + 1)) {
                 return true;
             }
-
             return false;
         }
 
@@ -325,21 +307,13 @@ final class PathFilter
         return false;
     }
 
-    /**
-     * Simple recursive pattern matching for complex ** patterns.
-     */
-    private static function matchRecursivePatternSimple(
-        string $pattern,
-        string $path,
-    ): bool {
-        // Normalize paths
-        $pattern = trim($pattern, '/');
-        $path = trim($path, '/');
-
-        // Split into parts
-        $patternParts = explode('/', $pattern);
-        $pathParts = explode('/', $path);
-
-        return self::matchPatternParts($patternParts, $pathParts);
+    public static function createDefault(): self
+    {
+        return new self(
+            ['node_modules', 'vendor', 'public', 'var', '.git', '.idea', '.webpack-cache'],
+            ['**/node_modules/**', '**/vendor/**', '**/public/**', '**/var/**', '**/.git/**', '**/.idea/**', '**/.webpack-cache/**', '**/*.md', '**/.gitignore', '**/.gitkeep'],
+            ['.gitignore', '.gitkeep'],
+            ['.md'],
+        );
     }
 }

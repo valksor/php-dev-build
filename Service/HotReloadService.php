@@ -13,6 +13,8 @@
 namespace ValksorDev\Build\Service;
 
 use Exception;
+use JsonException;
+use ReflectionClass;
 use RuntimeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
@@ -20,6 +22,7 @@ use Valksor\Component\Sse\Service\AbstractService;
 
 use function array_key_exists;
 use function array_keys;
+use function array_merge;
 use function closedir;
 use function count;
 use function extension_loaded;
@@ -38,6 +41,7 @@ use function readdir;
 use function sprintf;
 use function str_ends_with;
 use function str_replace;
+use function str_starts_with;
 use function stream_select;
 use function strtolower;
 use function usleep;
@@ -97,7 +101,7 @@ final class HotReloadService extends AbstractService
         ParameterBagInterface $bag,
     ) {
         parent::__construct($bag);
-        $this->filter = PathFilter::createDefault();
+        $this->filter = PathFilter::createDefault($this->projectDir);
     }
 
     public function reload(): void
@@ -116,6 +120,10 @@ final class HotReloadService extends AbstractService
 
         // Get hot reload configuration from service-based structure
         $hotReloadConfig = $this->parameterBag->get('valksor.build.services.hot_reload.options');
+
+        // Create custom path filter with user exclusions
+        $excludePatterns = $hotReloadConfig['exclude'] ?? [];
+        $this->filter = $this->createPathFilterWithExclusions($excludePatterns);
 
         // Validate configuration early to fail fast if setup is incorrect
         if (!$this->validateConfiguration($hotReloadConfig)) {
@@ -155,10 +163,8 @@ final class HotReloadService extends AbstractService
 
             $this->io->text('File watcher initialized successfully');
         } catch (RuntimeException $e) {
-            if ($this->io) {
-                $this->io->error(sprintf('Failed to initialize file watcher: %s', $e->getMessage()));
-                $this->io->warning('Hot reload will continue without file watching (manual reload only)');
-            }
+            $this->io->error(sprintf('Failed to initialize file watcher: %s', $e->getMessage()));
+            $this->io->warning('Hot reload will continue without file watching (manual reload only)');
 
             // Continue without watcher - will fall back to manual mode
             $watcher = null;
@@ -250,6 +256,48 @@ final class HotReloadService extends AbstractService
     }
 
     /**
+     * Categorize an exclude pattern into the appropriate filter type.
+     */
+    private function categorizeExcludePattern(
+        string $pattern,
+        array &$dirs,
+        array &$globs,
+        array &$filenames,
+        array &$extensions,
+    ): void {
+        // Glob patterns (contain wildcards)
+        if (str_contains($pattern, '*') || str_contains($pattern, '?')) {
+            $globs[] = $pattern;
+
+            return;
+        }
+
+        // File extensions (start with dot)
+        if (str_starts_with($pattern, '.')) {
+            $extensions[] = $pattern;
+
+            return;
+        }
+
+        // Path patterns (contain path separators)
+        if (str_contains($pattern, '/')) {
+            $globs[] = $pattern;
+
+            return;
+        }
+
+        // Simple directory names (no slashes, no wildcards)
+        if (!str_contains($pattern, '.')) {
+            $dirs[] = $pattern;
+
+            return;
+        }
+
+        // Everything else treat as glob pattern
+        $globs[] = $pattern;
+    }
+
+    /**
      * @return array<int,string>
      */
     private function collectWatchTargets(
@@ -261,12 +309,47 @@ final class HotReloadService extends AbstractService
         foreach ($watchDirs as $dir) {
             $fullPath = $projectRoot . DIRECTORY_SEPARATOR . ltrim($dir, '/');
 
-            if (is_dir($fullPath)) {
+            if (is_dir($fullPath) && !$this->shouldExcludeDirectory($fullPath)) {
                 $targets[] = $fullPath;
             }
         }
 
         return $targets;
+    }
+
+    /**
+     * Create a PathFilter that merges default exclusions with custom exclude patterns.
+     */
+    private function createPathFilterWithExclusions(
+        array $excludePatterns = [],
+    ): PathFilter {
+        if (empty($excludePatterns)) {
+            return PathFilter::createDefault($this->projectDir);
+        }
+
+        // Get default filter values
+        $defaultFilter = PathFilter::createDefault($this->projectDir);
+
+        // Start with default exclusions using reflection to access private properties
+        $defaultExclusions = $this->extractDefaultExclusions($defaultFilter);
+
+        // Categorize custom patterns
+        $customDirs = [];
+        $customGlobs = [];
+        $customFilenames = [];
+        $customExtensions = [];
+
+        foreach ($excludePatterns as $pattern) {
+            $this->categorizeExcludePattern($pattern, $customDirs, $customGlobs, $customFilenames, $customExtensions);
+        }
+
+        // Merge with defaults
+        $mergedDirs = array_merge($defaultExclusions['directories'], $customDirs);
+        $mergedGlobs = array_merge($defaultExclusions['globs'], $customGlobs);
+        $mergedFilenames = array_merge($defaultExclusions['filenames'], $customFilenames);
+        $mergedExtensions = array_merge($defaultExclusions['extensions'], $customExtensions);
+
+        return new PathFilter($mergedDirs, $mergedGlobs, $mergedFilenames, $mergedExtensions, $this->projectDir);
     }
 
     private function determineReloadDelay(
@@ -337,6 +420,30 @@ final class HotReloadService extends AbstractService
         return $outputs;
     }
 
+    /**
+     * Extract default exclusions from PathFilter using reflection.
+     */
+    private function extractDefaultExclusions(
+        PathFilter $filter,
+    ): array {
+        $reflection = new ReflectionClass($filter);
+
+        $directories = $reflection->getProperty('ignoredDirectories')->getValue($filter);
+        $globs = $reflection->getProperty('ignoredGlobs')->getValue($filter);
+        $filenames = $reflection->getProperty('ignoredFilenames')->getValue($filter);
+        $extensions = $reflection->getProperty('ignoredExtensions')->getValue($filter);
+
+        return [
+            'directories' => $directories,
+            'globs' => $globs,
+            'filenames' => $filenames,
+            'extensions' => $extensions,
+        ];
+    }
+
+    /**
+     * @throws JsonException
+     */
     private function flushPendingReloads(): void
     {
         if ([] === $this->pendingChanges || microtime(true) < $this->debounceDeadline) {
@@ -349,7 +456,7 @@ final class HotReloadService extends AbstractService
 
         // Write signal file for SSE service with error handling
         $signalFile = $this->parameterBag->get('kernel.project_dir') . '/var/run/valksor-reload.signal';
-        $signalData = json_encode(['files' => $files, 'timestamp' => microtime(true)]);
+        $signalData = json_encode(['files' => $files, 'timestamp' => microtime(true)], JSON_THROW_ON_ERROR);
 
         try {
             $result = file_put_contents($signalFile, $signalData);
@@ -406,16 +513,9 @@ final class HotReloadService extends AbstractService
         // Lazy load output files discovery to avoid expensive directory scanning during startup
         if (empty($this->outputFiles)) {
             $this->outputFiles = $this->discoverOutputFiles($this->parameterBag->get('kernel.project_dir'), $this->fileTransformations);
-            $this->io->text(sprintf('Discovered %d output files to prevent reload loops', count($this->outputFiles)));
         }
 
         $now = microtime(true);
-        $isOutputFile = isset($this->outputFiles[$path]);
-
-        // Skip output files to prevent reload loops (e.g., Tailwind-generated CSS files)
-        if ($isOutputFile) {
-            return;
-        }
 
         // Determine the appropriate debounce delay for this specific file type
         $fileDelay = $this->determineReloadDelay($path, $extendedExtensions, $extendedSuffixes, $debounceDelay);
@@ -427,7 +527,7 @@ final class HotReloadService extends AbstractService
         // Add this file to the pending changes queue
         $this->pendingChanges[$path] = true;
 
-        $this->io->text(sprintf('File changed: %s (debounce: %.2fs)', $path, $fileDelay));
+        $this->io->text(sprintf('File changed: %s', $path));
     }
 
     /**
@@ -469,6 +569,20 @@ final class HotReloadService extends AbstractService
         $this->outputFiles = $this->discoverOutputFiles($this->parameterBag->get('kernel.project_dir'), $this->fileTransformations);
 
         $this->io->text(sprintf('Refreshed file discovery - tracking %d output files', count($this->outputFiles)));
+    }
+
+    /**
+     * Check if a directory should be excluded based on exclude patterns.
+     */
+    private function shouldExcludeDirectory(
+        string $dirPath,
+    ): bool {
+        // Get relative path from project root for pattern matching
+        $projectRoot = $this->parameterBag->get('kernel.project_dir');
+        $relativePath = str_replace($projectRoot . DIRECTORY_SEPARATOR, '', $dirPath);
+
+        // Use PathFilter to check if this directory should be excluded
+        return $this->filter->shouldIgnoreDirectory($relativePath) || $this->filter->shouldIgnorePath($relativePath);
     }
 
     /**

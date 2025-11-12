@@ -20,7 +20,7 @@ final class PathFilterTest extends TestCase
 {
     public function testDirectoryFiltering(): void
     {
-        $filter = PathFilter::createDefault();
+        $filter = PathFilter::createDefault('/test/project');
 
         self::assertTrue($filter->shouldIgnoreDirectory('node_modules'));
         self::assertTrue($filter->shouldIgnoreDirectory('NODE_MODULES'));
@@ -29,7 +29,7 @@ final class PathFilterTest extends TestCase
 
     public function testPathFilteringRules(): void
     {
-        $filter = PathFilter::createDefault();
+        $filter = PathFilter::createDefault('/test/project');
 
         self::assertFalse($filter->shouldIgnorePath(null));
 
@@ -53,7 +53,7 @@ final class PathFilterTest extends TestCase
         $result = $filter->shouldIgnorePath('app/.gitignore');
         self::assertTrue($result, 'shouldIgnorePath returned false for .gitignore');
         self::assertTrue($filter->shouldIgnorePath('README.md'));
-        self::assertFalse($filter->shouldIgnorePath('src/node_modules/package/index.js'));
+        self::assertTrue($filter->shouldIgnorePath('src/node_modules/package/index.js')); // Should be ignored by **/node_modules/** pattern
 
         self::assertFalse($filter->shouldIgnorePath('src/Controller/HomeController.php'));
         self::assertFalse($filter->shouldIgnorePath('resources/styles/app.css'));

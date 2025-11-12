@@ -75,7 +75,7 @@ final class ImportmapService extends AbstractService
         ParameterBagInterface $bag,
     ) {
         parent::__construct($bag);
-        $this->filter = PathFilter::createDefault();
+        $this->filter = PathFilter::createDefault($this->projectDir);
     }
 
     /**

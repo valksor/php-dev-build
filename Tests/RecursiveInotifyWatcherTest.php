@@ -220,7 +220,7 @@ final class RecursiveInotifyWatcherTest extends TestCase
         }
 
         // Use createDefault() method instead of constructor
-        $customFilter = PathFilter::createDefault();
+        $customFilter = PathFilter::createDefault('/test/project');
         $watcher = new RecursiveInotifyWatcher($customFilter, $this->createChangeCallback());
         $watcher->addRoot($this->tempDir);
 
@@ -235,7 +235,7 @@ final class RecursiveInotifyWatcherTest extends TestCase
             throw new RuntimeException('Failed to create temp directory');
         }
 
-        $this->pathFilter = PathFilter::createDefault();
+        $this->pathFilter = PathFilter::createDefault('/test/project');
         $this->changedFiles = [];
     }
 

@@ -346,7 +346,12 @@ final class RecursiveInotifyWatcher
 
         $basename = basename($path);
 
+        // Check both directory name and full path exclusion
         if ('' !== $basename && $this->filter->shouldIgnoreDirectory($basename)) {
+            return;
+        }
+
+        if ($this->filter->shouldIgnorePath($path)) {
             return;
         }
 
@@ -402,7 +407,12 @@ final class RecursiveInotifyWatcher
 
                 $basename = basename($realChild);
 
+                // Check both directory name and full path exclusion
                 if ('' !== $basename && $this->filter->shouldIgnoreDirectory($basename)) {
+                    continue;
+                }
+
+                if ($this->filter->shouldIgnorePath($realChild)) {
                     continue;
                 }
 
