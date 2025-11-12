@@ -215,7 +215,7 @@ class BuildConfiguration extends AbstractDependencyConfiguration
                     'debounce_delay' => 0.3,
                     'watch_dirs' => ['/src', '/templates'],
                     'file_transformations' => ['*.tailwind.css' => ['output_pattern' => '{path}/{name}.css', 'debounce_delay' => 0.5, 'track_output' => true]],
-                    'extended_suffixes' => ['.tailwind.css' => 0.5, '.min.css' => 0.3],
+                    'extended_suffixes' => ['.tailwind.css' => 1.0, '.min.css' => 0.3],
                 ],
             ],
         ];
