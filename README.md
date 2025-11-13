@@ -74,6 +74,10 @@ valksor:
                 - 'tailwindcss'
                 - 'esbuild'
             cache_duration: 3600       # Cache binary downloads for 1 hour
+
+            # Download strategy for binaries
+            download_strategy: 'release'  # 'release' (default), 'tag', 'commit'
+            commit_ref: 'main'           # Optional: branch/commit for 'commit' strategy
 ```
 
 ### Service Configuration (Advanced)
@@ -116,6 +120,39 @@ valksor:
 - `init`: Runs during initialization (binary downloads, setup)
 - `dev`: Runs during development (`valksor:dev`, `valksor:watch`)
 - `prod`: Runs during production builds (`valksor-prod:build`)
+
+### Binary Download Strategies
+
+The build system supports multiple strategies for downloading binary tools:
+
+#### Download Strategies
+
+**release**: Downloads from GitHub releases with pre-compiled binaries (default)
+
+**tag**: Downloads from Git tags when no GitHub releases exist
+
+**commit**: Downloads from specific commits or branches
+
+**Usage Examples:**
+```yaml
+# Download from releases (default)
+binaries:
+    download_strategy: 'release'
+
+# Download from tags
+binaries:
+    download_strategy: 'tag'
+
+# Download from specific branch
+binaries:
+    download_strategy: 'commit'
+    commit_ref: 'develop'
+```
+
+**Strategy Selection:**
+- Use **release** for tools with proper GitHub releases and compiled binaries
+- Use **tag** for tools that only publish tags without releases
+- Use **commit** for tools that need the latest code from a specific branch
 
 ## Development Commands
 

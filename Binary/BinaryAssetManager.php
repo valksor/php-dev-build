@@ -25,6 +25,8 @@ use function exec;
 use function file_get_contents;
 use function file_put_contents;
 use function implode;
+use function in_array;
+use function is_array;
 use function is_file;
 use function json_decode;
 use function json_encode;
@@ -60,7 +62,9 @@ final class BinaryAssetManager
      *     npm_package?: string,
      *     assets: array<int,array{pattern:string,target:string,executable:bool,extract_path?:string}>,
      *     target_dir: string,
-     *     version_in_path?: bool
+     *     version_in_path?: bool,
+     *     download_strategy?: 'release'|'tag'|'commit',
+     *     commit_ref?: string
      * } $toolConfig
      */
     public function __construct(
@@ -77,7 +81,14 @@ final class BinaryAssetManager
         $targetDir = $this->toolConfig['target_dir'];
         $this->ensureDirectory($targetDir);
 
-        $latest = $this->fetchLatestRelease();
+        $downloadStrategy = $this->toolConfig['download_strategy'] ?? 'release';
+        $latest = match (true) {
+            'npm' === $this->toolConfig['source'] => $this->fetchLatestNpmVersion(),
+            'tag' === $downloadStrategy => $this->fetchLatestTag(),
+            'commit' === $downloadStrategy => $this->fetchLatestCommit(),
+            default => $this->fetchLatestRelease(),
+        };
+
         $currentTag = $this->readCurrentTag($targetDir);
         $assetsPresent = $this->assetsPresent($targetDir);
 
@@ -91,7 +102,7 @@ final class BinaryAssetManager
 
         if ('npm' === $this->toolConfig['source']) {
             $this->downloadNpmAsset($latest['version'], $targetDir);
-        } elseif ('github-zip' === $this->toolConfig['source']) {
+        } elseif ('github-zip' === $this->toolConfig['source'] || in_array($downloadStrategy, ['tag', 'commit'], true)) {
             $this->downloadGithubZipAsset($latest['tag'], $latest['version'], $targetDir);
         } else {
             foreach ($this->toolConfig['assets'] as $assetConfig) {
@@ -209,24 +220,38 @@ final class BinaryAssetManager
         string $version,
         string $targetDir,
     ): void {
+        $downloadStrategy = $this->toolConfig['download_strategy'] ?? 'release';
         $assetConfig = $this->toolConfig['assets'][0];
 
-        // Use tag (stripped of 'v' prefix) for filename pattern, not the version name
-        $cleanVersion = ltrim($tag, 'v');
-        $zipFilename = sprintf($assetConfig['pattern'], $cleanVersion);
-        $url = sprintf(
-            'https://github.com/%s/releases/download/%s/%s',
-            $this->toolConfig['repo'],
-            $tag,
-            $zipFilename,
-        );
+        $url = match ($downloadStrategy) {
+            'tag' => sprintf(
+                'https://api.github.com/repos/%s/tarball/%s',
+                $this->toolConfig['repo'],
+                $tag,
+            ),
+            'commit' => sprintf(
+                'https://api.github.com/repos/%s/tarball/%s',
+                $this->toolConfig['repo'],
+                $tag,
+            ),
+            default => sprintf(
+                'https://github.com/%s/releases/download/%s/%s',
+                $this->toolConfig['repo'],
+                $tag,
+                sprintf($assetConfig['pattern'], ltrim($tag, 'v')),
+            ),
+        };
+
+        $headers = ['User-Agent: valksor-binary-manager'];
+
+        if (in_array($downloadStrategy, ['tag', 'commit'], true)) {
+            $headers[] = 'Accept: application/vnd.github+json';
+        }
 
         $context = stream_context_create([
             'http' => [
                 'method' => 'GET',
-                'header' => [
-                    'User-Agent: valksor-binary-manager',
-                ],
+                'header' => $headers,
                 'follow_location' => 1,
                 'timeout' => 30,
             ],
@@ -339,6 +364,50 @@ final class BinaryAssetManager
     /**
      * @return array{tag: string, version: string}
      */
+    private function fetchLatestCommit(): array
+    {
+        $commitRef = $this->toolConfig['commit_ref'] ?? $this->getDefaultBranch();
+
+        $apiUrl = sprintf('https://api.github.com/repos/%s/commits/%s', $this->toolConfig['repo'], $commitRef);
+
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'GET',
+                'header' => [
+                    'User-Agent: valksor-binary-manager',
+                    'Accept: application/vnd.github+json',
+                ],
+                'timeout' => 15,
+            ],
+        ]);
+
+        $response = @file_get_contents($apiUrl, false, $context);
+
+        if (false === $response) {
+            throw new RuntimeException(sprintf('Failed to fetch commit %s for %s from GitHub API.', $commitRef, $this->toolConfig['name']));
+        }
+
+        try {
+            $commit = json_decode($response, true, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException $exception) {
+            throw new RuntimeException(sprintf('Invalid JSON response from GitHub API for %s commit: %s', $this->toolConfig['name'], $exception->getMessage()));
+        }
+
+        if (!array_key_exists('sha', $commit)) {
+            throw new RuntimeException(sprintf('Unexpected GitHub API commit response structure for %s.', $this->toolConfig['name']));
+        }
+
+        $shortSha = substr($commit['sha'], 0, 7);
+
+        return [
+            'tag' => $shortSha,
+            'version' => $shortSha,
+        ];
+    }
+
+    /**
+     * @return array{tag: string, version: string}
+     */
     private function fetchLatestNpmVersion(): array
     {
         $packageUrl = sprintf('https://registry.npmjs.org/%s/latest', $this->toolConfig['npm_package']);
@@ -415,6 +484,91 @@ final class BinaryAssetManager
             'tag' => $data['tag_name'],
             'version' => $data['name'] ?? $data['tag_name'],
         ];
+    }
+
+    /**
+     * @return array{tag: string, version: string}
+     */
+    private function fetchLatestTag(): array
+    {
+        $apiUrl = sprintf('https://api.github.com/repos/%s/tags', $this->toolConfig['repo']);
+
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'GET',
+                'header' => [
+                    'User-Agent: valksor-binary-manager',
+                    'Accept: application/vnd.github+json',
+                ],
+                'timeout' => 15,
+            ],
+        ]);
+
+        $response = @file_get_contents($apiUrl, false, $context);
+
+        if (false === $response) {
+            throw new RuntimeException(sprintf('Failed to fetch latest tag for %s from GitHub API.', $this->toolConfig['name']));
+        }
+
+        try {
+            $tags = json_decode($response, true, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException $exception) {
+            throw new RuntimeException(sprintf('Invalid JSON response from GitHub API for %s tags: %s', $this->toolConfig['name'], $exception->getMessage()));
+        }
+
+        if (!is_array($tags) || empty($tags)) {
+            throw new RuntimeException(sprintf('No tags found for %s repository.', $this->toolConfig['name']));
+        }
+
+        $latestTag = $tags[0];
+
+        if (!array_key_exists('name', $latestTag)) {
+            throw new RuntimeException(sprintf('Unexpected GitHub API tags response structure for %s.', $this->toolConfig['name']));
+        }
+
+        $tagName = $latestTag['name'];
+
+        return [
+            'tag' => $tagName,
+            'version' => $tagName,
+        ];
+    }
+
+    /**
+     * Get the default branch for the repository.
+     */
+    private function getDefaultBranch(): string
+    {
+        $apiUrl = sprintf('https://api.github.com/repos/%s', $this->toolConfig['repo']);
+
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'GET',
+                'header' => [
+                    'User-Agent: valksor-binary-manager',
+                    'Accept: application/vnd.github+json',
+                ],
+                'timeout' => 15,
+            ],
+        ]);
+
+        $response = @file_get_contents($apiUrl, false, $context);
+
+        if (false === $response) {
+            throw new RuntimeException(sprintf('Failed to fetch repository info for %s from GitHub API.', $this->toolConfig['name']));
+        }
+
+        try {
+            $repo = json_decode($response, true, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException $exception) {
+            throw new RuntimeException(sprintf('Invalid JSON response from GitHub API for %s repository: %s', $this->toolConfig['name'], $exception->getMessage()));
+        }
+
+        if (!array_key_exists('default_branch', $repo)) {
+            throw new RuntimeException(sprintf('Unexpected GitHub API repository response structure for %s.', $this->toolConfig['name']));
+        }
+
+        return $repo['default_branch'];
     }
 
     private function log(

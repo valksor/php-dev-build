@@ -62,6 +62,88 @@ final class BinaryAssetManagerTest extends TestCase
         self::assertTrue($method->invoke($manager, $this->targetDir));
     }
 
+    /**
+     * Test backward compatibility - default behavior should remain unchanged.
+     */
+    public function testBackwardCompatibility(): void
+    {
+        // Original config without download_strategy should work as before
+        $config = [
+            'name' => 'test-tool',
+            'source' => 'github',
+            'repo' => 'test/repo',
+            'assets' => [
+                ['pattern' => 'linux-x64', 'target' => 'test-binary', 'executable' => true],
+            ],
+            'target_dir' => $this->targetDir,
+        ];
+
+        $manager = new BinaryAssetManager($config);
+        $this->expectNotToPerformAssertions();
+    }
+
+    /**
+     * Test commit strategy without explicit commit_ref (should use default branch).
+     */
+    public function testCommitStrategyWithoutCommitRef(): void
+    {
+        $config = [
+            'name' => 'test-tool',
+            'source' => 'github',
+            'repo' => 'test/repo',
+            'download_strategy' => 'commit',
+            // No commit_ref specified - should auto-detect default branch
+            'assets' => [
+                ['pattern' => 'tool', 'target' => 'tool', 'executable' => true],
+            ],
+            'target_dir' => $this->targetDir,
+        ];
+
+        $manager = new BinaryAssetManager($config);
+        $this->expectNotToPerformAssertions();
+    }
+
+    /**
+     * Test constructor with commit download strategy.
+     */
+    public function testConstructorWithCommitStrategy(): void
+    {
+        $config = [
+            'name' => 'test-tool',
+            'source' => 'github',
+            'repo' => 'test/repo',
+            'download_strategy' => 'commit',
+            'commit_ref' => 'main',
+            'assets' => [
+                ['pattern' => 'tool', 'target' => 'tool', 'executable' => true],
+            ],
+            'target_dir' => $this->targetDir,
+        ];
+
+        $manager = new BinaryAssetManager($config);
+        $this->expectNotToPerformAssertions();
+    }
+
+    /**
+     * Test constructor with tag download strategy.
+     */
+    public function testConstructorWithTagStrategy(): void
+    {
+        $config = [
+            'name' => 'test-tool',
+            'source' => 'github',
+            'repo' => 'test/repo',
+            'download_strategy' => 'tag',
+            'assets' => [
+                ['pattern' => 'tool-{platform}', 'target' => 'tool', 'executable' => true],
+            ],
+            'target_dir' => $this->targetDir,
+        ];
+
+        $manager = new BinaryAssetManager($config);
+        $this->expectNotToPerformAssertions();
+    }
+
     public function testConstructorWithValidConfig(): void
     {
         $config = [
@@ -104,6 +186,31 @@ final class BinaryAssetManagerTest extends TestCase
         // Should not fail if directory already exists
         $method->invoke($manager, $this->targetDir . '/nested/dir');
         self::assertDirectoryExists($this->targetDir . '/nested/dir');
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testEnsureLatestWithCommitStrategy(): void
+    {
+        $config = [
+            'name' => 'test-tool',
+            'source' => 'github',
+            'repo' => 'test/repo',
+            'download_strategy' => 'commit',
+            'commit_ref' => 'main',
+            'assets' => [
+                ['pattern' => 'tool', 'target' => 'tool', 'executable' => true],
+            ],
+            'target_dir' => $this->targetDir,
+        ];
+
+        $manager = new BinaryAssetManager($config);
+
+        // This will try to fetch from GitHub API and fail
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Failed to fetch commit main for test-tool from GitHub API.');
+        $manager->ensureLatest();
     }
 
     /**
@@ -198,6 +305,101 @@ final class BinaryAssetManagerTest extends TestCase
         // This will try to fetch from npm registry, which will fail in test environment
         $this->expectException(RuntimeException::class);
         $manager->ensureLatest();
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testEnsureLatestWithTagStrategy(): void
+    {
+        $config = [
+            'name' => 'test-tool',
+            'source' => 'github',
+            'repo' => 'test/repo',
+            'download_strategy' => 'tag',
+            'assets' => [
+                ['pattern' => 'tool-{platform}', 'target' => 'tool', 'executable' => true],
+            ],
+            'target_dir' => $this->targetDir,
+        ];
+
+        $manager = new BinaryAssetManager($config);
+
+        // This will try to fetch from GitHub API and fail
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Failed to fetch latest tag for test-tool from GitHub API.');
+        $manager->ensureLatest();
+    }
+
+    /**
+     * @throws ReflectionException
+     */
+    public function testFetchLatestCommitWithInvalidGithubResponse(): void
+    {
+        $config = [
+            'name' => 'test-tool',
+            'source' => 'github',
+            'repo' => 'test/repo',
+            'download_strategy' => 'commit',
+            'commit_ref' => 'main',
+            'assets' => [],
+            'target_dir' => $this->targetDir,
+        ];
+
+        $manager = new BinaryAssetManager($config);
+        $method = new ReflectionClass($manager)->getMethod('fetchLatestCommit');
+
+        // This will try to fetch from GitHub API and fail
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Failed to fetch commit main for test-tool from GitHub API.');
+        $method->invoke($manager);
+    }
+
+    /**
+     * @throws ReflectionException
+     */
+    public function testFetchLatestTagWithInvalidGithubResponse(): void
+    {
+        $config = [
+            'name' => 'test-tool',
+            'source' => 'github',
+            'repo' => 'test/repo',
+            'download_strategy' => 'tag',
+            'assets' => [],
+            'target_dir' => $this->targetDir,
+        ];
+
+        $manager = new BinaryAssetManager($config);
+        $method = new ReflectionClass($manager)->getMethod('fetchLatestTag');
+
+        // This will try to fetch from GitHub API and fail
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Failed to fetch latest tag for test-tool from GitHub API.');
+        $method->invoke($manager);
+    }
+
+    /**
+     * @throws ReflectionException
+     */
+    public function testGetDefaultBranchWithInvalidGithubResponse(): void
+    {
+        $config = [
+            'name' => 'test-tool',
+            'source' => 'github',
+            'repo' => 'test/repo',
+            'download_strategy' => 'commit',
+            // No commit_ref specified, should try to get default branch
+            'assets' => [],
+            'target_dir' => $this->targetDir,
+        ];
+
+        $manager = new BinaryAssetManager($config);
+        $method = new ReflectionClass($manager)->getMethod('getDefaultBranch');
+
+        // This will try to fetch from GitHub API and fail
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Failed to fetch repository info for test-tool from GitHub API.');
+        $method->invoke($manager);
     }
 
     /**
