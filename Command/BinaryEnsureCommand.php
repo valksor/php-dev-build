@@ -77,6 +77,6 @@ final class BinaryEnsureCommand extends AbstractCommand
     ): object {
         $varDir = $projectRoot . '/var';
 
-        return $this->binaryRegistry->get($tool)->createManager($varDir);
+        return $this->binaryRegistry->get($tool)->createManager($varDir, $tool);
     }
 }

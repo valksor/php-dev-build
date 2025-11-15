@@ -8,6 +8,7 @@ A comprehensive development build tool suite for PHP applications that provides 
 ## What It Does
 
 The build system provides a modern development experience with:
+
 - **Automatic Browser Reload**: Files change → browser refreshes automatically
 - **Tailwind CSS Compilation**: Real-time CSS compilation with DaisyUI support
 - **Import Map Management**: Modern JavaScript dependency handling
@@ -42,42 +43,42 @@ valksor:
         # Hot Reload Configuration
         hot_reload:
             enabled: true
-            debounce_delay: 0.3        # Seconds to wait before triggering reload
-            watch_dirs:                # Directories to watch
-                - 'templates/'
-                - 'src/'
-                - 'assets/'
-            extended_extensions:        # File-specific debounce times
-                php: 0.1              # PHP files: 100ms debounce
-                js: 0.1               # JavaScript files: 100ms debounce
-                css: 0.2              # CSS files: 200ms debounce
-                twig: 0.3             # Twig files: 300ms debounce
-            extended_suffixes:          # File suffix-specific timing
-                '.tailwind.css': 0.5   # Compiled CSS: 500ms debounce
-                '.min.css': 0.3        # Minified CSS: 300ms debounce
+            debounce_delay: 0.3 # Seconds to wait before triggering reload
+            watch_dirs: # Directories to watch
+                - "templates/"
+                - "src/"
+                - "assets/"
+            extended_extensions: # File-specific debounce times
+                php: 0.1 # PHP files: 100ms debounce
+                js: 0.1 # JavaScript files: 100ms debounce
+                css: 0.2 # CSS files: 200ms debounce
+                twig: 0.3 # Twig files: 300ms debounce
+            extended_suffixes: # File suffix-specific timing
+                ".tailwind.css": 0.5 # Compiled CSS: 500ms debounce
+                ".min.css": 0.3 # Minified CSS: 300ms debounce
 
         # Tailwind CSS Configuration
         tailwind:
             enabled: true
-            minify: false              # Set to true for production
-            watch: true                # Watch for changes in development
+            minify: false # Set to true for production
+            watch: true # Watch for changes in development
 
         # Import Map Configuration
         importmap:
             enabled: true
-            watch: true                # Auto-update import maps
-            minify: false              # Set to true for production
+            watch: true # Auto-update import maps
+            minify: false # Set to true for production
 
         # Binary Management
         binaries:
-            required:                  # Tools to download automatically
-                - 'tailwindcss'
-                - 'esbuild'
-            cache_duration: 3600       # Cache binary downloads for 1 hour
+            required: # Tools to download automatically
+                - "tailwindcss"
+                - "esbuild"
+            cache_duration: 3600 # Cache binary downloads for 1 hour
 
             # Download strategy for binaries
-            download_strategy: 'release'  # 'release' (default), 'tag', 'commit'
-            commit_ref: 'main'           # Optional: branch/commit for 'commit' strategy
+            download_strategy: "release" # 'release' (default), 'tag', 'commit'
+            commit_ref: "main" # Optional: branch/commit for 'commit' strategy
 ```
 
 ### Service Configuration (Advanced)
@@ -91,32 +92,33 @@ valksor:
         services:
             binaries:
                 enabled: true
-                flags: ['init', 'dev', 'prod']     # When to run this service
+                flags: ["init", "dev", "prod"] # When to run this service
                 options:
-                    required: ['tailwindcss', 'esbuild']
+                    required: ["tailwindcss", "esbuild"]
 
             hot_reload:
                 enabled: true
-                flags: ['dev']                      # Run only in development
+                flags: ["dev"] # Run only in development
                 options:
                     debounce_delay: 0.3
-                    watch_dirs: ['/src', '/templates']
+                    watch_dirs: ["/src", "/templates"]
 
             tailwind:
                 enabled: true
-                flags: ['dev', 'prod']              # Run in dev and production
+                flags: ["dev", "prod"] # Run in dev and production
                 options:
-                    minify: false                   # Will be true in prod
+                    minify: false # Will be true in prod
 
             importmap:
                 enabled: true
-                flags: ['dev', 'prod']
+                flags: ["dev", "prod"]
                 options:
                     watch: true
                     minify: false
 ```
 
 **Service Flags Explained:**
+
 - `init`: Runs during initialization (binary downloads, setup)
 - `dev`: Runs during development (`valksor:dev`, `valksor:watch`)
 - `prod`: Runs during production builds (`valksor-prod:build`)
@@ -134,6 +136,7 @@ The build system supports multiple strategies for downloading binary tools:
 **commit**: Downloads from specific commits or branches
 
 **Usage Examples:**
+
 ```yaml
 # Download from releases (default)
 binaries:
@@ -150,6 +153,7 @@ binaries:
 ```
 
 **Strategy Selection:**
+
 - Use **release** for tools with proper GitHub releases and compiled binaries
 - Use **tag** for tools that only publish tags without releases
 - Use **commit** for tools that need the latest code from a specific branch
@@ -207,13 +211,16 @@ php bin/console valksor:dev --env=prod
 ## Project Structure Support
 
 ### Single-App Projects (Default)
+
 Works out of the box with standard Symfony structure:
+
 - `src/` - PHP files
 - `templates/` - Twig templates
 - `assets/` - CSS, JavaScript, images
 - `public/` - Compiled assets
 
 ### Multi-App Projects
+
 For projects with multiple applications:
 
 ```yaml
@@ -221,11 +228,12 @@ For projects with multiple applications:
 valksor:
     build:
         project:
-            apps_dir: 'apps'              # Directory containing apps
-            infrastructure_dir: 'src'     # Shared infrastructure code
+            apps_dir: "apps" # Directory containing apps
+            infrastructure_dir: "src" # Shared infrastructure code
 ```
 
 This automatically discovers:
+
 - Tailwind files in each app directory
 - Import maps per application
 - Icons for each app
@@ -234,22 +242,25 @@ This automatically discovers:
 ## File Watching Patterns
 
 ### Default Watched Paths
+
 - `templates/` - Twig templates
 - `src/` - PHP files
 - `assets/` - CSS, JavaScript, images
 
 ### Custom Watch Paths
+
 ```yaml
 valksor:
     build:
         hot_reload:
             watch_dirs:
-                - 'config/'          # Watch configuration files
-                - 'translations/'    # Watch translation files
-                - 'public/assets/'   # Watch compiled assets
+                - "config/" # Watch configuration files
+                - "translations/" # Watch translation files
+                - "public/assets/" # Watch compiled assets
 ```
 
 ### File-Specific Debounce
+
 Different file types can have different reload delays:
 
 ```yaml
@@ -257,11 +268,11 @@ valksor:
     build:
         hot_reload:
             extended_extensions:
-                php: 0.1           # PHP files: quick reload
-                twig: 0.5          # Templates: slower reload
-                css: 0.3           # CSS: medium speed
+                php: 0.1 # PHP files: quick reload
+                twig: 0.5 # Templates: slower reload
+                css: 0.3 # CSS: medium speed
             extended_suffixes:
-                '.tailwind.css': 1.0   # Compiled CSS: slowest
+                ".tailwind.css": 1.0 # Compiled CSS: slowest
 ```
 
 ## Tailwind CSS Integration
@@ -269,6 +280,7 @@ valksor:
 ### Basic Tailwind Setup
 
 1. Create your CSS file:
+
 ```css
 /* assets/css/app.css */
 @tailwind base;
@@ -277,6 +289,7 @@ valksor:
 ```
 
 2. Configure Valksor:
+
 ```yaml
 valksor:
     build:
@@ -285,6 +298,7 @@ valksor:
 ```
 
 3. Start development:
+
 ```bash
 php bin/console valksor:watch
 ```
@@ -372,23 +386,27 @@ Icons are automatically available as Twig functions:
 ### Common Issues
 
 **Binary Downloads Fail**
+
 ```bash
 # Force re-download of build tools
 php bin/console valksor:binary
 ```
 
 **File Watching Not Working**
+
 - Check file permissions on watched directories
 - Verify inotify limits (Linux): `cat /proc/sys/fs/inotify/max_user_watches`
 - For Docker, ensure volume mounts are correct
 
 **Tailwind Compilation Issues**
+
 - Check your `tailwind.config.js` exists
 - Verify content paths in Tailwind config
 - Ensure input CSS file exists with `@tailwind` directives
 
 **Port Conflicts**
 The build system uses default ports that may conflict:
+
 - Hot reload: Port 8080 (configurable)
 
 ### Debug Mode

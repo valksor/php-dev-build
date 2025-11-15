@@ -19,6 +19,7 @@ final class LucideBinary implements BinaryInterface
 {
     public function createManager(
         string $varDir,
+        ?string $requestedName = null,
     ): BinaryAssetManager {
         return self::createForLucide($varDir . '/lucide');
     }

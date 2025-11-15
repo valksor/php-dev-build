@@ -21,6 +21,7 @@ final class TailwindBinary implements BinaryInterface
 {
     public function createManager(
         string $varDir,
+        ?string $requestedName = null,
     ): BinaryAssetManager {
         return self::createForTailwindCss($varDir . '/tailwindcss');
     }

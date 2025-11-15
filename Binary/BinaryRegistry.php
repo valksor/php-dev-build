@@ -46,7 +46,7 @@ final class BinaryRegistry
     /**
      * Get a provider by binary name.
      *
-     * @param string $name The binary name (e.g., 'tailwindcss')
+     * @param string $name The binary name (e.g., 'tailwindcss', '@valksor/valksor@next')
      *
      * @return BinaryInterface The registered provider
      *
@@ -59,7 +59,17 @@ final class BinaryRegistry
             throw new RuntimeException(sprintf('No binary provider registered for: %s', $name));
         }
 
-        return $this->providers[$name];
+        // Direct match first
+        if (isset($this->providers[$name])) {
+            return $this->providers[$name];
+        }
+
+        // For @valksor/valksor packages, return the base provider
+        if (str_starts_with($name, '@valksor/valksor')) {
+            return $this->providers['@valksor/valksor'];
+        }
+
+        throw new RuntimeException(sprintf('No binary provider registered for: %s', $name));
     }
 
     /**
@@ -75,14 +85,24 @@ final class BinaryRegistry
     /**
      * Check if a provider is registered for the given binary name.
      *
-     * @param string $name The binary name (e.g., 'tailwindcss')
+     * @param string $name The binary name (e.g., 'tailwindcss', '@valksor/valksor@next')
      *
      * @return bool True if provider exists
      */
     public function has(
         string $name,
     ): bool {
-        return isset($this->providers[$name]);
+        // Direct match first
+        if (isset($this->providers[$name])) {
+            return true;
+        }
+
+        // For @valksor/valksor packages, check for base provider
+        if (str_starts_with($name, '@valksor/valksor')) {
+            return isset($this->providers['@valksor/valksor']);
+        }
+
+        return false;
     }
 
     /**

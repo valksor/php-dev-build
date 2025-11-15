@@ -60,6 +60,7 @@ final class BinaryAssetManager
      *     source: 'github'|'npm'|'github-zip',
      *     repo?: string,
      *     npm_package?: string,
+     *     npm_dist_tag?: string,
      *     assets: array<int,array{pattern:string,target:string,executable:bool,extract_path?:string}>,
      *     target_dir: string,
      *     version_in_path?: bool,
@@ -289,8 +290,19 @@ final class BinaryAssetManager
     ): void {
         $assetConfig = $this->toolConfig['assets'][0];
         $platform = self::detectPlatform();
-        $npmPackage = sprintf('@esbuild/%s', $platform);
-        $url = sprintf('https://registry.npmjs.org/%s/-/%s-%s.tgz', $npmPackage, $platform, $version);
+
+        // Use the actual npm package from configuration instead of hardcoded @esbuild
+        $npmPackage = $this->toolConfig['npm_package'];
+
+        // For scoped packages (@scope/package), use the correct URL format
+        if (str_starts_with($npmPackage, '@')) {
+            $scope = substr($npmPackage, 0, strpos($npmPackage, '/'));
+            $packageName = substr($npmPackage, strpos($npmPackage, '/') + 1);
+            $url = sprintf('https://registry.npmjs.org/%s/-/%s-%s.tgz', $npmPackage, $packageName, $version);
+        } else {
+            // For regular packages, download the full package
+            $url = sprintf('https://registry.npmjs.org/%s/-/%s-%s.tgz', $npmPackage, $npmPackage, $version);
+        }
 
         $context = stream_context_create([
             'http' => [
@@ -321,22 +333,34 @@ final class BinaryAssetManager
             $extractDir = $tmpDir . '/extracted';
             $this->ensureDirectory($extractDir);
 
-            exec(sprintf('tar -xzf %s -C %s %s 2>&1', escapeshellarg($tgzPath), escapeshellarg($extractDir), escapeshellarg($extractPath)), $output, $returnCode);
+            // Extract the entire tarball
+            exec(sprintf('tar -xzf %s -C %s 2>&1', escapeshellarg($tgzPath), escapeshellarg($extractDir)), $output, $returnCode);
 
             if (0 !== $returnCode) {
                 throw new RuntimeException(sprintf('Failed to extract %s tarball: %s', $this->toolConfig['name'], implode("\n", $output)));
             }
 
-            $extractedBinary = $extractDir . '/' . $extractPath;
-
-            if (!is_file($extractedBinary)) {
-                throw new RuntimeException(sprintf('Extracted binary not found at %s', $extractedBinary));
-            }
-
+            // Handle both file and directory extraction
+            $sourcePath = $extractDir . '/' . $extractPath;
             $targetPath = $targetDir . '/' . $assetConfig['target'];
 
-            if (!rename($extractedBinary, $targetPath)) {
-                throw new RuntimeException(sprintf('Failed to move %s binary to %s', $this->toolConfig['name'], $targetPath));
+            // If target is '.', copy the entire extracted directory
+            if ('.' === $assetConfig['target']) {
+                // Copy entire extracted directory contents to target
+                exec(sprintf('cp -r %s/* %s/ 2>&1', escapeshellarg($sourcePath), escapeshellarg($targetDir)), $output, $returnCode);
+
+                if (0 !== $returnCode) {
+                    throw new RuntimeException(sprintf('Failed to copy %s package: %s', $this->toolConfig['name'], implode("\n", $output)));
+                }
+            } else {
+                // Original behavior: move specific file
+                if (!is_file($sourcePath)) {
+                    throw new RuntimeException(sprintf('Extracted binary not found at %s', $sourcePath));
+                }
+
+                if (!rename($sourcePath, $targetPath)) {
+                    throw new RuntimeException(sprintf('Failed to move %s binary to %s', $this->toolConfig['name'], $targetPath));
+                }
             }
 
             if ($assetConfig['executable']) {
@@ -410,7 +434,8 @@ final class BinaryAssetManager
      */
     private function fetchLatestNpmVersion(): array
     {
-        $packageUrl = sprintf('https://registry.npmjs.org/%s/latest', $this->toolConfig['npm_package']);
+        $distTag = $this->toolConfig['npm_dist_tag'] ?? 'latest';
+        $packageUrl = sprintf('https://registry.npmjs.org/%s/%s', $this->toolConfig['npm_package'], $distTag);
 
         $context = stream_context_create([
             'http' => [

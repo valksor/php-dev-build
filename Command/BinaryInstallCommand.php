@@ -75,7 +75,7 @@ final class BinaryInstallCommand extends AbstractCommand
             }
 
             try {
-                $tag = $this->binaryRegistry->get($binary)->createManager($varDir)->ensureLatest([$io, 'text']);
+                $tag = $this->binaryRegistry->get($binary)->createManager($varDir, $binary)->ensureLatest([$io, 'text']);
                 $io->success(sprintf('✓ %s installed (%s)', $binary, $tag));
                 $successCount++;
             } catch (Exception $e) {

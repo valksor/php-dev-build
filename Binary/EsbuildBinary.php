@@ -19,6 +19,7 @@ final class EsbuildBinary implements BinaryInterface
 {
     public function createManager(
         string $varDir,
+        ?string $requestedName = null,
     ): BinaryAssetManager {
         return self::createForEsbuild($varDir . '/esbuild');
     }

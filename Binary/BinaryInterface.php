@@ -26,12 +26,14 @@ interface BinaryInterface
     /**
      * Create a configured BinaryAssetManager for this tool.
      *
-     * @param string $varDir The base var directory (e.g., /path/to/project/var)
+     * @param string $varDir        The base var directory (e.g., /path/to/project/var)
+     * @param string $requestedName The actual binary name requested (e.g., '@valksor/valksor@next')
      *
      * @return BinaryAssetManager Configured manager ready to download/ensure the binary
      */
     public function createManager(
         string $varDir,
+        ?string $requestedName = null,
     ): BinaryAssetManager;
 
     /**

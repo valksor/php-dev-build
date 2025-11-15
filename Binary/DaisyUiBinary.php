@@ -19,6 +19,7 @@ final class DaisyUiBinary implements BinaryInterface
 {
     public function createManager(
         string $varDir,
+        ?string $requestedName = null,
     ): BinaryAssetManager {
         return self::createForDaisyUi($varDir . '/daisyui');
     }
